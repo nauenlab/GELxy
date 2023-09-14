@@ -24,5 +24,17 @@ class Lamp:
         # Constant Current (CC) mode
         # Make CC settings
         self.library.TLDC2200_setOperationMode(self.dev_session, 0)
-        self.library.TLDC2200_setConstCurrent(self.dev_session, ctypes.c_float(0.01))
+        self.library.TLDC2200_setLedOnOff(self.dev_session, True)
+        #self.library.TLDC2200_setConstCurrent(self.dev_session, ctypes.c_float(0.01))
+        
+    def __del__(self):
+        self.library.TLDC2200_setConstCurrent(self.dev_session, 0)
+        self.library.TLDC2200_setLedOnOff(self.dev_session, False)
+    
+    
+    def turnOn(self):
+        self.library.TLDC2200_setConstCurrent(self.dev_session, ctypes.c_float(self.led_ampere))
+        
+    def turnOff(self):
+        self.library.TLDC2200_setConstCurrent(self.dev_session, 0)
 

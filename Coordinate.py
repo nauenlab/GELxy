@@ -16,7 +16,7 @@ class Coordinates:
         self.y = []
         self.coordinates = []
         self.movement_type = MovementType.absolute if not movement_type else movement_type
-
+    
     def __iter__(self):
         self.a = 0
         return self
@@ -28,7 +28,20 @@ class Coordinates:
             return n
         else:
             raise StopIteration
+    
+    def __len__(self):
+        return len(self.coordinates)
 
+    def __getitem__(self, item):
+         return self.coordinates[item]
+    
+    def __add__(lhs, rhs):
+        new_coords = lhs
+        new_coords.x += rhs.x
+        new_coords.y += rhs.y
+        new_coords.coordinates += rhs.coordinates
+        return new_coords
+        
     def append(self, coordinate):
         self.x.append(coordinate.x)
         self.y.append(coordinate.y)

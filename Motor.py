@@ -13,6 +13,9 @@ from System import Decimal
 
 class Motor:
     def __init__(self, sleep_time, serial_no, acceleration=None, max_velocity=None, min_velocity=None):
+        self.acceleration = acceleration
+        self.max_velocity = max_velocity
+        self.min_velocity = min_velocity
         self.sleep_time = sleep_time
         self.serial_number = serial_no
         serial_no = str(serial_no)  # Change to match the serial number on your KDC.
@@ -38,15 +41,10 @@ class Motor:
         m_config.UpdateCurrentConfiguration()
 
         self.device.SetSettings(self.device.MotorDeviceSettings, True, False)
-
-        # Set the velocity and acceleration parameters
-        vp = self.device.GetVelocityParams()
-        vp.Acceleration = Decimal(acceleration) if acceleration else vp.Acceleration
-        vp.MaxVelocity = Decimal(max_velocity) if max_velocity else vp.MaxVelocity
-        vp.MinVelocity = Decimal(min_velocity) if min_velocity else vp.MinVelocity
-        self.device.SetVelocityParams(vp)
+        
+        self.setVelocityParams(acceleration=acceleration, max_velocity=max_velocity, min_velocity=min_velocity)
                 
-        self.home()
+       # self.home()
 
         # self.acceleration = acceleration if acceleration else 4.0 # get max values from device.AdvanedMotorLimits
         # self.max_velocity = max_velocity if max_velocity else 2.6
@@ -58,9 +56,17 @@ class Motor:
         
         
     def home(self):
-        print(f"homing {serial_no}")
+        print(f"homing {self.serial_number}")
         self.device.SetHomingVelocity(Decimal(2.6))
         self.device.Home(50000)
+        
+    def setVelocityParams(self, acceleration=None, max_velocity=None, min_velocity=None):
+        # Set the velocity and acceleration parameters
+        vp = self.device.GetVelocityParams()
+        vp.Acceleration = Decimal(acceleration) if acceleration else vp.Acceleration
+        vp.MaxVelocity = Decimal(max_velocity) if max_velocity else vp.MaxVelocity
+        vp.MinVelocity = Decimal(min_velocity) if min_velocity else vp.MinVelocity
+        self.device.SetVelocityParams(vp)
 
     # def move_relative(self, relative_position):
     # NOT FINIISHED
@@ -70,8 +76,12 @@ class Motor:
     #     elif relative_position < 0:
     #         self.device.MoveJog(MotorDirection.Backward, 0)
 
-    def move_absolute(self, absolute_position):
-        self.device.MoveTo(Decimal(absolute_position), 10000)
+    def move_absolute(self, absolute_position, timeout, isFirstMove=False):
+        if isFirstMove:
+            self.setVelocityParams(acceleration=4.0, max_velocity=2.6, min_velocity=2.6)
+        self.device.MoveTo(Decimal(absolute_position), timeout)
+        if isFirstMove:
+            self.setVelocityParams(acceleration=self.acceleration, max_velocity=self.max_velocity, min_velocity=self.min_velocity)
 
 
 
