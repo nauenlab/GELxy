@@ -11,8 +11,11 @@ class Circle(Shape):
         self.diameter = float(diameter)
         self.radius = float(diameter) / 2
         self.step_size = step_size # mm
-
+        
     def get_coordinates(self):
+        return self.__radial_coordinates__()
+
+    def __linear_coordinates__(self):
         upper_coordinates = Coordinates()
         lower_coordinates = Coordinates()
         x_pos1 = math.cos(0)
@@ -36,4 +39,20 @@ class Circle(Shape):
         coordinates.normalize()
         
         return coordinates
+    
+    def __radial_coordinates__(self):
+       coordinates = Coordinates()
+       x_pos1 = math.cos(math.radians(0))
+       y_pos1 = math.sin(math.radians(0))
+       for i in range(360):
+           x_pos = math.cos(math.radians(i))
+           y_pos = math.sin(math.radians(i))
+
+           x_pos2 = (x_pos - x_pos1) * self.radius
+           y_pos2 = (y_pos - y_pos1) * self.radius
+           c = Coordinate(x_pos2, y_pos2)
+           coordinates.append(c)
+
+       coordinates.normalize()
+       return coordinates
 

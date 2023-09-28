@@ -9,6 +9,7 @@ from Thorlabs.MotionControl.DeviceManagerCLI import *
 from Thorlabs.MotionControl.GenericMotorCLI import *
 from Thorlabs.MotionControl.KCube.DCServoCLI import *
 from System import Decimal
+import signal
 
 
 class Motor:
@@ -23,7 +24,12 @@ class Motor:
 
         self.device = KCubeDCServo.CreateKCubeDCServo(serial_no)
         # Connect, begin polling, and enable KDC.
-        self.device.Connect(serial_no)
+        try:
+            self.device.Connect(serial_no)
+        except:
+            time.sleep(1)
+            self.__init__(sleep_time, serial_no, acceleration, max_velocity, min_velocity)
+            return
         self.device.WaitForSettingsInitialized(250)
         # TODO: can we poll the device at a higher rate so we don't have to stop the code via sleep?
         self.device.StartPolling(250)
@@ -51,10 +57,9 @@ class Motor:
         # self.min_velocity = min_velocity if min_velocity else 2.6
 
     def __del__(self):
-        self.device.stopPolling()
-        self.device.shutDown()
-        
-        
+        self.device.StopPolling()
+        self.device.ShutDown()
+
     def home(self):
         print(f"homing {self.serial_number}")
         self.device.SetHomingVelocity(Decimal(2.6))

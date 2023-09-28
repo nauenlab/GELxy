@@ -9,9 +9,31 @@ class VirtualMotor:
         self.acceleration = acceleration if acceleration else 4.0
         self.max_velocity = max_velocity if max_velocity else 2.6
         self.min_velocity = min_velocity if min_velocity else 2.6
+        self.position = 0.0
+        
+        
+    def move_lag():
+        pass
 
 
-    def move_absolute(self, position):
-        print()
+    def move_absolute(self, new_position, timeout, isFirstMove):
+        if isFirstMove:
+            self.setVelocityParams(acceleration=4.0, max_velocity=2.6, min_velocity=2.6)
+        self.move_lag()
+        
+        if self.position < new_position:
+            # move forwards
+            
+        else:
+            #move reverse
+        
+        
+        
+        
+        
+        
+        self.device.MoveTo(Decimal(absolute_position), timeout)
+        if isFirstMove:
+            self.setVelocityParams(acceleration=self.acceleration, max_velocity=self.max_velocity, min_velocity=self.min_velocity)
 
 

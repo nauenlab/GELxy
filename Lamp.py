@@ -1,6 +1,7 @@
 import ctypes
 import os
 import sys
+import signal
 
 # If you're using Python 3.7 or older change add_dll_directory to chdir
 if sys.version_info < (3, 8):
@@ -25,16 +26,16 @@ class Lamp:
         # Make CC settings
         self.library.TLDC2200_setOperationMode(self.dev_session, 0)
         self.library.TLDC2200_setLedOnOff(self.dev_session, True)
-        #self.library.TLDC2200_setConstCurrent(self.dev_session, ctypes.c_float(0.01))
+        self.turnOff()
         
     def __del__(self):
         self.library.TLDC2200_setConstCurrent(self.dev_session, 0)
         self.library.TLDC2200_setLedOnOff(self.dev_session, False)
-    
-    
+  
     def turnOn(self):
         self.library.TLDC2200_setConstCurrent(self.dev_session, ctypes.c_float(self.led_ampere))
         
     def turnOff(self):
         self.library.TLDC2200_setConstCurrent(self.dev_session, 0)
-
+    
+   

@@ -12,6 +12,9 @@ clr.AddReference("C:\\Program Files\\Thorlabs\\Kinesis\\ThorLabs.MotionControl.K
 from Thorlabs.MotionControl.DeviceManagerCLI import *
 from Thorlabs.MotionControl.GenericMotorCLI import *
 from Thorlabs.MotionControl.KCube.DCServoCLI import *
+
+# for jogmodes
+from Thorlabs.MotionControl.GenericMotorCLI.ControlParameters import *
 from System import Decimal
 
 # If you're using Python 3.7 or older change add_dll_directory to chdir
@@ -103,11 +106,48 @@ for i in range(100):
 """
 
 
-print(dir(settings.Jog.JogMode.__class__))
-print(settings.Jog.JogMode.__class__)
+#print([e.value for e in JogParametersBase.JogModes])
+#print([e for e in JogParametersBase.JogModes])
+print(JogParametersBase.JogModes)
+print(JogParametersBase.JogModes.SingleStep)
+print(JogParametersBase.JogModesStr)
+try:
+    print(JogParametersBase.JogModes.Continuous)
+    print("PASS")
+except Exception as error:
+    print(error)
+    
+try:
+    print(JogParametersBase.JogModes.Cont)
+    print("PASS")
+except Exception as error:
+    print(error)
+    
+try:
+    print(JogParametersBase.JogModes.Continous)
+    print("PASS")
+except Exception as error:
+    print(error)
+    
+    
+try:
+    print(JogParametersBase.JogModes.continuous)
+    print("PASS")
+except Exception as error:
+    print(error)
+    
 
-settings.Jog.JogMode = 12
-settings.Jog.StopMode = 0
+try:
+    print(JogParametersBase.JogModes.Continuos)
+    print("PASS")
+except Exception as error:
+    print(error)
+    
+
+
+#settings.Jog.JogMode = JogParametersBase.JogModes.Continuous
+settings.Jog.StopMode = JogParametersBase.StopModes.Immediate
+settings.Jog.StopMode = JogParametersBase.StopModes.Profiled
 print(settings.Jog.JogMode)
 print(settings.Jog.JogStopMode)
 
