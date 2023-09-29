@@ -9,7 +9,6 @@ from Thorlabs.MotionControl.DeviceManagerCLI import *
 from Thorlabs.MotionControl.GenericMotorCLI import *
 from Thorlabs.MotionControl.KCube.DCServoCLI import *
 from System import Decimal
-import signal
 
 
 class Motor:
@@ -81,11 +80,11 @@ class Motor:
     #     elif relative_position < 0:
     #         self.device.MoveJog(MotorDirection.Backward, 0)
 
-    def move_absolute(self, absolute_position, timeout, isFirstMove=False):
-        if isFirstMove:
+    def move_absolute(self, absolute_position, timeout, is_first_move=False):
+        if is_first_move:
             self.setVelocityParams(acceleration=4.0, max_velocity=2.6, min_velocity=2.6)
         self.device.MoveTo(Decimal(absolute_position), timeout)
-        if isFirstMove:
+        if is_first_move:
             self.setVelocityParams(acceleration=self.acceleration, max_velocity=self.max_velocity, min_velocity=self.min_velocity)
 
 

@@ -105,49 +105,8 @@ for i in range(100):
 
 """
 
-
-#print([e.value for e in JogParametersBase.JogModes])
-#print([e for e in JogParametersBase.JogModes])
-print(JogParametersBase.JogModes)
-print(JogParametersBase.JogModes.SingleStep)
-print(JogParametersBase.JogModesStr)
-try:
-    print(JogParametersBase.JogModes.Continuous)
-    print("PASS")
-except Exception as error:
-    print(error)
-    
-try:
-    print(JogParametersBase.JogModes.Cont)
-    print("PASS")
-except Exception as error:
-    print(error)
-    
-try:
-    print(JogParametersBase.JogModes.Continous)
-    print("PASS")
-except Exception as error:
-    print(error)
-    
-    
-try:
-    print(JogParametersBase.JogModes.continuous)
-    print("PASS")
-except Exception as error:
-    print(error)
-    
-
-try:
-    print(JogParametersBase.JogModes.Continuos)
-    print("PASS")
-except Exception as error:
-    print(error)
-    
-
-
-#settings.Jog.JogMode = JogParametersBase.JogModes.Continuous
+settings.Jog.JogMode = JogParametersBase.JogModes.ContinuousHeld
 settings.Jog.StopMode = JogParametersBase.StopModes.Immediate
-settings.Jog.StopMode = JogParametersBase.StopModes.Profiled
 print(settings.Jog.JogMode)
 print(settings.Jog.JogStopMode)
 
