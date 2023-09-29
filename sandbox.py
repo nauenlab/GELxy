@@ -92,9 +92,6 @@ print(deviceX.Position)
 print(deviceX)
 
 
-print(dir(GenericMotorCLI))
-#print([getattr(GenericMotorCLI, a) for a in dir(GenericMotorCLI)])
-
 
 settings = deviceX.MotorDeviceSettings
 """
@@ -105,13 +102,19 @@ for i in range(100):
 
 """
 
+
 settings.Jog.JogMode = JogParametersBase.JogModes.ContinuousHeld
-settings.Jog.StopMode = JogParametersBase.StopModes.Immediate
+settings.Jog.JogStopMode = JogParametersBase.StopModes.Immediate
 print(settings.Jog.JogMode)
 print(settings.Jog.JogStopMode)
 
+deviceX.SetSettings(settings, True, False)
+print(deviceX.MotorDeviceSettings.Jog.JogStopMode)
 #print(deviceX.GetVelocityParams())
 #deviceX.MoveTo(Decimal(10), 10000)
+deviceX.SetJogStepSize(Decimal(5))
+deviceX.SetJogVelocityParams(Decimal(1), Decimal(1))
+deviceX.MoveJog(MotorDirection.Forward, 0)
 
 print("complete")
 sys.exit()
