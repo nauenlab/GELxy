@@ -19,39 +19,55 @@ class VirtualMotor:
     def __del__(self):
         pass
 
+    def get_movements(self, new_position, is_first_move):
+        movements = []
+        ti = 0
+        distance = new_position - self.position
+        tf = self.get_movement_time(math.fabs(distance), is_first_move)
+        while ti - self.TIME_STEP <= tf:
+            new_pos = self.get_position_change_at(ti, is_first_move)
+            change = new_pos if distance > 0 else -new_pos
+            movements.append(self.position + change)
+            ti += self.TIME_STEP
+        self.position = new_position
+
+        return movements
+
+    def get_movement_time(self, d, is_first_move):
+        v = self.VELOCITY_LIMIT if is_first_move else self.max_velocity
+        a = self.ACCELERATION_LIMIT if is_first_move else self.acceleration
+
+        max_time = v / a
+        t1 = math.sqrt((2*d)/a)
+        if t1 < max_time:
+            return t1
+
+        t2 = (d - ((a*(max_time**2)) / 2)) / v
+        return max_time + t2
+
     def get_position_change_at(self, t, is_first_move):
         v = self.VELOCITY_LIMIT if is_first_move else self.max_velocity
         a = self.ACCELERATION_LIMIT if is_first_move else self.acceleration
 
         max_time = v / a
-        if t > max_time:
-            c = (v**2 / (2 * a)) - (v * max_time)
-            return (v * t) + c
-        else:
-            return (a * (t**2))/2
+        if t < max_time:
+            return (a * (t ** 2)) / 2
 
-    def move_absolute(self, final_position, timeout, is_first_move, is_primary=False):
+        c = (v**2 / (2 * a)) - (v * max_time)
+        return (v * t) + c
+
+    def move_absolute(self, final_position, timeout, is_first_move):
         original_position = self.position
         distance = final_position - self.position
-        prev_time = -1
-        os.environ['current_time'] = "0"
-        while math.fabs(self.position - original_position) < math.fabs(distance):
-            ct = int(os.environ.get("current_time"))
-            if prev_time == ct:
-                continue
+        current_time = 0
 
-            prev_time = ct
-            if ct > timeout / 1000:
+        while math.fabs(self.position - original_position) < math.fabs(distance):
+            current_time += self.TIME_STEP
+            if current_time > timeout / 1000:
                 raise Exception("Virtual Motor will take too long to move")
 
-            new_pos = self.get_position_change_at(ct, is_first_move)
-            self.position = new_pos if distance > 0 else -new_pos
-
-            if is_primary:
-                os.environ["current_time"] = f"{ ct + self.TIME_STEP }"
-
-        time.sleep(1)
-
-
+            new_pos = self.get_position_change_at(current_time, is_first_move)
+            self.position += new_pos if distance > 0 else -new_pos
+            print(self.position)
 
 

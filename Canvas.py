@@ -10,12 +10,12 @@ class Pixel:
 
 
 class Canvas:
-    
+
     mm_to_pixel_ratio = 10
 
-    def __init__(self, dimensions_cm):
+    def __init__(self, dimensions_mm):
         self.pixels = []
-        dimensions = dimensions_cm * self.mm_to_pixel_ratio * 10  # 0.1 mm is 1 pixel
+        dimensions = dimensions_mm * self.mm_to_pixel_ratio  # 0.1 mm is 1 pixel
         for i in range(0, dimensions):
             if i + 1 > len(self.pixels):
                 self.pixels.append([])

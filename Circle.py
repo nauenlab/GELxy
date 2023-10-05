@@ -6,10 +6,10 @@ from Coordinate import Coordinate, Coordinates
 
 class Circle(Shape):
 
-    def __init__(self, diameter, step_size):
+    def __init__(self, diameter_mm, step_size):
         super().__init__()
-        self.diameter = float(diameter)
-        self.radius = float(diameter) / 2
+        self.diameter = float(diameter_mm)
+        self.radius = float(diameter_mm) / 2
         self.step_size = step_size # mm
         
     def get_coordinates(self):
