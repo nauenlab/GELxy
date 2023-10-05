@@ -1,6 +1,4 @@
 import math
-import time
-import os
 
 
 class VirtualMotor:

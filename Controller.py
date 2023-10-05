@@ -24,6 +24,7 @@ def main():
     shape = Circle(diameter_mm=10, step_size=0.1)
     coordinates = shape.get_coordinates()
     move(coordinates)
+    manager.lamp.canvas.draw()
 
 
 def move(coordinates, timeout=10000, is_first_move=False):

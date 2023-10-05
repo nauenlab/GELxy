@@ -10,7 +10,7 @@ class Circle(Shape):
         super().__init__()
         self.diameter = float(diameter_mm)
         self.radius = float(diameter_mm) / 2
-        self.step_size = step_size # mm
+        self.step_size = step_size  # mm
         
     def get_coordinates(self):
         return self.__radial_coordinates__()
@@ -54,5 +54,6 @@ class Circle(Shape):
            coordinates.append(c)
 
        coordinates.normalize()
+       coordinates.append(coordinates[0])
        return coordinates
 
