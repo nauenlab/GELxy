@@ -10,7 +10,6 @@ class VirtualMotor:
     ACCELERATION_LIMIT = 4.0
 
     def __init__(self, serial_no=None, acceleration=None, max_velocity=None, min_velocity=None):
-        # self.timing_manager = timing_manager
         self.serial_number = serial_no
         self.acceleration = acceleration if acceleration else self.ACCELERATION_LIMIT
         self.max_velocity = max_velocity if max_velocity else self.VELOCITY_LIMIT
@@ -36,8 +35,6 @@ class VirtualMotor:
         distance = final_position - self.position
         prev_time = -1
         os.environ['current_time'] = "0"
-        # print(self.timing_manager)
-        # print(self.timing_manager.is_locked())
         while math.fabs(self.position - original_position) < math.fabs(distance):
             ct = int(os.environ.get("current_time"))
             if prev_time == ct:
@@ -49,15 +46,11 @@ class VirtualMotor:
 
             new_pos = self.get_position_change_at(ct, is_first_move)
             self.position = new_pos if distance > 0 else -new_pos
-            # print(new_pos, final_position, self.timing_manager.current_time)
 
-            # self.timing_manager.increment(id(self))
-            # print(prev_time, self.timing_manager.current_time)
             if is_primary:
                 os.environ["current_time"] = f"{ ct + self.TIME_STEP }"
 
         time.sleep(1)
-        # self.timing_manager.reset()
 
 
 

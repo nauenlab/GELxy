@@ -1,18 +1,17 @@
-import time
 from threading import Thread
 import os
 
 
 class VirtualLamp:
 
+    TIME_STEP = 0.01  # 0.01 s
     CURING_RATE = 0.5  # 0.5 alpha / second
 
-    def __init__(self, led_ampere, motors_manager, canvas, timing_manager):
+    def __init__(self, led_ampere, motors_manager, canvas):
         self.led_ampere = led_ampere
         self.deviceX = motors_manager.x
         self.deviceY = motors_manager.y
         self.canvas = canvas
-        self.timing_manager = timing_manager
         self.is_on = False
 
     def __del__(self):
@@ -24,7 +23,7 @@ class VirtualLamp:
         Thread(target=self.cure).start()
 
     def cure(self):
-        cure_per_step = self.CURING_RATE * self.timing_manager.TIME_STEP
+        cure_per_step = self.CURING_RATE * self.TIME_STEP
         time_progress = -1
 
         while self.is_on:
