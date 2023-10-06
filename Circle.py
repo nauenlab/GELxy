@@ -31,8 +31,8 @@ class Circle(Shape):
             c = Coordinate(x_pos2, y_pos2)
             coordinates.append_if_far_enough(c, self.beam_diameter)
 
+        coordinates.append(Coordinate(coordinates[0].x, coordinates[0].y))
         coordinates.normalize(step_time=0.5)
-        coordinates.append(coordinates[0])
         return coordinates
 
 

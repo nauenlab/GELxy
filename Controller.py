@@ -27,10 +27,10 @@ else:
 
 def main():
     shapes = []
-    # shapes.append(Circle(diameter_mm=10, beam_diameter=BEAM_DIAMETER))
+    shapes.append(Circle(diameter_mm=10, beam_diameter=BEAM_DIAMETER))
     # shapes.append(Line(length_mm=10, beam_diameter=BEAM_DIAMETER, is_horizontal=True, uses_step_coordinates=True))
     # shapes.append(Rectangle(width_mm=5, height_mm=10, beam_diameter=BEAM_DIAMETER, uses_step_coordinates=False))
-    shapes.append(Triangle(width_mm=5, height_mm=5, rotation_angle=0, beam_diameter=BEAM_DIAMETER, uses_step_coordinates=False))
+    # shapes.append(Triangle(width_mm=5, height_mm=5, rotation_angle=0, beam_diameter=BEAM_DIAMETER, uses_step_coordinates=False))
     for shape in shapes:
         coordinates = shape.get_coordinates()
         move(coordinates)
