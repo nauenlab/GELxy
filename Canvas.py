@@ -39,18 +39,19 @@ class Canvas:
     def __init__(self, dimensions_mm):
         self.pixels = []
         dimensions = dimensions_mm * self.mm_to_pixel_ratio  # 0.1 mm is 1 pixel
-        for i in range(0, dimensions):
+        for i in range(dimensions + 1):
             if i + 1 > len(self.pixels):
                 self.pixels.append([])
-            for j in range(1, dimensions):
+            for j in range(1, dimensions + 1):
                 self.pixels[i].append(Pixel(0, 0, 0, 0))
 
     def cure(self, x, y, diameter, cure_per_step):
         diameter * self.mm_to_pixel_ratio
         points = points_in_circle((x, y), diameter, 1.0 / self.mm_to_pixel_ratio)
         for point in points:
-            x_pos = int(point[0] * self.mm_to_pixel_ratio)
-            y_pos = int(point[1] * self.mm_to_pixel_ratio)
+            x_pos = int(round(point[0] * self.mm_to_pixel_ratio))
+            y_pos = int(round(point[1] * self.mm_to_pixel_ratio))
+            # print(x_pos + self.shape_buffer, y_pos + self.shape_buffer)
             self.pixels[x_pos + self.shape_buffer][y_pos + self.shape_buffer].inc(cure_per_step)
 
     def draw(self):

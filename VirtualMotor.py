@@ -17,6 +17,10 @@ class VirtualMotor:
     def __del__(self):
         pass
 
+    def set_params(self, vmax):
+        self.min_velocity = vmax
+        self.max_velocity = vmax
+
     def get_movements(self, new_position, is_first_move):
         movements = []
         ti = 0
@@ -32,7 +36,7 @@ class VirtualMotor:
         return movements
 
     def get_movement_time(self, d, is_first_move):
-        v = self.VELOCITY_LIMIT if is_first_move else self.max_velocity
+        v = self.VELOCITY_LIMIT if is_first_move or self.max_velocity == 0 else self.max_velocity
         a = self.ACCELERATION_LIMIT if is_first_move else self.acceleration
 
         max_time = v / a

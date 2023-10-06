@@ -15,6 +15,9 @@ class VirtualManager:
         return self.x, self.y
 
     def move(self, position, timeout, is_first_move):
+        if not is_first_move:
+            self.x.set_params(position.v[0])
+            self.y.set_params(position.v[1])
         x_mvts = self.x.get_movements(position.x, is_first_move)
         y_mvts = self.y.get_movements(position.y, is_first_move)
         for i in range(max(len(x_mvts), len(y_mvts))):

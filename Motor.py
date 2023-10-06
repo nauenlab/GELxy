@@ -47,7 +47,7 @@ class Motor:
 
         self.device.SetSettings(self.device.MotorDeviceSettings, True, False)
         
-        self.setVelocityParams(acceleration=acceleration, max_velocity=max_velocity, min_velocity=min_velocity)
+        self.set_velocity_params(acceleration=acceleration, max_velocity=max_velocity, min_velocity=min_velocity)
                 
        # self.home()
 
@@ -63,8 +63,11 @@ class Motor:
         print(f"homing {self.serial_number}")
         self.device.SetHomingVelocity(Decimal(2.6))
         self.device.Home(50000)
-        
-    def setVelocityParams(self, acceleration=None, max_velocity=None, min_velocity=None):
+
+    def set_params(self, vmax):
+        self.set_velocity_params(max_velocity=vmax, min_velocity=vmax)
+
+    def set_velocity_params(self, acceleration=None, max_velocity=None, min_velocity=None):
         # Set the velocity and acceleration parameters
         vp = self.device.GetVelocityParams()
         vp.Acceleration = Decimal(acceleration) if acceleration else vp.Acceleration
