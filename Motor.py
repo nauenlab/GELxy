@@ -89,11 +89,16 @@ class Motor:
             self.set_velocity_params(acceleration=4.0, max_velocity=2.6, min_velocity=2.6)
         motor_position = self.device.Position
         relative_movement = absolute_position - motor_position
-        self.device.SetJogStepSize(Decimal(relative_movement))
+        self.device.SetJogStepSize(Decimal(0.01))
         if relative_movement > 0:
             self.device.MoveJog(MotorDirection.Forward, timeout)
         elif relative_movement < 0:
             self.device.MoveJog(MotorDirection.Backward, timeout)
+        while not self.device.Status.IsInMotion:
+            continue
+        while (self.device.Position - motor_position) <= Decimal(relative_movement) <= (self.device.Position - motor_position):
+            continue
+        self.device.StopImmediate()
         if is_first_move:
             self.set_velocity_params(acceleration=self.acceleration, max_velocity=self.max_velocity, min_velocity=self.min_velocity)
 
