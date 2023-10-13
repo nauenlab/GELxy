@@ -52,7 +52,9 @@ class Canvas:
             x_pos = int(round(point[0] * self.mm_to_pixel_ratio))
             y_pos = int(round(point[1] * self.mm_to_pixel_ratio))
             # print(x_pos + self.shape_buffer, y_pos + self.shape_buffer)
-            self.pixels[x_pos + self.shape_buffer][y_pos + self.shape_buffer].inc(cure_per_step)
+            if len(self.pixels) - 1 > x_pos + self.shape_buffer >= 0 and \
+                    len(self.pixels[x_pos + self.shape_buffer]) - 1 > y_pos + self.shape_buffer >= 0:
+                self.pixels[x_pos + self.shape_buffer][y_pos + self.shape_buffer].inc(cure_per_step)
 
     def draw(self):
         new = Image.new(mode="RGBA", size=(len(self.pixels), len(self.pixels)), color=(0, 0, 0, 0))

@@ -4,9 +4,11 @@ from Coordinate import Coordinate, Coordinates
 
 class Line(Shape):
 
-    def __init__(self, length_mm, beam_diameter, is_horizontal=False, uses_step_coordinates=False):
+    def __init__(self, length_mm, offset, rotation_angle, beam_diameter, is_horizontal=False, uses_step_coordinates=False):
         super().__init__()
         self.length = float(length_mm)
+        self.rotation_angle = rotation_angle
+        self.offset = offset
         self.beam_diameter = beam_diameter
         self.is_horizontal = is_horizontal
         self.uses_step_coordinates = uses_step_coordinates
@@ -29,19 +31,19 @@ class Line(Shape):
 
             coordinates.append_if_far_enough(c, self.beam_diameter)
 
-        coordinates.normalize(step_time=0.24)
+        coordinates.normalize(step_time=0.24, offset=self.offset, rotation=self.rotation_angle)
         return coordinates
 
     def __line_coordinates__(self):
         coordinates = Coordinates()
         if self.is_horizontal:
-            coordinates.append(Coordinate(0, 0))
-            coordinates.append(Coordinate(0, self.length))
+            coordinates.append(Coordinate(-self.length/2, 0))
+            coordinates.append(Coordinate(self.length/2, 0))
         else:
-            coordinates.append(Coordinate(0, 0))
-            coordinates.append(Coordinate(0, self.length))
+            coordinates.append(Coordinate(0, -self.length/2))
+            coordinates.append(Coordinate(0, self.length/2))
 
-        coordinates.normalize(step_time=10)
+        coordinates.normalize(step_time=10, offset=self.offset, rotation=self.rotation_angle)
         return coordinates
 
 

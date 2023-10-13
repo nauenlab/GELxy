@@ -2,11 +2,12 @@ from Circle import Circle
 from Line import Line
 from Rectangle import Rectangle
 from Triangle import Triangle
+from Coordinate import Coordinate
 import signal
 import sys
 import os
 
-IS_VIRTUAL = False
+IS_VIRTUAL = True
 BEAM_DIAMETER = 0.1
 
 motor_thread_sleep = 0.4
@@ -27,9 +28,13 @@ else:
 
 def main():
     shapes = []
-    shapes.append(Circle(diameter_mm=10, beam_diameter=BEAM_DIAMETER))
-    # shapes.append(Line(length_mm=10, beam_diameter=BEAM_DIAMETER, is_horizontal=True, uses_step_coordinates=True))
-    # shapes.append(Rectangle(width_mm=5, height_mm=10, beam_diameter=BEAM_DIAMETER, uses_step_coordinates=False))
+    # shapes.append(Circle(diameter_mm=10, beam_diameter=BEAM_DIAMETER))
+    shapes.append(Line(length_mm=2, offset=Coordinate(8, 8), rotation_angle=0, beam_diameter=BEAM_DIAMETER, is_horizontal=True, uses_step_coordinates=False))
+    shapes.append(Line(length_mm=2, offset=Coordinate(8, 8), rotation_angle=0.45, beam_diameter=BEAM_DIAMETER, is_horizontal=True, uses_step_coordinates=False))
+    shapes.append(Line(length_mm=2, offset=Coordinate(4, 4), rotation_angle=0, beam_diameter=BEAM_DIAMETER, is_horizontal=False, uses_step_coordinates=False))
+    shapes.append(Line(length_mm=2, offset=Coordinate(4, 4), rotation_angle=0.45, beam_diameter=BEAM_DIAMETER, is_horizontal=False, uses_step_coordinates=False))
+    # shapes.append(Rectangle(width_mm=5, height_mm=10, offset=Coordinate(0, 0), rotation_angle=0, beam_diameter=BEAM_DIAMETER, uses_step_coordinates=False))
+    # shapes.append(Rectangle(width_mm=5, height_mm=10, offset=Coordinate(0, 0), rotation_angle=0.45, beam_diameter=BEAM_DIAMETER, uses_step_coordinates=False))
     # shapes.append(Triangle(width_mm=5, height_mm=5, rotation_angle=0, beam_diameter=BEAM_DIAMETER, uses_step_coordinates=False))
     for shape in shapes:
         coordinates = shape.get_coordinates()
