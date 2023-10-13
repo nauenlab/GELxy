@@ -48,15 +48,16 @@ class Motor:
 
         settings = self.device.MotorDeviceSettings
         settings.Jog.JogMode = JogParametersBase.JogModes.ContinuousHeld
-        settings.Jog.JogStopMode = JogParametersBase.StopModes.Immediate
+        settings.Jog.JogStopMode = JogParametersBase.StopModes.
         print(settings.Jog.JogMode)
         print(settings.Jog.JogStopMode)
 
         self.device.SetSettings(settings, True, False)
+        print(deviceX.MotorDeviceSettings.Jog.JogStopMode)
         
         self.set_velocity_params(acceleration=acceleration, max_velocity=max_velocity, min_velocity=min_velocity)
                 
-       # self.home()
+        self.home()
 
         # self.acceleration = acceleration if acceleration else 4.0 # get max values from device.AdvanedMotorLimits
         # self.max_velocity = max_velocity if max_velocity else 2.6
@@ -81,27 +82,28 @@ class Motor:
         vp.MaxVelocity = Decimal(max_velocity) if max_velocity else vp.MaxVelocity
         vp.MinVelocity = Decimal(min_velocity) if min_velocity else vp.MinVelocity
         self.device.SetVelocityParams(vp)
+        self.device.SetJogVelocityParams(Decimal(max_velocity), Decimal(acceleration))
 
     def jog_to(self, absolute_position, timeout, is_first_move):
         if is_first_move:
-            self.setVelocityParams(acceleration=4.0, max_velocity=2.6, min_velocity=2.6)
+            self.set_velocity_params(acceleration=4.0, max_velocity=2.6, min_velocity=2.6)
         motor_position = self.device.Position
         relative_movement = absolute_position - motor_position
         self.device.SetJogStepSize(Decimal(relative_movement))
         if relative_movement > 0:
-            self.device.MoveJog(MotorDirection.Forward, 0)
+            self.device.MoveJog(MotorDirection.Forward, timeout)
         elif relative_movement < 0:
-            self.device.MoveJog(MotorDirection.Backward, 0)
+            self.device.MoveJog(MotorDirection.Backward, timeout)
         if is_first_move:
-            self.setVelocityParams(acceleration=self.acceleration, max_velocity=self.max_velocity, min_velocity=self.min_velocity)
+            self.set_velocity_params(acceleration=self.acceleration, max_velocity=self.max_velocity, min_velocity=self.min_velocity)
 
 
-    # def move_absolute(self, absolute_position, timeout, is_first_move=False):
-    #     if is_first_move:
-    #         self.setVelocityParams(acceleration=4.0, max_velocity=2.6, min_velocity=2.6)
-    #     self.device.MoveTo(Decimal(absolute_position), timeout)
-    #     if is_first_move:
-    #         self.setVelocityParams(acceleration=self.acceleration, max_velocity=self.max_velocity, min_velocity=self.min_velocity)
+    def move_absolute(self, absolute_position, timeout, is_first_move=False):
+        if is_first_move:
+            self.set_velocity_params(acceleration=4.0, max_velocity=2.6, min_velocity=2.6)
+        self.device.MoveTo(Decimal(absolute_position), timeout)
+        if is_first_move:
+            self.set_velocity_params(acceleration=self.acceleration, max_velocity=self.max_velocity, min_velocity=self.min_velocity)
 
 
 

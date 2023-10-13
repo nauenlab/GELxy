@@ -1,4 +1,5 @@
 import ctypes
+import sys
 import clr
 import os
 import time
@@ -43,16 +44,25 @@ serial_no1 = str("27264864") #Change to match the serial number on your KDC.
 serial_no2 = str("27602218")
 DeviceManagerCLI.BuildDeviceList()
 
-deviceY = KCubeDCServo.CreateKCubeDCServo(serial_no1)
-deviceX = KCubeDCServo.CreateKCubeDCServo(serial_no2)
-print(DeviceManagerCLI.GetDeviceList())
 # Connect, begin polling, and enable KDC. 
-deviceX.Connect(serial_no1)
-deviceY.Connect(serial_no2)
-deviceY.StartPolling(250)
-deviceX.StartPolling(250)
-deviceY.EnableDevice()
-deviceX.EnableDevice()
+def connect(serial_number):
+    DeviceManagerCLI.BuildDeviceList()
+    motor = KCubeDCServo.CreateKCubeDCServo(serial_number)
+    try:
+        motor.Connect(serial_number)
+        motor.StartPolling(1)
+        motor.EnableDevice()
+    except DeviceNotReadyException:
+        print(f"unable to connect to {serial_number}, trying again")
+        time.sleep(1)
+        connect(serial_number)
+    return motor
+
+DeviceManagerCLI.BuildDeviceList()
+deviceX = connect(serial_no1)
+deviceY = connect(serial_no2)
+
+
 if not deviceY.IsSettingsInitialized():
     deviceY.WaitForSettingsInitialized(10000)  # 10 second timeout
     assert deviceY.IsSettingsInitialized() is True
@@ -107,14 +117,30 @@ settings.Jog.JogMode = JogParametersBase.JogModes.ContinuousHeld
 settings.Jog.JogStopMode = JogParametersBase.StopModes.Immediate
 print(settings.Jog.JogMode)
 print(settings.Jog.JogStopMode)
-
+initial = deviceX.Position
 deviceX.SetSettings(settings, True, False)
 print(deviceX.MotorDeviceSettings.Jog.JogStopMode)
 #print(deviceX.GetVelocityParams())
 #deviceX.MoveTo(Decimal(10), 10000)
-deviceX.SetJogStepSize(Decimal(5))
-deviceX.SetJogVelocityParams(Decimal(1), Decimal(1))
-deviceX.MoveJog(MotorDirection.Forward, 0)
+deviceX.SetJogStepSize(Decimal(1))
+deviceX.SetJogVelocityParams(Decimal(2.6), Decimal(4))
+try:
+    deviceX.MoveJog(MotorDirection.Forward, 0)
+except MoveToInvalidPositionException:
+    deviceX.MoveJog(MotorDirection.Backward, 0)
+
+print(deviceX.Position)
+while not deviceX.Status.IsInMotion:
+    continue
+
+while (deviceX.Position - initial) <= Decimal(5) and (deviceX.Position - initial) >= Decimal(-5):
+    continue
+    
+print(deviceX.Position - initial)
+deviceX.StopImmediate()
+
+
+print(deviceX.Position)
 
 print("complete")
 sys.exit()

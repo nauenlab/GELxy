@@ -20,8 +20,8 @@ class Manager:
             # turn on light
             self.lamp.turn_on()
 
-        xt = threading.Thread(target=self.x.jog_to, args=(position.x, timeout, is_first_move))
-        yt = threading.Thread(target=self.y.jog_to, args=(position.y, timeout, is_first_move))
+        xt = threading.Thread(target=self.x.move_absolute, args=(position.x, timeout, is_first_move))
+        yt = threading.Thread(target=self.y.move_absolute, args=(position.y, timeout, is_first_move))
 
         for thread in [xt, yt]:
             thread.start()

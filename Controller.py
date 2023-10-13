@@ -6,7 +6,7 @@ import signal
 import sys
 import os
 
-IS_VIRTUAL = True
+IS_VIRTUAL = False
 BEAM_DIAMETER = 0.1
 
 motor_thread_sleep = 0.4
