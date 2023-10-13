@@ -8,6 +8,7 @@ clr.AddReference("C:\\Program Files\\Thorlabs\\Kinesis\\ThorLabs.MotionControl.K
 from Thorlabs.MotionControl.DeviceManagerCLI import *
 from Thorlabs.MotionControl.GenericMotorCLI import *
 from Thorlabs.MotionControl.KCube.DCServoCLI import *
+from Thorlabs.MotionControl.GenericMotorCLI.ControlParameters import *
 from System import Decimal
 
 
@@ -42,10 +43,16 @@ class Motor:
 
         # Before homing or moving device, ensure the motor's configuration is loaded
         m_config = self.device.LoadMotorConfiguration(serial_no, DeviceConfiguration.DeviceSettingsUseOptionType.UseFileSettings)
-        m_config.DeviceSettingsName = "Z825B"  # Chnage to whatever stage you are using.
+        m_config.DeviceSettingsName = "Z825B"  # Change to whatever stage you are using.
         m_config.UpdateCurrentConfiguration()
 
-        self.device.SetSettings(self.device.MotorDeviceSettings, True, False)
+        settings = self.device.MotorDeviceSettings
+        settings.Jog.JogMode = JogParametersBase.JogModes.ContinuousHeld
+        settings.Jog.JogStopMode = JogParametersBase.StopModes.Immediate
+        print(settings.Jog.JogMode)
+        print(settings.Jog.JogStopMode)
+
+        self.device.SetSettings(settings, True, False)
         
         self.set_velocity_params(acceleration=acceleration, max_velocity=max_velocity, min_velocity=min_velocity)
                 
@@ -75,20 +82,26 @@ class Motor:
         vp.MinVelocity = Decimal(min_velocity) if min_velocity else vp.MinVelocity
         self.device.SetVelocityParams(vp)
 
-    # def move_relative(self, relative_position):
-    # NOT FINIISHED
-    #     self.device.SetJogStepSize(Decimal(relative_position))
-    #     if relative_position > 0:
-    #         self.device.MoveJog(MotorDirection.Forward, 0)
-    #     elif relative_position < 0:
-    #         self.device.MoveJog(MotorDirection.Backward, 0)
-
-    def move_absolute(self, absolute_position, timeout, is_first_move=False):
+    def jog_to(self, absolute_position, timeout, is_first_move):
         if is_first_move:
             self.setVelocityParams(acceleration=4.0, max_velocity=2.6, min_velocity=2.6)
-        self.device.MoveTo(Decimal(absolute_position), timeout)
+        motor_position = self.device.Position
+        relative_movement = absolute_position - motor_position
+        self.device.SetJogStepSize(Decimal(relative_movement))
+        if relative_movement > 0:
+            self.device.MoveJog(MotorDirection.Forward, 0)
+        elif relative_movement < 0:
+            self.device.MoveJog(MotorDirection.Backward, 0)
         if is_first_move:
             self.setVelocityParams(acceleration=self.acceleration, max_velocity=self.max_velocity, min_velocity=self.min_velocity)
+
+
+    # def move_absolute(self, absolute_position, timeout, is_first_move=False):
+    #     if is_first_move:
+    #         self.setVelocityParams(acceleration=4.0, max_velocity=2.6, min_velocity=2.6)
+    #     self.device.MoveTo(Decimal(absolute_position), timeout)
+    #     if is_first_move:
+    #         self.setVelocityParams(acceleration=self.acceleration, max_velocity=self.max_velocity, min_velocity=self.min_velocity)
 
 
 
