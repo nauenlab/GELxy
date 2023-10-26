@@ -4,14 +4,10 @@ from Coordinate import Coordinate, Coordinates
 
 class Line(Shape):
 
-    def __init__(self, length_mm, offset, rotation_angle, beam_diameter, is_horizontal=False, uses_step_coordinates=False):
-        super().__init__()
+    def __init__(self, length_mm, center=None, rotation_angle=None, beam_diameter=None, is_horizontal=False, uses_step_coordinates=False):
+        super().__init__(center=center, rotation_angle=rotation_angle, beam_diameter=beam_diameter, uses_step_coordinates=uses_step_coordinates)
         self.length = float(length_mm)
-        self.rotation_angle = rotation_angle
-        self.offset = offset
-        self.beam_diameter = beam_diameter
         self.is_horizontal = is_horizontal
-        self.uses_step_coordinates = uses_step_coordinates
 
     def get_coordinates(self):
         if self.uses_step_coordinates:
@@ -31,7 +27,7 @@ class Line(Shape):
 
             coordinates.append_if_far_enough(c, self.beam_diameter)
 
-        coordinates.normalize(step_time=0.24, offset=self.offset, rotation=self.rotation_angle)
+        coordinates.normalize(step_time=0.5, center=self.center, rotation=self.rotation_angle)
         return coordinates
 
     def __line_coordinates__(self):
@@ -43,7 +39,7 @@ class Line(Shape):
             coordinates.append(Coordinate(0, -self.length/2))
             coordinates.append(Coordinate(0, self.length/2))
 
-        coordinates.normalize(step_time=10, offset=self.offset, rotation=self.rotation_angle)
+        coordinates.normalize(step_time=10, center=self.center, rotation=self.rotation_angle)
         return coordinates
 
 

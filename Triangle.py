@@ -1,17 +1,13 @@
-import enum
 from Shape import Shape
 from Coordinate import Coordinate, Coordinates
 
 
 class Triangle(Shape):
 
-    def __init__(self, width_mm, height_mm, rotation_angle, beam_diameter, uses_step_coordinates=False):
-        super().__init__()
+    def __init__(self, width_mm, height_mm, center=None, rotation_angle=None, beam_diameter=None, uses_step_coordinates=None):
+        super().__init__(center=center, rotation_angle=rotation_angle, beam_diameter=beam_diameter, uses_step_coordinates=uses_step_coordinates)
         self.width = float(width_mm)
         self.height = float(height_mm)
-        self.rotation_angle = rotation_angle
-        self.beam_diameter = beam_diameter
-        self.uses_step_coordinates = uses_step_coordinates
 
     def get_coordinates(self):
         if self.uses_step_coordinates:
@@ -45,7 +41,7 @@ class Triangle(Shape):
 
             coordinates.append_if_far_enough(c, self.beam_diameter)
 
-        coordinates.normalize(step_time=0.5)
+        coordinates.normalize(step_time=0.5, center=self.center, rotation=self.rotation_angle)
         return coordinates
 
     def __line_coordinates__(self):
@@ -55,7 +51,7 @@ class Triangle(Shape):
         coordinates.append(Coordinate(self.width / 2, self.height))
         coordinates.append(Coordinate(0, 0))
 
-        coordinates.normalize(step_time=10)
+        coordinates.normalize(step_time=10, center=self.center, rotation=self.rotation_angle)
         return coordinates
 
 

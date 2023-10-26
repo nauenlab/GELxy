@@ -77,6 +77,7 @@ class Coordinates:
 
     def __calculate_velocities__(self, step_time):
         prev = None
+        print("Calculating Velocities")
         for (i, v) in enumerate(self):
             if not prev:
                 prev = self.coordinates[i]
@@ -87,85 +88,42 @@ class Coordinates:
             prev = self.coordinates[i]
             prev.v = vmax
 
-    def normalize(self, step_time, offset, rotation):
-        centroid = self.__get_centroid__()
-
-        for (i, v) in enumerate(self):
-            r_transformation = self.rotation_transformation(v, rotation, centroid)
-            print(r_transformation.x, r_transformation.y)
-            self.x[i] = v.x + offset.x + r_transformation.x
-            self.y[i] = v.y + offset.y + r_transformation.y
-            self.coordinates[i].x = self.x[i]
-            self.coordinates[i].y = self.y[i]
-
+    def normalize(self, step_time, center, rotation):
         min_x = min(self.get_x_coordinates())
         min_y = min(self.get_y_coordinates())
 
         factor_x = 0 if min_x > 0 else abs(min_x)
         factor_y = 0 if min_y > 0 else abs(min_y)
 
+        print("Normalizing")
         for (i, v) in enumerate(self):
-            r_transformation = self.rotation_transformation(v, rotation, centroid)
-            print(r_transformation.x, r_transformation.y)
             self.x[i] = v.x + factor_x
             self.y[i] = v.y + factor_y
             self.coordinates[i].x = self.x[i]
             self.coordinates[i].y = self.y[i]
-            # print(self.x[i], self.y[i])
+
+        print("Calculating Transformations")
+        centroid = self.__get_centroid__()
+        for (i, v) in enumerate(self):
+            r_transformation = self.rotation_transformation(v, rotation, centroid)
+            self.x[i] = v.x + (center.x - centroid.x) + r_transformation.x
+            self.y[i] = v.y + (center.y - centroid.y) + r_transformation.y
+            self.coordinates[i].x = self.x[i]
+            self.coordinates[i].y = self.y[i]
 
         self.__calculate_velocities__(step_time)
 
-    def rotation_transformation(self, c, rotation, centroid):
-        o_over_a = 0
-        if centroid.y - c.y != 0:
-            o_over_a = math.fabs((centroid.x - c.x) / (centroid.y - c.y))
-        t5 = math.atan(o_over_a)
-        print("t5", t5)
-        t2 = (math.pi - rotation) / 2
-        print("t2", t2)
-        t6 = (math.pi / 2) - t2 + t5
-        print("t6", t6)
-        d = self.distance(centroid, c)
+    @staticmethod
+    def rotation_transformation(c, rotation, centroid):
+        delta_x = c.x - centroid.x
+        delta_y = c.y - centroid.y
+        cos_theta = math.cos(rotation)
+        sin_theta = math.sin(rotation)
 
-        a = math.sqrt(2*(d**2) * (1 - math.cos(rotation)))
-        print("a", a)
-        si = a * math.sin(t6)
-        print("m", si)
-        co = a * math.cos(t6)
-        print("n", co)
+        new_x = delta_x * cos_theta - delta_y * sin_theta + centroid.x
+        new_y = delta_x * sin_theta + delta_y * cos_theta + centroid.y
 
-        if c.x - centroid.x >= 0:
-            if c.y - centroid.y > 0:
-                x = -co
-                y = si
-            else:
-                x = -si
-                y = -co
-        else:
-            if c.y - centroid.y > 0:
-                x = co
-                y = -si
-            else:
-                # g
-                x = si
-                y = co
-
-        # x_dir = 1
-        # y_dir = 1
-        # if c.x - centroid.x > 0:
-        #     x_dir = -1
-        # if c.y - centroid.y > 0:
-        #     y_dir = -1
-        # if x_dir == y_dir:
-        #     t = m
-        #     m = n
-        #     n = t
-
-        # x_dir = 1 if c.x - centroid.x > 0 else -1
-        # y_dir = 1 if c.y - centroid.y > 0 else -1
-
-        cr = Coordinate(x, y)
-        return cr
+        return Coordinate(new_x - c.x, new_y - c.y)
 
     def __get_centroid__(self):
         sum_x = 0

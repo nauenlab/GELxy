@@ -1,11 +1,15 @@
 import math
 import matplotlib.pyplot as plt
+from Coordinate import Coordinate
 
 
 class Shape:
 
-    def __init__(self):
-        pass
+    def __init__(self, center, rotation_angle, beam_diameter, uses_step_coordinates):
+        self.center = center if center else Coordinate(0, 0)
+        self.rotation_angle = rotation_angle if rotation_angle else 0
+        self.beam_diameter = beam_diameter if beam_diameter else 0.1
+        self.uses_step_coordinates = uses_step_coordinates if uses_step_coordinates else False
 
     def plot(self):
         # subclasses must have the get_coordinates function
