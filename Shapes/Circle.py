@@ -1,4 +1,4 @@
-from Oval import Oval
+from Shapes.Oval import Oval
 
 
 class Circle(Oval):

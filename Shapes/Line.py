@@ -1,4 +1,4 @@
-from Shape import Shape
+from Shapes.Shape import Shape
 from Coordinate import Coordinate, Coordinates
 
 
