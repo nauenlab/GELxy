@@ -48,12 +48,12 @@ class Motor:
 
         settings = self.device.MotorDeviceSettings
         settings.Jog.JogMode = JogParametersBase.JogModes.ContinuousHeld
-        settings.Jog.JogStopMode = JogParametersBase.StopModes.
+        settings.Jog.JogStopMode = JogParametersBase.StopModes.Immediate
         print(settings.Jog.JogMode)
         print(settings.Jog.JogStopMode)
 
         self.device.SetSettings(settings, True, False)
-        print(deviceX.MotorDeviceSettings.Jog.JogStopMode)
+        print(self.device.MotorDeviceSettings.Jog.JogStopMode)
         
         self.set_velocity_params(acceleration=acceleration, max_velocity=max_velocity, min_velocity=min_velocity)
                 

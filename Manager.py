@@ -18,6 +18,8 @@ class Manager:
 
         if not is_first_move:
             # turn on light
+            self.x.set_params(position.v[0])
+            self.y.set_params(position.v[1])
             self.lamp.turn_on()
 
         xt = threading.Thread(target=self.x.move_absolute, args=(position.x, timeout, is_first_move))

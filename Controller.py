@@ -2,6 +2,7 @@ import CommonPatterns
 import signal
 import sys
 import os
+from Coordinate import Coordinate
 
 IS_VIRTUAL = True
 BEAM_DIAMETER = 0.1
@@ -27,10 +28,10 @@ else:
 
 def main():
     shapes = []
-    # shapes = deathly_hallows()
-    shapes = CommonPatterns.star_of_david()
-
-    # shapes.append(SineWave(amplitude_mm=1, cycles=5, cycles_per_mm=0.5, center=Coordinate(1, 2), cycle_offset=0))
+    # shapes = CommonPatterns.deathly_hallows(center=Coordinate(2, 2))
+    shapes = CommonPatterns.star_of_david(center=Coordinate(5, 5))
+    # from Shapes import SineWave
+    # shapes.append(SineWave.SineWave(amplitude_mm=1, cycles=5, cycles_per_mm=0.5, center=Coordinate(1, 2), cycle_offset=0))
     # shapes.append(Circle(diameter_mm=10, center=Coordinate(1, 1), beam_diameter=BEAM_DIAMETER))
     # shapes.append(Oval(width_mm=4, height_mm=2, center=Coordinate(4, 4), rotation_angle=3.14/4.0, beam_diameter=BEAM_DIAMETER))
     # shapes.append(Oval(width_mm=4, height_mm=2, center=Coordinate(4, 4)))
@@ -50,7 +51,7 @@ def main():
     for shape in shapes:
         coordinates = shape.get_coordinates()
         move(coordinates)
-    manager.lamp.canvas.draw()
+    # manager.lamp.canvas.draw()
 
 
 def move(coordinates, timeout=10000, is_first_move=False):
