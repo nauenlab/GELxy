@@ -1,26 +1,21 @@
 import CommonPatterns
+import Shapes
 import signal
 import sys
 import os
 from Coordinate import Coordinate
+from Constants import *
 
-IS_VIRTUAL = True
-BEAM_DIAMETER = 0.1
-
-motor_thread_sleep = 0.4
-acceleration = 4.0  # mm/s
-max_velocity = 2.0
-min_velocity = 2.0
 
 
 if IS_VIRTUAL:
     from VirtualManager import VirtualManager
     # Sets up a virtual simulation of the motors and LED
-    manager = VirtualManager(canvas_dimensions_mm=15, led_ampere=0.01, acceleration=acceleration, max_velocity=max_velocity, min_velocity=min_velocity)
+    manager = VirtualManager(canvas_dimensions_mm=15, led_ampere=0.0001, acceleration=ACCELERATION, max_velocity=MAXIMUM_VELOCITY)
 else:
     from Manager import Manager
     # Sets up the actual motors and LED
-    manager = Manager(led_ampere=0.01, serial_number_x="27602218", serial_number_y="27264864", motor_thread_sleep=motor_thread_sleep, acceleration=acceleration, max_velocity=max_velocity, min_velocity=min_velocity)
+    manager = Manager(led_ampere=0.01, serial_number_x="27602218", serial_number_y="27264864", acceleration=ACCELERATION, max_velocity=MAXIMUM_VELOCITY)
 
 
 
@@ -29,7 +24,9 @@ else:
 def main():
     shapes = []
     # shapes = CommonPatterns.deathly_hallows(center=Coordinate(2, 2))
-    shapes = CommonPatterns.star_of_david(center=Coordinate(5, 5))
+    # shapes = CommonPatterns.star_of_david(size_mm=2, center=Coordinate(11.139, 7.573))
+    # shapes = [Shapes.Square.Square(side_length_mm=2, center=Coordinate(10.956, 7.557), rotation_angle=0, beam_diameter=BEAM_DIAMETER, uses_step_coordinates=True)]
+    shapes = [Shapes.Circle.Circle(diameter_mm=2, center=Coordinate(10.956, 7.557), beam_diameter=BEAM_DIAMETER)]
     # from Shapes import SineWave
     # shapes.append(SineWave.SineWave(amplitude_mm=1, cycles=5, cycles_per_mm=0.5, center=Coordinate(1, 2), cycle_offset=0))
     # shapes.append(Circle(diameter_mm=10, center=Coordinate(1, 1), beam_diameter=BEAM_DIAMETER))
@@ -50,6 +47,8 @@ def main():
     # shapes.append(Triangle(width_mm=5, height_mm=5, rotation_angle=0, beam_diameter=BEAM_DIAMETER, uses_step_coordinates=False))
     for shape in shapes:
         coordinates = shape.get_coordinates()
+        # for coordinate in coordinates:
+        #     print(coordinate)
         move(coordinates)
     # manager.lamp.canvas.draw()
 

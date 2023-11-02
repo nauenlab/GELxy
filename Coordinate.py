@@ -22,6 +22,8 @@ class Coordinate:
         pvf = a * t - a * (math.sqrt(t ** 2 - ((2 * d) / a)))
         return pvf
 
+    def __str__(self):
+        return f"\nx: {self.x}\ny: {self.y}\nv: {self.v}"
 
 class Coordinates:
 

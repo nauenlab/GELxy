@@ -111,36 +111,60 @@ for i in range(100):
     print(settings.Jog.JogMode)
 
 """
-
+deviceX.Home(50000)
+deviceY.Home(50000)
 
 settings.Jog.JogMode = JogParametersBase.JogModes.ContinuousHeld
 settings.Jog.JogStopMode = JogParametersBase.StopModes.Immediate
 print(settings.Jog.JogMode)
 print(settings.Jog.JogStopMode)
-initial = deviceX.Position
+
 deviceX.SetSettings(settings, True, False)
 print(deviceX.MotorDeviceSettings.Jog.JogStopMode)
 #print(deviceX.GetVelocityParams())
 #deviceX.MoveTo(Decimal(10), 10000)
 deviceX.SetJogStepSize(Decimal(1))
 deviceX.SetJogVelocityParams(Decimal(2.6), Decimal(4))
-try:
-    deviceX.MoveJog(MotorDirection.Forward, 0)
-except MoveToInvalidPositionException:
-    deviceX.MoveJog(MotorDirection.Backward, 0)
 
-print(deviceX.Position)
-while not deviceX.Status.IsInMotion:
-    continue
+print("checkpoint")
+for i in [5, -3, 5, -2, 0.5, 0.1, -3, 0.02, 0.01, 0.03, 0.01, -2]:
+    initial = deviceX.Position
+    deviceX.SetJogStepSize(Decimal(i))
+    print(deviceX.GetJogStepSize())
 
-while (deviceX.Position - initial) <= Decimal(5) and (deviceX.Position - initial) >= Decimal(-5):
-    continue
+    print(deviceX.Status.IsJogging)
+    print(deviceX.Status.IsMoving)
+    isForward = True
+    # try:
+    #     deviceX.MoveJog(MotorDirection.Forward, 0)
+    # except MoveToInvalidPositionException:
+    #     deviceX.MoveJog(MotorDirection.Backward, 0)
+    #     isForward = False
     
-print(deviceX.Position - initial)
-deviceX.StopImmediate()
+    relative_movement = Decimal(i)
+    if relative_movement > Decimal(0):
+        deviceX.MoveJog(MotorDirection.Forward, 0)
+    elif relative_movement < Decimal(0):
+        deviceX.MoveJog(MotorDirection.Backward, 0)
+        isForward = False
+
+    while not deviceX.Status.IsJogging:
+        continue
+    while deviceX.Status.IsJogging:
+        travel = deviceX.Position - initial
+        if isForward and travel >= relative_movement or not travel <= relative_movement:
+        # if (deviceX.Position - initial) >= Decimal(i) or (deviceX.Position - initial) <= Decimal(-i):
+            deviceX.StopImmediate()
+            print("BROKEN")
+            break
+        continue
+    while deviceX.Status.IsJogging:
+        continue
+    
+    # print(deviceX.Position - initial)
+    # print(deviceX.Position)
 
 
-print(deviceX.Position)
 
 print("complete")
 sys.exit()
@@ -151,37 +175,37 @@ sys.exit()
 
 
 
-time.sleep(0.25)
-deviceY.StartPolling(250)
-deviceX.StartPolling(250)
-time.sleep(0.25)  # wait statements are important to allow settings to be sent to the device
-deviceY.EnableDevice()
-deviceX.EnableDevice()
-time.sleep(0.25)  # Wait for device to enable
+# time.sleep(0.25)
+# deviceY.StartPolling(250)
+# deviceX.StartPolling(250)
+# time.sleep(0.25)  # wait statements are important to allow settings to be sent to the device
+# deviceY.EnableDevice()
+# deviceX.EnableDevice()
+# time.sleep(0.25)  # Wait for device to enable
 
-if not deviceY.IsSettingsInitialized():
-    deviceY.WaitForSettingsInitialized(10000)  # 10 second timeout
-    assert deviceY.IsSettingsInitialized() is True
+# if not deviceY.IsSettingsInitialized():
+#     deviceY.WaitForSettingsInitialized(10000)  # 10 second timeout
+#     assert deviceY.IsSettingsInitialized() is True
     
-if not deviceX.IsSettingsInitialized():
-    deviceX.WaitForSettingsInitialized(10000)  # 10 second timeout
-    assert deviceX.IsSettingsInitialized() is True
+# if not deviceX.IsSettingsInitialized():
+#     deviceX.WaitForSettingsInitialized(10000)  # 10 second timeout
+#     assert deviceX.IsSettingsInitialized() is True
 
-# Before homing or moving device, ensure the motor's configuration is loaded
-m_config = deviceY.LoadMotorConfiguration(serial_no1,
-DeviceConfiguration.DeviceSettingsUseOptionType.UseFileSettings)
-m_config = deviceX.LoadMotorConfiguration(serial_no2,
-DeviceConfiguration.DeviceSettingsUseOptionType.UseFileSettings)
+# # Before homing or moving device, ensure the motor's configuration is loaded
+# m_config = deviceY.LoadMotorConfiguration(serial_no1,
+# DeviceConfiguration.DeviceSettingsUseOptionType.UseFileSettings)
+# m_config = deviceX.LoadMotorConfiguration(serial_no2,
+# DeviceConfiguration.DeviceSettingsUseOptionType.UseFileSettings)
 
-m_config = deviceY.LoadMotorConfiguration(serial_no1, DeviceConfiguration.DeviceSettingsUseOptionType.UseFileSettings)
-m_config = deviceX.LoadMotorConfiguration(serial_no2, DeviceConfiguration.DeviceSettingsUseOptionType.UseFileSettings)
+# m_config = deviceY.LoadMotorConfiguration(serial_no1, DeviceConfiguration.DeviceSettingsUseOptionType.UseFileSettings)
+# m_config = deviceX.LoadMotorConfiguration(serial_no2, DeviceConfiguration.DeviceSettingsUseOptionType.UseFileSettings)
 
-m_config.DeviceSettingsName = "Z825B" # Chnage to whatever stage you are using. 
+# m_config.DeviceSettingsName = "Z825B" # Chnage to whatever stage you are using. 
 
-m_config.UpdateCurrentConfiguration()
+# m_config.UpdateCurrentConfiguration()
 
-deviceY.SetSettings(deviceY.MotorDeviceSettings, True, False)
-deviceX.SetSettings(deviceX.MotorDeviceSettings, True, False)
+# deviceY.SetSettings(deviceY.MotorDeviceSettings, True, False)
+# deviceX.SetSettings(deviceX.MotorDeviceSettings, True, False)
 
 # Set step size and velocity for jog for stage/motor (decimal max velocity, decimal acceleration)
 # deviceY.SetJogStepSize(Decimal(.01))
@@ -218,12 +242,12 @@ for i in range(360):
     
     x_pos2 = abs(x_pos-x_pos1)*2
     deviceX.SetJogStepSize(Decimal(x_pos2))
-    deviceX.SetJogVelocityParams(Decimal(0.1), Decimal(1))
+    deviceX.SetJogVelocityParams(Decimal(2.6), Decimal(4))
     y_pos2 = abs(y_pos-y_pos1)*2
     deviceY.SetJogStepSize(Decimal(y_pos2))
-    deviceY.SetJogVelocityParams(Decimal(0.1), Decimal(1))
+    print(x_pos, y_pos)
+    deviceY.SetJogVelocityParams(Decimal(2.6), Decimal(4))
     if x_pos > 0:
-        
         deviceX.MoveJog(MotorDirection.Forward, 0)     
     else:
         deviceX.MoveJog(MotorDirection.Backward, 0)
