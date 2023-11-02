@@ -14,6 +14,7 @@ class AveragePictures:
     def average(self):
         allfiles = os.listdir(self.directory)
         imlist = [filename for filename in allfiles if filename[-4:] in [".jpg", ".JPG"] and "image" in filename]
+        imlist = sorted(imlist)
 
         result = np.zeros_like(imlist[0], dtype=np.uint8)
 
