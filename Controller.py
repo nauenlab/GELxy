@@ -22,8 +22,8 @@ else:
 def main():
     shapes = []
     center_coordinate = Coordinate(10.88336, 6.13018)
-    # shapes = CommonPatterns.ovals(size1_mm=3, size2_mm=2, center=center_coordinate)
-    shapes = CommonPatterns.deathly_hallows(size_mm=2, center=Coordinate(10.956, 7.557))
+    shapes = CommonPatterns.ovals(width1_mm=3, height1_mm=2, width2_mm=2, height2_mm=1, center=center_coordinate)
+    # shapes = CommonPatterns.deathly_hallows(size_mm=2, center=center_coordinate)
     # shapes = CommonPatterns.square_star(size_mm=2, center=Coordinate(10.956, 7.557))
     # shapes = CommonPatterns.star_of_david(size_mm=2, center=Coordinate(11.139, 7.573))
     # shapes = [Shapes.Square.Square(side_length_mm=2, center=Coordinate(10.956, 7.557), rotation_angle=0, beam_diameter=BEAM_DIAMETER, uses_step_coordinates=True)]
@@ -53,7 +53,7 @@ def main():
     # shapes.append(Rectangle(width_mm=5, height_mm=10, center=Coordinate(0, 0), rotation_angle=0.45, beam_diameter=BEAM_DIAMETER, uses_step_coordinates=False))
     # shapes.append(Triangle(width_mm=5, height_mm=5, rotation_angle=0, beam_diameter=BEAM_DIAMETER, uses_step_coordinates=False))
     for shape in shapes:
-        # shape.plot()
+        shape.plot()
         print(shape)
         coordinates = shape.get_coordinates()
         move(coordinates)

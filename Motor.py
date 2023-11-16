@@ -77,6 +77,7 @@ class Motor:
         self.device.Home(50000)
 
     def set_params(self, vmax):
+        print("Velocity: ", vmax, "mm/s")
         self.set_velocity_params(max_velocity=vmax)
 
     def set_velocity_params(self, acceleration=None, max_velocity=None):

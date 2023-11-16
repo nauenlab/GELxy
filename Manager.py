@@ -26,12 +26,16 @@ class Manager:
         print(position.x, position.y)
 
         if not is_first_move:
-            # turn on light
+            # turn on light and set movement speed
             if position.v[0] != 0:
                 self.x.set_params(position.v[0])
             if position.v[1] != 0:
                 self.y.set_params(position.v[1])
             self.lamp.turn_on()
+        else:
+            # set movement speed
+            self.x.set_params(self.x.max_velocity)
+            self.y.set_params(self.y.max_velocity)
 
         xt = threading.Thread(target=self.x.jog_to, args=(position.x, timeout, is_first_move))
         yt = threading.Thread(target=self.y.jog_to, args=(position.y, timeout, is_first_move))

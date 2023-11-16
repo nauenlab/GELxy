@@ -34,9 +34,9 @@ def star_of_david(size_mm=5, center=Coordinate(5, 5)):
     return shapes
 
 
-def ovals(size1_mm=5, size2_mm=3, center=Coordinate(5, 5)):
+def ovals(width1_mm=5, height1_mm=3, width2_mm=3, height2_mm=2, center=Coordinate(5, 5)):
     shapes = []
-    shapes.append(Oval(width_mm=size1_mm, height_mm=1, center=center, rotation_angle=math.pi))
-    shapes.append(Oval(width_mm=size2_mm, height_mm=1, center=center, rotation_angle=math.pi))
+    shapes.append(Oval(width_mm=width1_mm, height_mm=height1_mm, center=center, rotation_angle=math.pi))
+    shapes.append(Oval(width_mm=width2_mm, height_mm=height2_mm, center=center, rotation_angle=math.pi))
     
     return shapes
