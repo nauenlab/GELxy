@@ -1,10 +1,11 @@
 import CommonPatterns
-import Shapes
+from Shapes import Rectangle, Square, EquilateralTriangle, Triangle, Line, Oval, Circle, SineWave
 import signal
 import sys
 import os
 from Coordinate import Coordinate
 from Constants import *
+import math
 
 
 
@@ -23,10 +24,18 @@ else:
 
 def main():
     shapes = []
-    # shapes = CommonPatterns.deathly_hallows(center=Coordinate(2, 2))
+    center_coordinate = Coordinate(10.88336, 6.13018)
+    shapes = CommonPatterns.ovals(size1_mm=3, size2_mm=2, center=center_coordinate)
+    # shapes = CommonPatterns.deathly_hallows(size_mm=2, center=Coordinate(10.956, 7.557))
+    # shapes = CommonPatterns.square_star(size_mm=2, center=Coordinate(10.956, 7.557))
     # shapes = CommonPatterns.star_of_david(size_mm=2, center=Coordinate(11.139, 7.573))
     # shapes = [Shapes.Square.Square(side_length_mm=2, center=Coordinate(10.956, 7.557), rotation_angle=0, beam_diameter=BEAM_DIAMETER, uses_step_coordinates=True)]
-    shapes = [Shapes.Circle.Circle(diameter_mm=2, center=Coordinate(10.956, 7.557), beam_diameter=BEAM_DIAMETER)]
+    # shapes = [Circle.Circle(diameter_mm=2, center=Coordinate(10.956, 7.557), beam_diameter=BEAM_DIAMETER)]
+    # shapes = [Shapes.EquilateralTriangle.EquilateralTriangle(side_length_mm=2, center=Coordinate(10.956, 7.557), rotation_angle=0, beam_diameter=BEAM_DIAMETER, uses_step_coordinates=False)]
+    
+    # shapes = [SineWave.SineWave(amplitude_mm=1, cycles=5, cycles_per_mm=0.5, center=Coordinate(10.956, 7.557), cycle_offset=0)]
+    # shapes = [Oval.Oval(width_mm=3, height_mm=1, center=center_coordinate, rotation_angle=math.pi, beam_diameter=BEAM_DIAMETER)]
+    # shapes = [Oval.Oval(width_mm=1, height_mm=1, center=center_coordinate, rotation_angle=math.pi, beam_diameter=BEAM_DIAMETER)]
     # from Shapes import SineWave
     # shapes.append(SineWave.SineWave(amplitude_mm=1, cycles=5, cycles_per_mm=0.5, center=Coordinate(1, 2), cycle_offset=0))
     # shapes.append(Circle(diameter_mm=10, center=Coordinate(1, 1), beam_diameter=BEAM_DIAMETER))
@@ -47,8 +56,6 @@ def main():
     # shapes.append(Triangle(width_mm=5, height_mm=5, rotation_angle=0, beam_diameter=BEAM_DIAMETER, uses_step_coordinates=False))
     for shape in shapes:
         coordinates = shape.get_coordinates()
-        # for coordinate in coordinates:
-        #     print(coordinate)
         move(coordinates)
     # manager.lamp.canvas.draw()
 

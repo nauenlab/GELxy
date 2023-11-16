@@ -8,6 +8,15 @@ class Manager:
     def __init__(self, led_ampere, serial_number_x, serial_number_y, acceleration=None, max_velocity=None):
         self.x = Motor(serial_no=serial_number_x, acceleration=acceleration, max_velocity=max_velocity)
         self.y = Motor(serial_no=serial_number_y, acceleration=acceleration, max_velocity=max_velocity)
+        home_threads = []
+        for i in [self.x, self.y]:
+            t = threading.Thread(target=i.home)
+            home_threads.append(t)
+            t.start()
+        
+        for t in home_threads:
+            t.join()
+
         self.lamp = Lamp(led_ampere=led_ampere)
 
     def motors(self):

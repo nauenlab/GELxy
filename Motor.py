@@ -14,6 +14,9 @@ from System import Decimal
 
 
 class Motor:
+    # documented min step size 0.00003
+    MINIMUM_STEP_SIZE = Decimal(0.001)
+
     def __init__(self, serial_no, acceleration=None, max_velocity=None):
         self.acceleration = acceleration
         self.max_velocity = max_velocity
@@ -53,7 +56,7 @@ class Motor:
         
         self.set_velocity_params(acceleration=acceleration, max_velocity=max_velocity)
                 
-        self.home()
+        # self.home()
 
         # self.acceleration = acceleration if acceleration else ACCELERATION # get max values from device.AdvanedMotorLimits
         # self.max_velocity = max_velocity if max_velocity else MAXIMUM_VELOCITY
@@ -69,7 +72,7 @@ class Motor:
             pass
 
     def home(self):
-        print(f"homing {self.serial_number}")
+        print(f"homing motor id {self.serial_number}")
         self.device.SetHomingVelocity(Decimal(2.6))
         self.device.Home(50000)
 
@@ -87,22 +90,19 @@ class Motor:
     def jog_to(self, absolute_position, timeout, is_first_move):
         # To make more accurate, reduce the polling frequency in the initializer
 
-
-        # if is_first_move:
-            # self.set_velocity_params(acceleration=ACCELERATION, max_velocity=MAXIMUM_VELOCITY)
-
         motor_position = self.device.Position
         relative_movement = Decimal(absolute_position) - motor_position
         print("relative movement:", relative_movement)
-        self.device.SetJogStepSize(relative_movement)
+        # self.device.SetJogStepSize(relative_movement)
 
         zero = Decimal(0)
         movement_expected = True
         isForward = True
 
-        if relative_movement > zero:
+        # MAYBE THE ISSUE OF BAD MOVEMENT IS THE TIME IT TAKES TO SWITCH DIRECTIONS!
+        if relative_movement > zero and relative_movement > self.MINIMUM_STEP_SIZE:
             self.device.MoveJog(MotorDirection.Forward, 0)
-        elif relative_movement < zero:
+        elif relative_movement < zero and relative_movement < -self.MINIMUM_STEP_SIZE:
             self.device.MoveJog(MotorDirection.Backward, 0)
             isForward = False
         else:
@@ -111,27 +111,15 @@ class Motor:
         
         if movement_expected:
             travel = self.device.Position - motor_position
+            # thing = isForward and travel >= relative_movement - self.MINIMUM_STEP_SIZE or not isForward and travel <= relative_movement + self.MINIMUM_STEP_SIZE
+            # while not thing:
             while not (isForward and travel >= relative_movement or not isForward and travel <= relative_movement):
                 travel = self.device.Position - motor_position
                 continue
             self.device.StopImmediate()
-            # while self.device.Status.IsJogging:
-            #     travel = self.device.Position - motor_position
-            #     if isForward and travel >= relative_movement or not isForward and travel <= relative_movement:
-            #         self.device.StopImmediate()
-            #         print("BREAK")
-            #         break
 
             while self.device.Status.IsJogging:
                 continue
-            
-            # while not self.device.Status.IsInMotion:
-            #     print("waiting for motion")
-            #     continue
-            # while (self.device.Position - motor_position) <= relative_movement and (self.device.Position - motor_position) >= -relative_movement:
-            #     print("in motion")
-            #     continue
-            # self.device.StopImmediate()
 
             error = self.device.Position - motor_position - relative_movement
             print(f"new position: {self.device.Position}")
