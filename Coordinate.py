@@ -20,7 +20,8 @@ class Coordinate:
 
         # pvf2 = a * t + a * (math.sqrt(t ** 2 - ((2 * d) / a)))
         pvf = a * t - a * (math.sqrt(t ** 2 - ((2 * d) / a)))
-        return pvf
+        # seems like 0.001 is the minimum velocity (value found by testing)
+        return max(pvf, 0.005)
 
     def __str__(self):
         return f"\nx: {self.x}\ny: {self.y}\nv: {self.v}"
