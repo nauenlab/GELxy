@@ -2,7 +2,6 @@ import os
 import cv2
 import numpy as np
 import imageio.v2 as imageio
-import subprocess
 
 
 class AveragePictures:
