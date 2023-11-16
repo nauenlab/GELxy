@@ -1,6 +1,6 @@
 import math
 import matplotlib.pyplot as plt
-from Coordinate import Coordinate
+from Coordinate import Coordinate, Coordinates
 
 
 class Shape:
@@ -17,6 +17,40 @@ class Shape:
         plt.plot(coordinates.get_x_coordinates(), coordinates.get_y_coordinates())
         plt.axis('square')
         plt.show()
+
+    def get_coordinates(self):
+        if "__line_coordinates__" in dir(self):
+            if "uses_step_coordinates" in dir(self) and self.uses_step_coordinates:
+                return self.__step_coordinates__()
+            return self.__line_coordinates__()
+        elif "__radial_coordinates__" in dir(self):
+            return self.__radial_coordinates__()
+        else:
+            raise Exception("Shape does not have a line or radial coordinate function")
+    
+    def __step_coordinates__(self):
+        coordinates = Coordinates()
+        resolution = 0.005
+        line_coordinates = self.__line_coordinates__()
+
+        # Fill in the space between the coordinates linearly
+        for i in range(len(line_coordinates) - 1):
+            start_point = line_coordinates[i]
+            end_point = line_coordinates[i + 1]
+            num_points = int(self.distance(start_point.x, start_point.y, end_point.x, end_point.y) * (1 / resolution)) + 1
+            for j in range(num_points):
+                t = j / (num_points - 1)
+                x = start_point.x + t * (end_point.x - start_point.x)
+                y = start_point.y + t * (end_point.y - start_point.y)
+                new_coord = Coordinate(x, y)
+                if abs(new_coord.x - end_point.x) < resolution and abs(new_coord.y - end_point.y) < resolution:
+                    coordinates.append(new_coord)
+                    continue
+
+                coordinates.append_if_far_enough(new_coord, self.beam_diameter)
+        
+        coordinates.normalize(step_time=0.5, center=self.center, rotation=self.rotation_angle)
+        return coordinates
 
     @staticmethod
     def distance(x1, y1, x2, y2):

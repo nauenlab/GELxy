@@ -1,7 +1,7 @@
 
 
 
-IS_VIRTUAL = False
+IS_VIRTUAL = True
 ACCELERATION = 4.0  # mm/s^2
 MAXIMUM_VELOCITY = 1.2  # mm/s
 BEAM_DIAMETER = 0.1 # mm

@@ -1,4 +1,3 @@
-
 import math
 from Shapes.Shape import Shape
 from Coordinate import Coordinate, Coordinates
@@ -10,9 +9,6 @@ class Oval(Shape):
         super().__init__(center=center, rotation_angle=rotation_angle, beam_diameter=beam_diameter, uses_step_coordinates=True)
         self.width = float(width_mm)
         self.height = float(height_mm)
-
-    def get_coordinates(self):
-        return self.__radial_coordinates__()
     
     def __radial_coordinates__(self):
         coordinates = Coordinates()

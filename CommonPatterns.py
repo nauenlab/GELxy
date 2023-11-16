@@ -10,11 +10,10 @@ from Coordinate import Coordinate
 def deathly_hallows(size_mm=5, center=Coordinate(5, 5)):
     shapes = []
     shapes.append(Line(length_mm=size_mm, center=center, is_horizontal=False, uses_step_coordinates=True))
-    shape_offset = 5 + size_mm*1/6
-    center.y = shape_offset
-    shapes.append(Circle(diameter_mm=size_mm * (2 / 3), center=center))
+    second_center = Coordinate(center.x, center.y + (size_mm * 1/6))
+    shapes.append(Circle(diameter_mm=size_mm * (2 / 3), center=second_center))
     tri_len = math.sqrt((size_mm**2) * 4 / 3.0)
-    shapes.append(EquilateralTriangle(side_length_mm=tri_len, center=center, rotation_angle=math.pi))
+    shapes.append(EquilateralTriangle(side_length_mm=tri_len, center=second_center, rotation_angle=math.pi))
 
     return shapes
 

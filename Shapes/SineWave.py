@@ -12,9 +12,6 @@ class SineWave(Shape):
         self.cycles = abs(float(cycles))
         self.frequency = abs(float(cycles_per_mm * 360))
         self.cycle_offset = float(cycle_offset)
-
-    def get_coordinates(self):
-        return self.__radial_coordinates__()
     
     def __radial_coordinates__(self):
         coordinates = Coordinates()
