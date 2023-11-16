@@ -9,7 +9,7 @@ class Rectangle(Shape):
         self.width = float(width_mm)
         self.height = float(height_mm)
 
-    def __line_coordinates__(self):
+    def __line_coordinates__(self, raw=False):
         coordinates = Coordinates()
         coordinates.append(Coordinate(0, 0))
         coordinates.append(Coordinate(0, self.height))
@@ -17,7 +17,8 @@ class Rectangle(Shape):
         coordinates.append(Coordinate(self.width, 0))
         coordinates.append(Coordinate(0, 0))
 
-        coordinates.normalize(step_time=10, center=self.center, rotation=self.rotation_angle)
+        if not raw:
+            coordinates.normalize(step_time=10, center=self.center, rotation=self.rotation_angle)
         return coordinates
 
 

@@ -25,6 +25,9 @@ class Coordinate:
     def __str__(self):
         return f"\nx: {self.x}\ny: {self.y}\nv: {self.v}"
 
+    def same_location_as(self, coord):
+        return self.x == coord.x and self.y == coord.y
+
 class Coordinates:
 
     def __init__(self):
@@ -67,6 +70,14 @@ class Coordinates:
         if len(self) != 0:
             prev = self[-1]
             if self.distance(coord, prev) >= beam_diameter:
+                self.append(coord)
+        else:
+            self.append(coord)
+    
+    def append_if_no_duplicate(self, coord):
+        if len(self) != 0:
+            prev = self[-1]
+            if not prev.same_location_as(coord):
                 self.append(coord)
         else:
             self.append(coord)

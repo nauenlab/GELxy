@@ -27,7 +27,7 @@ class Oval(Shape):
             coordinates.append_if_far_enough(c, self.beam_diameter)
 
         coordinates.append(Coordinate(coordinates[0].x, coordinates[0].y))
-        coordinates.normalize(step_time=1, center=self.center, rotation=self.rotation_angle)
+        coordinates.normalize(step_time=0.3, center=self.center, rotation=self.rotation_angle)
         return coordinates
 
 

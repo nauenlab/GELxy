@@ -13,7 +13,7 @@ def deathly_hallows(size_mm=5, center=Coordinate(5, 5)):
     second_center = Coordinate(center.x, center.y + (size_mm * 1/6))
     shapes.append(Circle(diameter_mm=size_mm * (2 / 3), center=second_center))
     tri_len = math.sqrt((size_mm**2) * 4 / 3.0)
-    shapes.append(EquilateralTriangle(side_length_mm=tri_len, center=second_center, rotation_angle=math.pi))
+    shapes.append(EquilateralTriangle(side_length_mm=tri_len, center=second_center, rotation_angle=math.pi, uses_step_coordinates=True))
 
     return shapes
 

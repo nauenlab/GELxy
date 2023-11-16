@@ -31,7 +31,7 @@ class Shape:
     def __step_coordinates__(self):
         coordinates = Coordinates()
         resolution = 0.005
-        line_coordinates = self.__line_coordinates__()
+        line_coordinates = self.__line_coordinates__(raw=True)
 
         # Fill in the space between the coordinates linearly
         for i in range(len(line_coordinates) - 1):
@@ -44,12 +44,12 @@ class Shape:
                 y = start_point.y + t * (end_point.y - start_point.y)
                 new_coord = Coordinate(x, y)
                 if abs(new_coord.x - end_point.x) < resolution and abs(new_coord.y - end_point.y) < resolution:
-                    coordinates.append(new_coord)
+                    coordinates.append_if_no_duplicate(end_point)
                     continue
 
                 coordinates.append_if_far_enough(new_coord, self.beam_diameter)
         
-        coordinates.normalize(step_time=0.5, center=self.center, rotation=self.rotation_angle)
+        coordinates.normalize(step_time=0.3, center=self.center, rotation=self.rotation_angle)
         return coordinates
 
     @staticmethod

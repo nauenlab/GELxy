@@ -9,7 +9,7 @@ class Line(Shape):
         self.length = float(length_mm)
         self.is_horizontal = is_horizontal
 
-    def __line_coordinates__(self):
+    def __line_coordinates__(self, raw=False):
         coordinates = Coordinates()
         if self.is_horizontal:
             coordinates.append(Coordinate(-self.length/2, 0))
@@ -18,7 +18,8 @@ class Line(Shape):
             coordinates.append(Coordinate(0, -self.length/2))
             coordinates.append(Coordinate(0, self.length/2))
 
-        coordinates.normalize(step_time=10, center=self.center, rotation=self.rotation_angle)
+        if not raw:
+            coordinates.normalize(step_time=10, center=self.center, rotation=self.rotation_angle)
         return coordinates
 
 
