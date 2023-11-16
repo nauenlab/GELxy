@@ -38,13 +38,13 @@ class Shape:
             start_point = line_coordinates[i]
             end_point = line_coordinates[i + 1]
             num_points = int(self.distance(start_point.x, start_point.y, end_point.x, end_point.y) * (1 / resolution)) + 1
-            for j in range(num_points):
+            for j in range(1, num_points):
                 t = j / (num_points - 1)
                 x = start_point.x + t * (end_point.x - start_point.x)
                 y = start_point.y + t * (end_point.y - start_point.y)
                 new_coord = Coordinate(x, y)
                 if abs(new_coord.x - end_point.x) < resolution and abs(new_coord.y - end_point.y) < resolution:
-                    coordinates.append_if_no_duplicate(end_point)
+                    coordinates.append_if_no_duplicate(end_point, self.beam_diameter)
                     continue
 
                 coordinates.append_if_far_enough(new_coord, self.beam_diameter)

@@ -29,7 +29,7 @@ def main():
     # shapes = [Shapes.Square.Square(side_length_mm=2, center=Coordinate(10.956, 7.557), rotation_angle=0, beam_diameter=BEAM_DIAMETER, uses_step_coordinates=True)]
     # shapes = [Circle.Circle(diameter_mm=2, center=Coordinate(10.956, 7.557), beam_diameter=BEAM_DIAMETER)]
     # shapes = [Shapes.EquilateralTriangle.EquilateralTriangle(side_length_mm=2, center=Coordinate(10.956, 7.557), rotation_angle=0, beam_diameter=BEAM_DIAMETER, uses_step_coordinates=False)]
-    
+    # shapes = [Circle.Circle(diameter_mm=2, center=center_coordinate, beam_diameter=BEAM_DIAMETER)]
     # shapes = [SineWave.SineWave(amplitude_mm=1, cycles=5, cycles_per_mm=0.5, center=Coordinate(10.956, 7.557), cycle_offset=0)]
     # shapes = [Oval.Oval(width_mm=3, height_mm=1, center=center_coordinate, rotation_angle=math.pi, beam_diameter=BEAM_DIAMETER)]
     # shapes = [Oval.Oval(width_mm=1, height_mm=1, center=center_coordinate, rotation_angle=math.pi, beam_diameter=BEAM_DIAMETER)]
@@ -41,7 +41,7 @@ def main():
     # shapes.append(Oval(width_mm=2, height_mm=4, center=Coordinate(4, 4), rotation_angle=0, beam_diameter=BEAM_DIAMETER))
     # shapes.append(Oval(width_mm=4, height_mm=2, center=Coordinate(8, 8), rotation_angle=0, beam_diameter=BEAM_DIAMETER))
     # shapes.append(Triangle.Triangle(width_mm=7, height_mm=2.5980762114, center=Coordinate(2, 2), rotation_angle=0, beam_diameter=BEAM_DIAMETER, uses_step_coordinates=True))
-    # shapes.append(Rectangle.Rectangle(width_mm=4, height_mm=4, center=Coordinate(5, 5), rotation_angle=0, beam_diameter=BEAM_DIAMETER, uses_step_coordinates=True))
+    # shapes.append(Rectangle.Rectangle(width_mm=4, height_mm=2, center=Coordinate(5, 5), rotation_angle=math.pi/4, beam_diameter=BEAM_DIAMETER, uses_step_coordinates=True))
     # shapes.append(Triangle(width_mm=3, height_mm=2.5980762114, center=Coordinate(2, 2), rotation_angle=3.14/4.0, beam_diameter=BEAM_DIAMETER, uses_step_coordinates=False))
     # shapes.append(Rectangle.Rectangle(width_mm=2, height_mm=3, center=Coordinate(8, 8), rotation_angle=0, beam_diameter=BEAM_DIAMETER, uses_step_coordinates=False))
     # shapes.append(Rectangle.Rectangle(width_mm=2, height_mm=3, center=Coordinate(8, 8), rotation_angle=0, beam_diameter=BEAM_DIAMETER, uses_step_coordinates=True))

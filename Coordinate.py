@@ -74,11 +74,14 @@ class Coordinates:
         else:
             self.append(coord)
     
-    def append_if_no_duplicate(self, coord):
+    def append_if_no_duplicate(self, coord, beam_diameter):
         if len(self) != 0:
             prev = self[-1]
             if not prev.same_location_as(coord):
-                self.append(coord)
+                if self.distance(coord, prev) < beam_diameter / 4:
+                    self.coordinates[-1] = coord
+                else:
+                    self.append(coord)
         else:
             self.append(coord)
 
