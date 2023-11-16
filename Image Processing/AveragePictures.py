@@ -6,8 +6,8 @@ import subprocess
 
 
 class AveragePictures:
-    
-    quality = 50  # Adjust the quality (0-100) as needed
+
+    CREATE_GIF = False # This should only be true for devices that have enuogh RAM (Do not set true for Raspberry Pi)
 
     def __init__(self, directory):
         self.directory = directory
@@ -20,11 +20,12 @@ class AveragePictures:
         result = np.zeros_like(imlist[0], dtype=np.uint8)
 
         num_pics = 0
-        # frame_list = []
+        frame_list = []
         for (i, im) in enumerate(imlist):
             print(len(imlist) - i, "images left         ", end='\r')
             result = self.get_result(result, f"{self.directory}/{im}")
-            # frame_list.append(result.copy())
+            if self.CREATE_GIF:
+                frame_list.append(result.copy())
 
             if (i+1) % 100 == 0:
                 num_pics += 1
@@ -36,17 +37,18 @@ class AveragePictures:
         print("Saving Average.jpg")
         cv2.imwrite(f"{self.directory}/Average.jpg", result)
 
-        # print("Saving Average.gif, this may take a minute")
-        # output_file = f"{self.directory}/Average.gif"
-        # writer = imageio.get_writer(output_file, duration=2)
+        if self.CREATE_GIF:
+            print("Saving Average.gif, this may take a minute")
+            output_file = f"{self.directory}/Average.gif"
+            writer = imageio.get_writer(output_file, duration=2)
 
-        # # Write frames one by one
-        # for (i, frame) in enumerate(frame_list):
-        #     print(len(frame_list) - i, "frames left         ", end='\r')
-        #     writer.append_data(frame)
+            # Write frames one by one
+            for (i, frame) in enumerate(frame_list):
+                print(len(frame_list) - i, "frames left         ", end='\r')
+                writer.append_data(frame)
 
-        # # Close the writer
-        # writer.close()
+            # Close the writer
+            writer.close()
 
 
     def get_result(self, result, filename):

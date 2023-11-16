@@ -23,9 +23,9 @@ print(dt)
 os.mkdir(f"{DIRECTORY}/{dt}")
 for i in range(1000):
     print(i)
-    picam2.capture_file(f"{DIRECTORY}/{dt}/image{i}.jpg")
+    picam2.capture_file(f"{DIRECTORY}/{dt}/image{i:04}.jpg")
 #sleep(#) creates delay in time lapse, so 1 image for every specified sleep time, runs until the range(#) function is finished
     time.sleep(.1)
 
 
-AveragePictures(f"{DIRECTORY}/{dt}").average()
+# AveragePictures(f"{DIRECTORY}/{dt}").average()
