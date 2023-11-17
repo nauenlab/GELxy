@@ -5,8 +5,8 @@ from Coordinate import Coordinate, Coordinates
 
 class Oval(Shape):
 
-    def __init__(self, width_mm, height_mm, center=None, rotation_angle=None, beam_diameter=None):
-        super().__init__(center=center, rotation_angle=rotation_angle, beam_diameter=beam_diameter, uses_step_coordinates=True)
+    def __init__(self, width_mm, height_mm, center=None, rotation_angle=None, beam_diameter=None, filled=False):
+        super().__init__(center=center, rotation_angle=rotation_angle, beam_diameter=beam_diameter, uses_step_coordinates=True, filled=filled)
         self.width = float(width_mm)
         self.height = float(height_mm)
     
@@ -26,7 +26,11 @@ class Oval(Shape):
             c = Coordinate(x_pos2, y_pos2)
             coordinates.append_if_far_enough(c, self.beam_diameter)
 
-        coordinates.append_if_far_enough(Coordinate(coordinates[0].x, coordinates[0].y), self.beam_diameter)
+        if self.filled:
+            coordinates = coordinates.fill(self.beam_diameter)
+        else:
+            coordinates.append_if_far_enough(Coordinate(coordinates[0].x, coordinates[0].y), self.beam_diameter)
+
         coordinates.normalize(step_time=0.3, center=self.center, rotation=self.rotation_angle)
         return coordinates
 

@@ -7,7 +7,7 @@ from Coordinate import Coordinate, Coordinates
 class SineWave(Shape):
 
     def __init__(self, amplitude_mm, cycles, cycles_per_mm, cycle_offset=0, center=None, rotation_angle=None, beam_diameter=None):
-        super().__init__(center=center, rotation_angle=rotation_angle, beam_diameter=beam_diameter, uses_step_coordinates=True)
+        super().__init__(center=center, rotation_angle=rotation_angle, beam_diameter=beam_diameter, uses_step_coordinates=True, filled=False)
         self.amplitude = float(amplitude_mm)
         self.cycles = abs(float(cycles))
         self.frequency = abs(float(cycles_per_mm * 360))

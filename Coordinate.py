@@ -237,10 +237,7 @@ class Coordinates:
         """
         Returns an array of Coordinate objects that represents the filled shape.
         """
-        print(len(self))
-        print(beam_diameter)
 
-        # self.plot()
         # Find the bounding box of the shape
         min_x = min(self.get_x_coordinates())
         max_x = max(self.get_x_coordinates())
@@ -248,99 +245,26 @@ class Coordinates:
         max_y = max(self.get_y_coordinates())
 
         # Create a grid of points inside the bounding box
-        resolution = beam_diameter
-        top_down = True
+        resolution = beam_diameter / 2
+        
         points = Coordinates()
-        for x in range(int(min_x / resolution), int(max_x / resolution)):
+        for x in range(int(min_x / resolution) - 1, int(max_x / resolution)):
+            if x % 2 == 0:
+                range_y = range(int(min_y / resolution) - 1, int(max_y / resolution) + 1)
+            else:
+                range_y = range(int(max_y / resolution), int(min_y / resolution) - 2, -1)
+    
             x = float(x) * resolution
-            for y in range(int(min_y / resolution), int(max_y / resolution) + 1):
+            for y in range_y:
                 y = float(y) * resolution
-                if top_down:
-                    y = max_y - y
-
                 points.append(Coordinate(x, y))
             
-            top_down = not top_down
-
         # Check which points are inside the shape
         filled_shape = Coordinates()
         for point in points:
             if self.is_point_inside_shape(point):
                 filled_shape.append(point)
-
-        print(len(filled_shape))
+        
         filled_shape.plot()
         return filled_shape
     
-
-
-
-
-
-    #  def fill(self, beam_diameter):
-    #     """
-    #     Returns an array of Coordinate objects that represents the filled shape.
-    #     """
-    #     print(len(self))
-    #     print(beam_diameter)
-
-    #     # self.plot()
-    #     # Find the bounding box of the shape
-    #     min_x = min(self.get_x_coordinates())
-    #     max_x = max(self.get_x_coordinates())
-    #     min_y = min(self.get_y_coordinates())
-    #     max_y = max(self.get_y_coordinates())
-
-    #     # Create a grid of points inside the bounding box
-    #     # points = Coordinates()
-    #     # resolution = beam_diameter
-    #     resolution = 0.005
-    #     top_down = True
-    #     points = [[]]
-        
-    #     ct = 0
-    #     for x in range(int(min_x / resolution), int(max_x / resolution)):
-    #         x = float(x) * resolution
-    #         points.append([])
-            
-    #         for y in range(int(min_y / resolution), int(max_y / resolution)):
-    #             y = float(y) * resolution
-    #             if top_down:
-    #                 y = max_y - y
-
-    #             points[-1].append(Coordinate(x, y))
-    #             ct += 1
-            
-    #         top_down = not top_down
-        
-    #     print(ct)
-        
-        
-    #     # Check which points are inside the shape
-    #     filled_shape = Coordinates()
-        
-    #     prev_column = []
-    #     for (i, column) in enumerate(points):
-    #         # print(i, "/", len(points))
-    #         for point in column:
-    #             if len([p for p in prev_column if self.distance(point, p) < beam_diameter]) == 0:
-    #                 print("appending!")
-    #                 filled_shape.append(point)
-            
-    #         prev_column = column
-                
-
-
-
-    #             # filled_shape.append_if_far_enough_field(point, beam_diameter=beam_diameter)
-
-    #     print(len(filled_shape))
-    #     filled_shape.plot()
-    #     return filled_shape
-
-
-    
-
-                
-            
-
