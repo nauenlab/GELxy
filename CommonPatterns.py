@@ -40,3 +40,23 @@ def ovals(width1_mm=5, height1_mm=3, width2_mm=3, height2_mm=2, center=Coordinat
     shapes.append(Oval(width_mm=width2_mm, height_mm=height2_mm, center=center, rotation_angle=math.pi))
     
     return shapes
+
+def atom(width_mm=5, height_mm=2, center=Coordinate(5, 5)):
+    shapes = []
+    shapes.append(Oval(width_mm=width_mm, height_mm=height_mm, center=center))
+    shapes.append(Oval(width_mm=width_mm, height_mm=height_mm, center=center, rotation_angle=math.pi/3))
+    shapes.append(Oval(width_mm=width_mm, height_mm=height_mm, center=center, rotation_angle=math.pi/3 * 2))
+
+    return shapes
+
+def audi(size_mm=5, center=Coordinate(5, 5)):
+    shapes = []
+    radius = size_mm / 2
+    offset = radius / 4
+    
+    shapes.append(Circle(diameter_mm=size_mm, center=Coordinate(center.x + radius - offset, center.y)))
+    shapes.append(Circle(diameter_mm=size_mm, center=Coordinate(center.x + 3*(radius - offset), center.y)))
+    shapes.append(Circle(diameter_mm=size_mm, center=Coordinate(center.x - (radius - offset), center.y)))
+    shapes.append(Circle(diameter_mm=size_mm, center=Coordinate(center.x - 3*(radius - offset), center.y)))
+
+    return shapes
