@@ -68,8 +68,8 @@ class EdgeDetection:
 
         coordinates = self.ordered_by_nearest_neighbor(coordinates)
         coordinates.normalize(step_time=0.5, center=self.center, rotation=self.rotation)
-        print(len(coordinates))
-        coordinates.plot(plot_lines=True, plot_points=True)
+        # print(len(coordinates))
+        # coordinates.plot(plot_lines=True, plot_points=True)
         return coordinates
     
     def ordered_by_nearest_neighbor(self, coordinates):
