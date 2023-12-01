@@ -3,6 +3,8 @@ import time
 import datetime
 import os
 from AveragePictures import AveragePictures
+import signal
+import sys
 
 DIRECTORY = '/home/saturn/Pictures'
 
@@ -19,13 +21,32 @@ time.sleep(1)
 dt = datetime.datetime.now().strftime("%Y-%m-%d %H;%M;%S")
 print(dt)
 
+LOOP = True
+sleep_time = 0.1
+
+def exit_handler(*args):
+    global LOOP
+    if LOOP:
+        LOOP = False
+        time.sleep(sleep_time * 2)
+        print("Exit!")
+        AveragePictures(f"{DIRECTORY}/{dt}").average()
+    else:
+        sys.exit()
+    
+
+signal.signal(signal.SIGTERM, exit_handler)
+signal.signal(signal.SIGINT, exit_handler)
+
 
 os.mkdir(f"{DIRECTORY}/{dt}")
-for i in range(1000):
+i = 0
+while LOOP:
+    # Press Ctrl + C to break the loop, the Average Piictures function will then run
     print(i)
     picam2.capture_file(f"{DIRECTORY}/{dt}/image{i:04}.jpg")
-#sleep(#) creates delay in time lapse, so 1 image for every specified sleep time, runs until the range(#) function is finished
-    time.sleep(.1)
+    time.sleep(sleep_time)
+    i += 1
 
 
-# AveragePictures(f"{DIRECTORY}/{dt}").average()
+

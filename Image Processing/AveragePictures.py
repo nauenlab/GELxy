@@ -12,6 +12,7 @@ class AveragePictures:
         self.directory = directory
 
     def average(self):
+        print("Averaging Pictures...")
         allfiles = os.listdir(self.directory)
         imlist = [filename for filename in allfiles if filename[-4:] in [".jpg", ".JPG"] and "image" in filename]
         imlist = sorted(imlist)
@@ -58,4 +59,4 @@ class AveragePictures:
 
 
 if __name__ == '__main__':
-    AveragePictures('/home/saturn/Pictures/2023-11-03 2023-11-03 14;39;51').average()
+    AveragePictures('/home/saturn/Pictures/2023-11-17 14;47;09').average()
