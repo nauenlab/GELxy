@@ -87,8 +87,14 @@ class Motor:
         vp.MaxVelocity = Decimal(max_velocity) if max_velocity else vp.MaxVelocity
 
         self.device.SetJogVelocityParams(vp.MaxVelocity, vp.Acceleration)
+        self.device.SetVelocityParams(vp)
 
-    def jog_to(self, absolute_position, timeout, is_first_move):
+        # vp = self.device.GetVelocityParams()
+        # vp.Acceleration = Decimal(acceleration) if acceleration else vp.Acceleration
+        # vp.MaxVelocity = Decimal(max_velocity) if max_velocity else vp.MaxVelocity
+        # self.device.SetVelocityParams(vp)
+
+    def jog_to(self, absolute_position, timeout):
         # To make more accurate, reduce the polling frequency in the initializer
 
         motor_position = self.device.Position
@@ -126,13 +132,10 @@ class Motor:
             print(f"new position: {self.device.Position}")
             print(f"error: {error}")
 
-
-    def move_absolute(self, absolute_position, timeout, is_first_move=False):
-        if is_first_move:
-            self.set_velocity_params(acceleration=ACCELERATION, max_velocity=MAXIMUM_VELOCITY)
+    def move_absolute(self, absolute_position, timeout):
+        self.set_velocity_params(acceleration=ACCELERATION, max_velocity=MAXIMUM_VELOCITY)
         self.device.MoveTo(Decimal(absolute_position), timeout)
-        if is_first_move:
-            self.set_velocity_params(acceleration=self.acceleration, max_velocity=self.max_velocity)
+        self.set_velocity_params(acceleration=self.acceleration, max_velocity=self.max_velocity)
 
 
 

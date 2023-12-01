@@ -22,10 +22,13 @@ class Manager:
     def motors(self):
         return self.x, self.y
 
-    def move(self, position, timeout, is_first_move):
+    def move(self, position, timeout):
         print(position.x, position.y)
 
-        if not is_first_move:
+        x_thread_target = self.x.jog_to
+        y_thread_target = self.y.jog_to
+        # if not is_first_move:
+        if position.lp:
             # turn on light and set movement speed
             if position.v[0] != 0:
                 self.x.set_params(position.v[0])
@@ -36,9 +39,11 @@ class Manager:
             # set movement speed
             self.x.set_params(self.x.max_velocity)
             self.y.set_params(self.y.max_velocity)
+            x_thread_target = self.x.move_absolute
+            y_thread_target = self.y.move_absolute
 
-        xt = threading.Thread(target=self.x.jog_to, args=(position.x, timeout, is_first_move))
-        yt = threading.Thread(target=self.y.jog_to, args=(position.y, timeout, is_first_move))
+        xt = threading.Thread(target=x_thread_target, args=(position.x, timeout))
+        yt = threading.Thread(target=y_thread_target, args=(position.y, timeout))
 
         for thread in [xt, yt]:
             thread.start()
@@ -46,7 +51,8 @@ class Manager:
         for thread in [xt, yt]:
             thread.join()
 
-        if not is_first_move:
+        # if not is_first_move:
+        if position.lp:
             # turn on light
             self.lamp.turn_off()
 

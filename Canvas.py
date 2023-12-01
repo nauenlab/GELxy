@@ -38,11 +38,11 @@ class Canvas:
 
     def __init__(self, dimensions_mm):
         self.pixels = []
-        dimensions = dimensions_mm * self.mm_to_pixel_ratio  # 0.1 mm is 1 pixel
-        for i in range(dimensions + 1):
+        self.dimensions = dimensions_mm * self.mm_to_pixel_ratio  # 0.1 mm is 1 pixel
+        for i in range(self.dimensions + 1):
             if i + 1 > len(self.pixels):
                 self.pixels.append([])
-            for j in range(1, dimensions + 1):
+            for j in range(1, self.dimensions + 1):
                 self.pixels[i].append(Pixel(0, 0, 0, 0))
 
     def cure(self, x, y, diameter, cure_per_step):
@@ -51,7 +51,6 @@ class Canvas:
         for point in points:
             x_pos = int(round(point[0] * self.mm_to_pixel_ratio))
             y_pos = int(round(point[1] * self.mm_to_pixel_ratio))
-            # print(x_pos + self.shape_buffer, y_pos + self.shape_buffer)
             if len(self.pixels) - 1 > x_pos + self.shape_buffer >= 0 and \
                     len(self.pixels[x_pos + self.shape_buffer]) - 1 > y_pos + self.shape_buffer >= 0:
                 self.pixels[x_pos + self.shape_buffer][y_pos + self.shape_buffer].inc(cure_per_step)
@@ -61,14 +60,12 @@ class Canvas:
         draw = ImageDraw.Draw(new)
         for x in range(len(self.pixels) - 1):
             for y in range(len(self.pixels) - 1):
+                print(x, y)
                 pixel_color = self.pixels[x][y]
-                # draw.point((x, y), fill=pixel_color.tuple())
                 red = 0
                 if pixel_color.alpha > 0:
                     red = 256
                 draw.point((x, y), fill=(red, 0, 0, pixel_color.alpha))
-
-        # new.save("rgba_image.png")
 
         new.show()
 

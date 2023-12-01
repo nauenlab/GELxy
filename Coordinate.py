@@ -1,12 +1,14 @@
 import math
 import matplotlib.pyplot as plt
 
+
 class Coordinate:
 
     def __init__(self, x, y):
         self.x = x
         self.y = y
         self.v = None
+        self.lp = True
 
     def get_vmax(self, to, time):
         xi, yi = self.x, self.y
@@ -17,17 +19,20 @@ class Coordinate:
     def __calculate_vmax__(i, f, t):
         d = math.fabs(f - i)
         a = 4.0
+        try:
+            pvf = a * t - a * (math.sqrt(t ** 2 - ((2 * d) / a)))
+        except ValueError:
+            pvf = 2.6
 
-        # pvf2 = a * t + a * (math.sqrt(t ** 2 - ((2 * d) / a)))
-        pvf = a * t - a * (math.sqrt(t ** 2 - ((2 * d) / a)))
-        # seems like 0.001 is the minimum velocity (value found by testing)
+        # seems like 0.005 is the minimum velocity (value found by testing)
         return max(pvf, 0.005)
 
     def __str__(self):
-        return f"\nx: {self.x}\ny: {self.y}\nv: {self.v}"
+        return f"\nx: {self.x}\ny: {self.y}\nv: {self.v}\nl: {self.lp}"
 
     def same_location_as(self, coord):
         return self.x == coord.x and self.y == coord.y
+
 
 class Coordinates:
 
@@ -62,8 +67,12 @@ class Coordinates:
         new_coords.coordinates += rhs.coordinates
         return new_coords
     
-    def plot(self):
-        plt.plot(self.get_x_coordinates(), self.get_y_coordinates())
+    def plot(self, plot_lines=True, plot_points=False):
+        if plot_lines:
+            plt.plot(self.get_x_coordinates(), self.get_y_coordinates())
+        if plot_points:
+            plt.plot(self.get_x_coordinates(), self.get_y_coordinates(), '.', color='black')
+        
         plt.axis('square')
         plt.show()
         
@@ -143,6 +152,7 @@ class Coordinates:
             self.coordinates[i].y = self.y[i]
 
         self.__calculate_velocities__(step_time)
+        self.coordinates[0].lp = False
 
     @staticmethod
     def rotation_transformation(c, rotation, centroid):
@@ -232,7 +242,6 @@ class Coordinates:
 
         return inside
 
-
     def fill(self, beam_diameter):
         """
         Returns an array of Coordinate objects that represents the filled shape.
@@ -243,6 +252,7 @@ class Coordinates:
         max_x = max(self.get_x_coordinates())
         min_y = min(self.get_y_coordinates())
         max_y = max(self.get_y_coordinates())
+        c_cpy = self.coordinates.copy()
 
         # Create a grid of points inside the bounding box
         resolution = beam_diameter / 2
@@ -264,7 +274,12 @@ class Coordinates:
         for point in points:
             if self.is_point_inside_shape(point):
                 filled_shape.append(point)
-        
+
+        c_cpy[0].lp = False
+        for c in c_cpy:
+            filled_shape.append(c)
+
         filled_shape.plot()
+
         return filled_shape
     

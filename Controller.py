@@ -1,5 +1,5 @@
 import CommonPatterns
-from Shapes import Rectangle, Square, EquilateralTriangle, Triangle, Line, Oval, Circle, SineWave
+from Shapes import Rectangle, Square, EquilateralTriangle, Triangle, Line, Oval, Circle, SineWave, Gradient, EdgeDetection
 import signal
 import sys
 import os
@@ -45,7 +45,7 @@ def main():
     # shapes.append(Triangle.Triangle(width_mm=7, height_mm=2.5980762114, center=Coordinate(2, 2), rotation_angle=0, beam_diameter=BEAM_DIAMETER, uses_step_coordinates=True))
     # shapes.append(Rectangle.Rectangle(width_mm=4, height_mm=2, center=Coordinate(5, 5), rotation_angle=0, beam_diameter=BEAM_DIAMETER, uses_step_coordinates=True, filled=True))
     # shapes.append(Triangle.Triangle(width_mm=4, height_mm=2, center=Coordinate(5, 5), rotation_angle=0, beam_diameter=BEAM_DIAMETER, uses_step_coordinates=True, filled=True))
-    shapes.append(Circle.Circle(diameter_mm=2, center=Coordinate(5, 5), beam_diameter=BEAM_DIAMETER, filled=True))
+    # shapes.append(Circle.Circle(diameter_mm=2, center=Coordinate(5, 5), beam_diameter=BEAM_DIAMETER, filled=True))
     # shapes.append(Triangle(width_mm=3, height_mm=2.5980762114, center=Coordinate(2, 2), rotation_angle=3.14/4.0, beam_diameter=BEAM_DIAMETER, uses_step_coordinates=False))
     # shapes.append(Rectangle.Rectangle(width_mm=2, height_mm=3, center=Coordinate(8, 8), rotation_angle=0, beam_diameter=BEAM_DIAMETER, uses_step_coordinates=False))
     # shapes.append(Rectangle.Rectangle(width_mm=2, height_mm=3, center=Coordinate(8, 8), rotation_angle=0, beam_diameter=BEAM_DIAMETER, uses_step_coordinates=True))
@@ -56,6 +56,8 @@ def main():
     # shapes.append(Rectangle(width_mm=5, height_mm=10, center=Coordinate(0, 0), rotation_angle=0, beam_diameter=BEAM_DIAMETER, uses_step_coordinates=False))
     # shapes.append(Rectangle(width_mm=5, height_mm=10, center=Coordinate(0, 0), rotation_angle=0.45, beam_diameter=BEAM_DIAMETER, uses_step_coordinates=False))
     # shapes.append(Triangle(width_mm=5, height_mm=5, rotation_angle=0, beam_diameter=BEAM_DIAMETER, uses_step_coordinates=False))
+    # shapes.append(Gradient.Gradient(min_velocity=0.1, max_velocity=1.5, beam_diameter=BEAM_DIAMETER, is_horizontal=False, is_reversed=True))
+    shapes.append(EdgeDetection.EdgeDetection(img_file="/Users/yushrajkapoor/Desktop/Network Analysis/GELxy/1.jpg", center=Coordinate(5, 5), scale_factor=1, beam_diameter=BEAM_DIAMETER))
     for shape in shapes:
         # shape.plot()
         print(shape)
@@ -64,13 +66,9 @@ def main():
     manager.lamp.canvas.draw()
 
 
-def move(coordinates, timeout=10000, is_first_move=False):
-    if len(coordinates) > 1:
-        move(coordinates=[coordinates[0]], timeout=30000, is_first_move=True)
-        coordinates = coordinates[1:]
-
+def move(coordinates, timeout=10000):
     for i in coordinates:
-        manager.move(i, timeout, is_first_move)
+        manager.move(i, timeout)
 
 
 def exit_handler(*args):
