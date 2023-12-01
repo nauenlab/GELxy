@@ -1,4 +1,3 @@
-import time
 import cv2
 from Coordinate import Coordinate, Coordinates
 
@@ -7,14 +6,17 @@ dimensions = 15  # 15 mm * 100 mm_to_pixel_ratio
 
 class EdgeDetection:
 
-    def __init__(self, img_file, beam_diameter):
+    def __init__(self, img_file, center=Coordinate(0, 0), rotation_angle=0, scale_factor=1, beam_diameter=0.1):
         self.img_file = img_file
-        self.edges = []
+        self.center = center
+        self.rotation = rotation_angle
+        self.scale_factor = scale_factor
         self.beam_diameter = beam_diameter
+        self.edges = []
         self.canny_edge_detection()
 
         max_dimension = max(self.height, self.width)
-        self.factor = dimensions / max_dimension 
+        self.factor = (dimensions / max_dimension) * self.scale_factor
 
     @property
     def height(self):
@@ -49,24 +51,46 @@ class EdgeDetection:
                         x, y = queue.pop(0)
                         if (x, y) not in visited:
                             c = Coordinate(x * self.factor, y * self.factor)
-                            lp = False
-                            if len(visited) != 0:
-                                neigh_last_visited = self.get_neighbors(visited[-1])
-                                if (x, y) in neigh_last_visited:
-                                    lp = True
-                            c.lp = lp
+                            # lp = False
+                            # if len(visited) != 0:
+                            #     neigh_last_visited = self.get_neighbors(visited[-1])
+                            #     if (x, y) in neigh_last_visited:
+                            #         lp = True
+                            # c.lp = lp
 
                             visited.append((x, y))
 
-                            coordinates.append_if_far_enough(c, self.beam_diameter)
+                            coordinates.append(c)
                             neighbors = self.get_neighbors((x, y))
                             for neighbor in neighbors:
                                 if self.edges[neighbor[1]][neighbor[0]] == 255 and neighbor not in visited:
                                     queue.append(neighbor)
 
-        coordinates.plot()
+        coordinates = self.ordered_by_nearest_neighbor(coordinates)
+        coordinates.normalize(step_time=0.5, center=self.center, rotation=self.rotation)
         print(len(coordinates))
+        coordinates.plot(plot_lines=True, plot_points=True)
         return coordinates
+    
+    def ordered_by_nearest_neighbor(self, coordinates):
+    # Start at the first point
+        current_point = coordinates[0]
+        path = Coordinates()
+        path.append(current_point)
+        unvisited = set(coordinates[1:])
+
+        while unvisited:
+            nearest_point = min(unvisited, key=lambda x: Coordinates.distance(current_point, x))
+            path.append_if_far_enough(nearest_point, self.beam_diameter)
+
+            dist = Coordinates.distance(current_point, nearest_point)
+            if dist > self.beam_diameter:
+                nearest_point.lp = False
+            
+            unvisited.remove(nearest_point)
+            current_point = nearest_point
+
+        return path
 
     def get_neighbors(self, coord):
         x, y = coord
@@ -85,10 +109,4 @@ class EdgeDetection:
                 neighbors.append((nx, ny))
 
         return neighbors
-
-
-
-
-
-EdgeDetection("/Users/yushrajkapoor/Desktop/Network Analysis/GELxy/0.jpg", beam_diameter=0.01).get_coordinates()
 
