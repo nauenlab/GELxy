@@ -77,7 +77,7 @@ class Motor:
         self.device.Home(50000)
 
     def set_params(self, vmax):
-        print("Velocity: ", vmax, "mm/s")
+        # print("Velocity: ", vmax, "mm/s")
         self.set_velocity_params(max_velocity=vmax)
 
     def set_velocity_params(self, acceleration=None, max_velocity=None):
@@ -94,12 +94,12 @@ class Motor:
         # vp.MaxVelocity = Decimal(max_velocity) if max_velocity else vp.MaxVelocity
         # self.device.SetVelocityParams(vp)
 
-    def jog_to(self, absolute_position, timeout):
+    def jog_to(self, absolute_position):
         # To make more accurate, reduce the polling frequency in the initializer
 
         motor_position = self.device.Position
         relative_movement = Decimal(absolute_position) - motor_position
-        print("relative movement:", relative_movement)
+        # print("relative movement:", relative_movement)
         # self.device.SetJogStepSize(relative_movement)
 
         zero = Decimal(0)
@@ -113,7 +113,7 @@ class Motor:
             self.device.MoveJog(MotorDirection.Backward, 0)
             isForward = False
         else:
-            print("no move necessary")
+            # print("no move necessary")
             movement_expected = False
         
         if movement_expected:
@@ -129,12 +129,12 @@ class Motor:
                 continue
 
             error = self.device.Position - motor_position - relative_movement
-            print(f"new position: {self.device.Position}")
-            print(f"error: {error}")
+            # print(f"new position: {self.device.Position}")
+            # print(f"error: {error}")
 
-    def move_absolute(self, absolute_position, timeout):
+    def move_absolute(self, absolute_position):
         self.set_velocity_params(acceleration=ACCELERATION, max_velocity=MAXIMUM_VELOCITY)
-        self.device.MoveTo(Decimal(absolute_position), timeout)
+        self.device.MoveTo(Decimal(absolute_position), 15000)
         self.set_velocity_params(acceleration=self.acceleration, max_velocity=self.max_velocity)
 
 

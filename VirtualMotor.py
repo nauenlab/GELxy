@@ -55,14 +55,14 @@ class VirtualMotor:
         c = (v**2 / (2 * a)) - (v * max_time)
         return (v * t) + c
 
-    def move_absolute(self, final_position, timeout):
+    def move_absolute(self, final_position):
         original_position = self.position
         distance = final_position - self.position
         current_time = 0
 
         while math.fabs(self.position - original_position) < math.fabs(distance):
             current_time += self.TIME_STEP
-            if current_time > timeout / 1000:
+            if current_time > 15:
                 raise Exception("Virtual Motor will take too long to move")
 
             new_pos = self.get_position_change_at(current_time, not final_position.lp)

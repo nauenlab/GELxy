@@ -14,7 +14,7 @@ class VirtualManager:
     def motors(self):
         return self.x, self.y
 
-    def move(self, position, timeout):
+    def move(self, position):
         is_lamp_on = position.lp
         if is_lamp_on:
             self.x.set_params(position.v[0])
