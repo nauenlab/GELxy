@@ -21,7 +21,7 @@ else:
 
 def main():
     shapes = []
-    center_coordinate = Coordinate(10.88336, 6.13018)
+    center_coordinate = Coordinate(11.38010, 5.32867)
     # shapes = CommonPatterns.audi(size_mm=2, center=center_coordinate)
     # shapes = CommonPatterns.clover(width_mm=2, height_mm=1, center=center_coordinate)
     # shapes = CommonPatterns.ovals(width1_mm=3, height1_mm=2, width2_mm=2, height2_mm=1, center=center_coordinate)
@@ -57,18 +57,19 @@ def main():
     # shapes.append(Rectangle(width_mm=5, height_mm=10, center=Coordinate(0, 0), rotation_angle=0.45, beam_diameter=BEAM_DIAMETER, uses_step_coordinates=False))
     # shapes.append(Triangle(width_mm=5, height_mm=5, rotation_angle=0, beam_diameter=BEAM_DIAMETER, uses_step_coordinates=False))
     # shapes.append(Gradient.Gradient(min_velocity=0.1, max_velocity=1.5, beam_diameter=BEAM_DIAMETER, is_horizontal=False, is_reversed=True))
-    shapes.append(EdgeDetection.EdgeDetection(img_file="/Users/yushrajkapoor/Desktop/Network Analysis/GELxy/1.jpg", center=Coordinate(5, 5), scale_factor=1, beam_diameter=BEAM_DIAMETER))
+    shapes.append(EdgeDetection.EdgeDetection(img_file="1.jpg", center=center_coordinate, scale_factor=0.4, beam_diameter=BEAM_DIAMETER))
     for shape in shapes:
         # shape.plot()
         print(shape)
         coordinates = shape.get_coordinates()
         move(coordinates)
-    manager.lamp.canvas.draw()
+    # manager.lamp.canvas.draw()
 
 
-def move(coordinates, timeout=10000):
-    for i in coordinates:
-        manager.move(i, timeout)
+def move(coordinates):
+    for (i, coordinate) in enumerate(coordinates):
+        print(f"{i}/{len(coordinates)} complete", end='\r')
+        manager.move(coordinate)
 
 
 def exit_handler(*args):

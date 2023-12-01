@@ -22,7 +22,7 @@ class Manager:
     def motors(self):
         return self.x, self.y
 
-    def move(self, position, timeout):
+    def move(self, position):
         print(position.x, position.y)
 
         x_thread_target = self.x.jog_to
@@ -42,8 +42,8 @@ class Manager:
             x_thread_target = self.x.move_absolute
             y_thread_target = self.y.move_absolute
 
-        xt = threading.Thread(target=x_thread_target, args=(position.x, timeout))
-        yt = threading.Thread(target=y_thread_target, args=(position.y, timeout))
+        xt = threading.Thread(target=x_thread_target, args=(position.x,))
+        yt = threading.Thread(target=y_thread_target, args=(position.y,))
 
         for thread in [xt, yt]:
             thread.start()
