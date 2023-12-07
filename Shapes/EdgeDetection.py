@@ -1,5 +1,6 @@
 import cv2
 from Coordinate import Coordinate, Coordinates
+import numpy as np
 
 dimensions = 15  # 15 mm * 100 mm_to_pixel_ratio
 
@@ -37,7 +38,9 @@ class EdgeDetection:
         img_blur = cv2.GaussianBlur(img_gray, (3, 3), 0)
 
         # Canny Edge Detection
-        self.edges = cv2.Canny(image=img_blur, threshold1=100, threshold2=200)  # Canny Edge Detection
+        edge_detection = cv2.Canny(image=img_blur, threshold1=100, threshold2=200)  # Canny Edge Detection
+
+        self.edges = [np.flip(row, 0) for row in edge_detection]
 
     def get_coordinates(self):
         coordinates = Coordinates()
@@ -51,12 +54,6 @@ class EdgeDetection:
                         x, y = queue.pop(0)
                         if (x, y) not in visited:
                             c = Coordinate(x * self.factor, y * self.factor)
-                            # lp = False
-                            # if len(visited) != 0:
-                            #     neigh_last_visited = self.get_neighbors(visited[-1])
-                            #     if (x, y) in neigh_last_visited:
-                            #         lp = True
-                            # c.lp = lp
 
                             visited.append((x, y))
 
@@ -68,8 +65,8 @@ class EdgeDetection:
 
         coordinates = self.ordered_by_nearest_neighbor(coordinates)
         coordinates.normalize(step_time=0.5, center=self.center, rotation=self.rotation)
-        print(len(coordinates))
-        coordinates.plot(plot_lines=True, plot_points=True)
+        # print(len(coordinates))
+        # coordinates.plot(plot_lines=True, plot_points=True)
         return coordinates
     
     def ordered_by_nearest_neighbor(self, coordinates):
