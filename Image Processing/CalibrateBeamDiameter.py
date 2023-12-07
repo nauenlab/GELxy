@@ -26,6 +26,7 @@ def perform_calibration():
         print(f"Beam Diameter: {mm_diameter}\t", end='\r')
         time.sleep(0.25)
 
+
 def find_pixel_diameter():
     image = cv2.imread('calibration.jpg') 
     gray_image = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
@@ -68,15 +69,15 @@ def exit_handler(*args):
 signal.signal(signal.SIGTERM, exit_handler)
 signal.signal(signal.SIGINT, exit_handler)
 
-piCam=Picamera2()
-piCam.preview_configuration.main.size=cam_size
-piCam.preview_configuration.main.format="RGB888"
+piCam = Picamera2()
+piCam.preview_configuration.main.size = cam_size
+piCam.preview_configuration.main.format = "RGB888"
 piCam.configure("preview")
 piCam.start()
 while LOOP:
-    frame=piCam.capture_array()
-    cv2.imshow("piCam",frame)
-    if cv2.waitKey(1)==ord('q'):
+    frame = piCam.capture_array()
+    cv2.imshow("piCam", frame)
+    if cv2.waitKey(1) == ord('q'):
         break
 
 

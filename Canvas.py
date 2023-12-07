@@ -56,11 +56,11 @@ class Canvas:
                 self.pixels[x_pos + self.shape_buffer][y_pos + self.shape_buffer].inc(cure_per_step)
 
     def draw(self):
+        print("Drawing on Canvas")
         new = Image.new(mode="RGBA", size=(len(self.pixels), len(self.pixels)), color=(0, 0, 0, 0))
         draw = ImageDraw.Draw(new)
         for x in range(len(self.pixels) - 1):
             for y in range(len(self.pixels) - 1):
-                print(x, y)
                 pixel_color = self.pixels[x][y]
                 red = 0
                 if pixel_color.alpha > 0:

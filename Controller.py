@@ -63,10 +63,11 @@ def main():
         print(shape)
         coordinates = shape.get_coordinates()
         move(coordinates)
-    # manager.lamp.canvas.draw()
+    manager.lamp.canvas.draw()
 
 
 def move(coordinates):
+    print("Moving Motors")
     for (i, coordinate) in enumerate(coordinates):
         print(f"{i}/{len(coordinates)} complete", end='\r')
         manager.move(coordinate)
