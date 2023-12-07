@@ -51,12 +51,6 @@ class EdgeDetection:
                         x, y = queue.pop(0)
                         if (x, y) not in visited:
                             c = Coordinate(x * self.factor, y * self.factor)
-                            # lp = False
-                            # if len(visited) != 0:
-                            #     neigh_last_visited = self.get_neighbors(visited[-1])
-                            #     if (x, y) in neigh_last_visited:
-                            #         lp = True
-                            # c.lp = lp
 
                             visited.append((x, y))
 
