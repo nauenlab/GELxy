@@ -89,11 +89,6 @@ class Motor:
         self.device.SetJogVelocityParams(vp.MaxVelocity, vp.Acceleration)
         self.device.SetVelocityParams(vp)
 
-        # vp = self.device.GetVelocityParams()
-        # vp.Acceleration = Decimal(acceleration) if acceleration else vp.Acceleration
-        # vp.MaxVelocity = Decimal(max_velocity) if max_velocity else vp.MaxVelocity
-        # self.device.SetVelocityParams(vp)
-
     def jog_to(self, absolute_position):
         # To make more accurate, reduce the polling frequency in the initializer
 
@@ -106,7 +101,6 @@ class Motor:
         movement_expected = True
         isForward = True
 
-        # MAYBE THE ISSUE OF BAD MOVEMENT IS THE TIME IT TAKES TO SWITCH DIRECTIONS!
         if relative_movement > zero and relative_movement > self.MINIMUM_STEP_SIZE:
             self.device.MoveJog(MotorDirection.Forward, 0)
         elif relative_movement < zero and relative_movement < -self.MINIMUM_STEP_SIZE:
@@ -118,8 +112,6 @@ class Motor:
         
         if movement_expected:
             travel = self.device.Position - motor_position
-            # thing = isForward and travel >= relative_movement - self.MINIMUM_STEP_SIZE or not isForward and travel <= relative_movement + self.MINIMUM_STEP_SIZE
-            # while not thing:
             while not (isForward and travel >= relative_movement or not isForward and travel <= relative_movement):
                 travel = self.device.Position - motor_position
                 continue

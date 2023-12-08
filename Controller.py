@@ -21,9 +21,9 @@ else:
 
 def main():
     shapes = []
-    center_coordinate = Coordinate(11.38010, 5.32867)
+    center_coordinate = Coordinate(9.28165, 7.36647)
     # shapes = CommonPatterns.audi(size_mm=2, center=center_coordinate)
-    # shapes = CommonPatterns.clover(width_mm=2, height_mm=1, center=center_coordinate)
+    shapes = CommonPatterns.atom(width_mm=2, height_mm=1, center=center_coordinate)
     # shapes = CommonPatterns.ovals(width1_mm=3, height1_mm=2, width2_mm=2, height2_mm=1, center=center_coordinate)
     # shapes = CommonPatterns.deathly_hallows(size_mm=2, center=center_coordinate)
     # shapes = CommonPatterns.square_star(size_mm=2, center=Coordinate(10.956, 7.557))
@@ -37,7 +37,7 @@ def main():
     # shapes = [Oval.Oval(width_mm=1, height_mm=1, center=center_coordinate, rotation_angle=math.pi, beam_diameter=BEAM_DIAMETER)]
     # from Shapes import SineWave
     # shapes.append(SineWave.SineWave(amplitude_mm=1, cycles=5, cycles_per_mm=0.5, center=Coordinate(1, 2), cycle_offset=0))
-    # shapes.append(Circle(diameter_mm=10, center=Coordinate(1, 1), beam_diameter=BEAM_DIAMETER))
+    # shapes.append(Circle.Circle(diameter_mm=2, center=center_coordinate, beam_diameter=BEAM_DIAMETER))
     # shapes.append(Oval(width_mm=4, height_mm=2, center=Coordinate(4, 4), rotation_angle=3.14/4.0, beam_diameter=BEAM_DIAMETER))
     # shapes.append(Oval(width_mm=4, height_mm=2, center=Coordinate(4, 4)))
     # shapes.append(Oval(width_mm=2, height_mm=4, center=Coordinate(4, 4), rotation_angle=0, beam_diameter=BEAM_DIAMETER))
@@ -57,13 +57,20 @@ def main():
     # shapes.append(Rectangle(width_mm=5, height_mm=10, center=Coordinate(0, 0), rotation_angle=0.45, beam_diameter=BEAM_DIAMETER, uses_step_coordinates=False))
     # shapes.append(Triangle(width_mm=5, height_mm=5, rotation_angle=0, beam_diameter=BEAM_DIAMETER, uses_step_coordinates=False))
     # shapes.append(Gradient.Gradient(min_velocity=0.1, max_velocity=1.5, beam_diameter=BEAM_DIAMETER, is_horizontal=False, is_reversed=True))
-    shapes.append(EdgeDetection.EdgeDetection(img_file="2.jpg", center=center_coordinate, scale_factor=0.4, beam_diameter=BEAM_DIAMETER))
+    # shapes.append(EdgeDetection.EdgeDetection(img_file="2.jpg", center=center_coordinate, scale_factor=0.4, beam_diameter=BEAM_DIAMETER))
+    
+    coordinate_sets = []
+
     for shape in shapes:
         # shape.plot()
         print(shape)
-        coordinates = shape.get_coordinates()
-        move(coordinates)
-    manager.lamp.canvas.draw()
+        coordinate_sets.append(shape.get_coordinates())
+
+    for coordinate_set in coordinate_sets:
+        move(coordinate_set)
+    
+    if IS_VIRTUAL:
+        manager.lamp.canvas.draw()
 
 
 def move(coordinates):

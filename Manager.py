@@ -27,7 +27,7 @@ class Manager:
 
         x_thread_target = self.x.jog_to
         y_thread_target = self.y.jog_to
-        # if not is_first_move:
+        
         if position.lp:
             # turn on light and set movement speed
             if position.v[0] != 0:
@@ -51,7 +51,6 @@ class Manager:
         for thread in [xt, yt]:
             thread.join()
 
-        # if not is_first_move:
         if position.lp:
             # turn on light
             self.lamp.turn_off()
