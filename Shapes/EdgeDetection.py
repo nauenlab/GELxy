@@ -1,5 +1,6 @@
 import cv2
 from Coordinate import Coordinate, Coordinates
+import numpy as np
 
 dimensions = 15  # 15 mm * 100 mm_to_pixel_ratio
 
@@ -37,7 +38,9 @@ class EdgeDetection:
         img_blur = cv2.GaussianBlur(img_gray, (3, 3), 0)
 
         # Canny Edge Detection
-        self.edges = cv2.Canny(image=img_blur, threshold1=100, threshold2=200)  # Canny Edge Detection
+        edge_detection = cv2.Canny(image=img_blur, threshold1=100, threshold2=200)  # Canny Edge Detection
+
+        self.edges = [np.flip(row, 0) for row in edge_detection]
 
     def get_coordinates(self):
         coordinates = Coordinates()
