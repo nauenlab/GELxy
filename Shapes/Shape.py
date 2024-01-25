@@ -1,6 +1,6 @@
 import math
 from Coordinate import Coordinate, Coordinates
-
+from tqdm import tqdm
 
 class Shape:
 
@@ -32,7 +32,7 @@ class Shape:
         line_coordinates = self.__line_coordinates__(raw=True)
 
         # Fill in the space between the coordinates linearly
-        for i in range(len(line_coordinates) - 1):
+        for i in tqdm(range(len(line_coordinates) - 1), desc="Getting Coordinates"):
             start_point = line_coordinates[i]
             end_point = line_coordinates[i + 1]
             num_points = int(self.distance(start_point.x, start_point.y, end_point.x, end_point.y) * (1 / resolution)) + 1

@@ -2,7 +2,7 @@
 import math
 from Shapes.Shape import Shape
 from Coordinate import Coordinate, Coordinates
-
+from tqdm import tqdm
 
 class SineWave(Shape):
 
@@ -18,7 +18,7 @@ class SineWave(Shape):
 
         mx = self.cycles * 360
         resolution = 0.1
-        for i in range(0, int(mx * 1/resolution) + 1, int(resolution * 1/resolution)):
+        for i in tqdm(range(0, int(mx * 1/resolution) + 1, int(resolution * 1/resolution)), desc="Getting Coordinates"):
             i = float(i) / (1/resolution) + (self.cycle_offset * 360)
 
             x_pos = i

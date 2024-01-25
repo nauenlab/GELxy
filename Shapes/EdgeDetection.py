@@ -1,6 +1,7 @@
 import cv2
 from Coordinate import Coordinate, Coordinates
 import numpy as np
+from tqdm import tqdm
 
 dimensions = 15  # 15 mm * 100 mm_to_pixel_ratio
 
@@ -46,7 +47,7 @@ class EdgeDetection:
         coordinates = Coordinates()
         visited = []
 
-        for i in range(self.height):
+        for i in tqdm(range(self.height), desc="Getting Coordinates"):
             for j in range(self.width):
                 if self.edges[j][i] == 255 and (i, j) not in visited:
                     queue = [(i, j)]

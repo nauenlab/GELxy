@@ -1,5 +1,5 @@
 from Coordinate import Coordinate, Coordinates
-
+from tqdm import tqdm
 
 class Gradient:
 
@@ -17,7 +17,7 @@ class Gradient:
         u = -5
         d = 15
         resolution = self.beam_diameter
-        for i in range(0, int(d * (1 / resolution)) + 1, int(resolution * (1 / resolution))):
+        for i in tqdm(range(0, int(d * (1 / resolution)) + 1, int(resolution * (1 / resolution))), desc="Getting Coordinates"):
             i = float(i) / (1 / resolution)
             if self.is_horizontal:
                 coordinates.append(Coordinate(i, u))

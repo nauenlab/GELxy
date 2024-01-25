@@ -1,6 +1,6 @@
 import math
 import matplotlib.pyplot as plt
-
+from tqdm import tqdm
 
 class Coordinate:
 
@@ -117,8 +117,7 @@ class Coordinates:
 
     def __calculate_velocities__(self, step_time):
         prev = None
-        print("Calculating Velocities")
-        for (i, v) in enumerate(self):
+        for (i, v) in tqdm(enumerate(self), desc="Calculating Velocities"):
             if not prev:
                 prev = self.coordinates[i]
                 continue
@@ -135,16 +134,14 @@ class Coordinates:
         factor_x = 0 if min_x > 0 else abs(min_x)
         factor_y = 0 if min_y > 0 else abs(min_y)
 
-        print("Normalizing")
-        for (i, v) in enumerate(self):
+        for (i, v) in tqdm(enumerate(self), desc="Normalizing"):
             self.x[i] = v.x + factor_x
             self.y[i] = v.y + factor_y
             self.coordinates[i].x = self.x[i]
             self.coordinates[i].y = self.y[i]
 
-        print("Calculating Transformations")
         centroid = self.__get_centroid__()
-        for (i, v) in enumerate(self):
+        for (i, v) in tqdm(enumerate(self), desc="Calculating Transformations"):
             r_transformation = self.rotation_transformation(v, rotation, centroid)
             self.x[i] = v.x + (center.x - centroid.x) + r_transformation.x
             self.y[i] = v.y + (center.y - centroid.y) + r_transformation.y
