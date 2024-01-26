@@ -12,11 +12,11 @@ import math
 if IS_VIRTUAL:
     from VirtualManager import VirtualManager
     # Sets up a virtual simulation of the motors and LED
-    manager = VirtualManager(canvas_dimensions_mm=15, led_ampere=0.0001, acceleration=ACCELERATION, max_velocity=MAXIMUM_VELOCITY)
+    manager = VirtualManager(canvas_dimensions_mm=15, led_ampere=LED_AMPS, acceleration=ACCELERATION, max_velocity=MAXIMUM_VELOCITY)
 else:
     from Manager import Manager
     # Sets up the actual motors and LED
-    manager = Manager(led_ampere=0.01, serial_number_x="27602218", serial_number_y="27264864", acceleration=ACCELERATION, max_velocity=MAXIMUM_VELOCITY)
+    manager = Manager(led_ampere=LED_AMPS, serial_number_x="27602218", serial_number_y="27264864", acceleration=ACCELERATION, max_velocity=MAXIMUM_VELOCITY)
 
 
 def main():
