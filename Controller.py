@@ -21,7 +21,7 @@ else:
 
 def main():
     shapes = []
-    center_coordinate = Coordinate(8.8896, 6.66602)
+    center_coordinate = Coordinate(8.32135, 7.88237)
     # shapes = CommonPatterns.audi(size_mm=2, center=center_coordinate)
     # shapes = CommonPatterns.atom(width_mm=2, height_mm=1, center=center_coordinate)
     # shapes = CommonPatterns.ovals(width1_mm=3, height1_mm=2, width2_mm=2, height2_mm=1, center=center_coordinate)

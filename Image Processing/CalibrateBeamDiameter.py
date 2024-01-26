@@ -21,6 +21,9 @@ def perform_calibration():
     while True:
         piCam.capture_file(f"calibration.jpg")
         pixel_diameter = find_pixel_diameter()
+        if not pixel_diameter:
+            print("No bright dot found in the image.", end='\r')
+            continue
         # print(diameter)
         mm_diameter = (pixel_diameter / float(cam_size[0])) * 6.287
         print(f"Beam Diameter: {mm_diameter}\t", end='\r')
@@ -49,7 +52,6 @@ def find_pixel_diameter():
 
         return diameter
     else:
-        print("No bright dot found in the image.")
         return None
 
 
@@ -63,6 +65,7 @@ def exit_handler(*args):
         print("Calibrating")
         perform_calibration()
     else:
+        print()
         sys.exit()
 
 

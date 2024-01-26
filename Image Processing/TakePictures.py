@@ -6,18 +6,24 @@ from AveragePictures import AveragePictures
 import signal
 import sys
 
-DIRECTORY = '/home/saturn/Pictures'
+
+if os.path.exists("/home/saturn/Documents/GELxy"):
+    DIRECTORY = '/home/saturn/Documents/GELxy/Image Processing/Pictures'
+elif os.path.exists("/Users/yushrajkapoor/Desktop"):
+    DIRECTORY = '/Users/yushrajkapoor/Desktop'
 
 # Initialize the camera
 picam2 = Picamera2()
 config = picam2.create_still_configuration({"size": (507, 380)})
 picam2.configure(config)
+picam2.exposure_mode = "off"
+picam2.awb_mode = "off"
 picam2.start()
 
-# Allow camera to adjust to settings
-time.sleep(1)
+controls = {"ExposureTime": 10000, "AnalogueGain": 1.0, "ColourGains": (3.76, 1.5)}
 
-#creates 'for' loop which takes specified amount of images "range(#):"
+picam2.set_controls(controls)
+
 dt = datetime.datetime.now().strftime("%Y-%m-%d %H;%M;%S")
 print(dt)
 
@@ -42,7 +48,7 @@ signal.signal(signal.SIGINT, exit_handler)
 os.mkdir(f"{DIRECTORY}/{dt}")
 i = 0
 while LOOP:
-    # Press Ctrl + C to break the loop, the Average Piictures function will then run
+    # Press Ctrl + C to break the loop, the Average Pictures function will then run
     print(i)
     picam2.capture_file(f"{DIRECTORY}/{dt}/image{i:04}.jpg")
     time.sleep(sleep_time)
