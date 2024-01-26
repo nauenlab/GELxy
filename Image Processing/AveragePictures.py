@@ -180,5 +180,5 @@ class AveragePictures:
 
 
 if __name__ == '__main__':
-    AveragePictures('2024-01-26 15;23;40').average()
+    AveragePictures('2024-01-26 16;47;14').average()
     # AveragePictures('/Users/yushrajkapoor/Desktop/Atom').average()
