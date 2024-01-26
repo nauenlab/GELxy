@@ -35,7 +35,7 @@ def find_pixel_diameter():
     gray_image = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
 
     # Apply threshold to isolate the bright dot
-    _, thresh = cv2.threshold(gray_image, 240, 255, cv2.THRESH_BINARY)
+    _, thresh = cv2.threshold(gray_image, 150, 255, cv2.THRESH_BINARY)
 
     # Find contours
     contours, _ = cv2.findContours(thresh, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
@@ -76,7 +76,12 @@ piCam = Picamera2()
 piCam.preview_configuration.main.size = cam_size
 piCam.preview_configuration.main.format = "RGB888"
 piCam.configure("preview")
+piCam.exposure_mode = "off"
+piCam.awb_mode = "off"
 piCam.start()
+controls = {"ExposureTime": 10000, "AnalogueGain": 1.0, "ColourGains": (3.76, 1.5)}
+piCam.set_controls(controls)
+
 while LOOP:
     frame = piCam.capture_array()
     cv2.imshow("piCam", frame)

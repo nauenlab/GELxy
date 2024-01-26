@@ -5,3 +5,4 @@ IS_VIRTUAL = False
 ACCELERATION = 4.0  # mm/s^2
 MAXIMUM_VELOCITY = 1.2  # mm/s
 BEAM_DIAMETER = 0.045  # mm
+LED_AMPS = 0.003 # amps
