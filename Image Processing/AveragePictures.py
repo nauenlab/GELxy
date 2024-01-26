@@ -7,8 +7,8 @@ from PIL import Image
 
 if os.path.exists("/home/saturn/Documents/GELxy"):
     os.chdir("/home/saturn/Documents/GELxy/Image Processing/Pictures")
-elif os.path.exists("/Users/yushrajkapoor/Desktop"):
-    os.chdir("/Users/yushrajkapoor/Desktop")
+elif os.path.exists("/Users/yushrajkapoor/Desktop/NauenLab/GELxy"):
+    os.chdir("/Users/yushrajkapoor/Desktop/NauenLab/GELxy/Image Processing/Pictures")
 
 
 class AveragePictures:
@@ -78,7 +78,7 @@ class AveragePictures:
         for (i, row) in enumerate(tqdm(result, desc="Increasing Contrast", unit="row")):
             for (j, pixel_value) in enumerate(row):
                 mx = max(mx, sum(pixel_value) / 3)
-                if sum(pixel_value) / 3 > 140:
+                if sum(pixel_value) / 3 > 180:
                     res[i][j] = (255, 255, 255)
                 else:
                     res[i][j] = (0, 0, 0)
@@ -163,7 +163,11 @@ class AveragePictures:
         sr = cv2.dnn_superres.DnnSuperResImpl_create()
 
         # Read the desired model
-        path = "/home/saturn/Documents/GELxy/FSRCNN_x3.pb"
+        model_name = "EDSR_x3.pb"
+        if os.path.exists("/home/saturn/Documents/GELxy"):
+            path = f"/home/saturn/Documents/GELxy/{model_name}"
+        elif os.path.exists("/Users/yushrajkapoor/Desktop/NauenLab/GELxy"):
+            path = f"/Users/yushrajkapoor/Desktop/NauenLab/GELxy/{model_name}"
         sr.readModel(path)
 
         # Set the desired model and scale to get correct pre- and post-processing

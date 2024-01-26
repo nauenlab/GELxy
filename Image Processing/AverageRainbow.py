@@ -5,10 +5,15 @@ from PIL import Image
 from tqdm import tqdm
 from AveragePictures import AveragePictures
 
+if os.path.exists("/home/saturn/Documents/GELxy"):
+    os.chdir("/home/saturn/Documents/GELxy/Image Processing/Pictures")
+elif os.path.exists("/Users/yushrajkapoor/Desktop/NauenLab/GELxy"):
+    os.chdir("/Users/yushrajkapoor/Desktop/NauenLab/GELxy/Image Processing/Pictures")
+
 
 class AverageRainbow:
 
-    threshold = 200
+    threshold = 150
 
     def __init__(self, directory):
         self.directory = directory
@@ -101,5 +106,6 @@ class AverageRainbow:
 
 
 if __name__ == '__main__':
+    AverageRainbow('2024-01-26 15;23;40').average()
     # RainbowAverage('/home/saturn/Pictures/2023-11-17 14;47;09').average()
-    AverageRainbow('/Users/yushrajkapoor/Desktop/SquareStar').average()
+    # AverageRainbow('/Users/yushrajkapoor/Desktop/SquareStar').average()
