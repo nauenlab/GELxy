@@ -1,9 +1,8 @@
 import os
-
 import numpy as np
 from PIL import Image
 from tqdm import tqdm
-from AveragePictures import AveragePictures
+from AveragePicturesFast import AveragePictures
 
 if os.path.exists("/home/saturn/Documents/GELxy"):
     os.chdir("/home/saturn/Documents/GELxy/Image Processing/Pictures")
@@ -13,7 +12,7 @@ elif os.path.exists("/Users/yushrajkapoor/Desktop/NauenLab/GELxy"):
 
 class AverageRainbow:
 
-    threshold = 150
+    threshold = 100
 
     def __init__(self, directory):
         self.directory = directory
@@ -27,7 +26,7 @@ class AverageRainbow:
         valid_files = [i for i in tqdm(image_files, desc="Finding Valid Pictures", unit="image") if self.has_light_point(Image.open(os.path.join(self.directory, i)))]
         if len(valid_files) > 0:
             # Open the first image to get dimensions
-            contrast_directory = self.directory + "/contrast"
+            contrast_directory = self.directory + "/rainbow_contrast"
             if not os.path.exists(contrast_directory):
                 os.mkdir(contrast_directory)
 
@@ -41,10 +40,7 @@ class AverageRainbow:
                 img.save(os.path.join(contrast_directory, image_file))
 
             AveragePictures(contrast_directory).average()
-            os.rename(os.path.join(contrast_directory, "Average.jpg"), os.path.join(self.directory, "AverageRainbow.jpg"))
-
-            # averaged_img = Image.open(os.path.join(self.directory, "AverageRainbow.jpg"))
-            # averaged_img.show()
+            os.rename(os.path.join(contrast_directory, "Average_Fast.jpg"), os.path.join(self.directory, "AverageRainbow.jpg"))
         else:
             print("No images found in the directory.")
 
@@ -76,7 +72,6 @@ class AverageRainbow:
 
     @staticmethod
     def interpolate_color(step_fraction):
-        print(step_fraction)
         # Rainbow colors in RGB format
         rainbow_colors = [
             (255, 0, 0),  # Red
@@ -106,6 +101,7 @@ class AverageRainbow:
 
 
 if __name__ == '__main__':
-    AverageRainbow('2024-01-26 15;23;40').average()
-    # RainbowAverage('/home/saturn/Pictures/2023-11-17 14;47;09').average()
-    # AverageRainbow('/Users/yushrajkapoor/Desktop/SquareStar').average()
+    for i in os.listdir():
+        if os.path.isdir(i):
+            AverageRainbow(i).average()
+    # AverageRainbow("2024-01-26 22;26;56").average()
