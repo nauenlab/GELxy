@@ -2,7 +2,7 @@ from picamera2 import Picamera2
 import time
 import datetime
 import os
-from AveragePictures import AveragePictures
+from AveragePicturesSlow import AveragePictures
 import signal
 import sys
 
