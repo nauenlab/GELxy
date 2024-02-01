@@ -12,7 +12,7 @@ elif os.path.exists("/Users/yushrajkapoor/Desktop/NauenLab/GELxy"):
 
 class AverageRainbow:
 
-    threshold = 100
+    threshold = 30
 
     def __init__(self, directory):
         self.directory = directory
@@ -101,7 +101,7 @@ class AverageRainbow:
 
 
 if __name__ == '__main__':
-    for i in os.listdir():
-        if os.path.isdir(i):
-            AverageRainbow(i).average()
-    # AverageRainbow("2024-01-26 22;26;56").average()
+    # for i in os.listdir():
+    #     if os.path.isdir(i):
+    #         AverageRainbow(i).average()
+    AverageRainbow("2024-01-26 22;26;56").average()
