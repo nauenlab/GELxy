@@ -23,8 +23,6 @@ class Manager:
         return self.x, self.y
 
     def move(self, position):
-        print(position.x, position.y)
-
         x_thread_target = self.x.jog_to
         y_thread_target = self.y.jog_to
         

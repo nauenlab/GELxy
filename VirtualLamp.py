@@ -4,7 +4,7 @@ from threading import Thread
 class VirtualLamp:
 
     DIAMETER = 0.1  # 0.1 mm
-    CURING_RATE = 5
+    CURING_RATE = 10
 
     def __init__(self, led_ampere, canvas):
         self.led_ampere = led_ampere

@@ -45,7 +45,7 @@ class Motor:
 
         # Before homing or moving device, ensure the motor's configuration is loaded
         m_config = self.device.LoadMotorConfiguration(serial_no, DeviceConfiguration.DeviceSettingsUseOptionType.UseFileSettings)
-        m_config.DeviceSettingsName = "Z825B"  # Change to whatever stage you are using.
+        m_config.DeviceSettingsName = "Z825"  # Change to whatever stage you are using.
         m_config.UpdateCurrentConfiguration()
 
         settings = self.device.MotorDeviceSettings
@@ -101,15 +101,19 @@ class Motor:
         movement_expected = True
         isForward = True
 
-        if relative_movement > zero and relative_movement > self.MINIMUM_STEP_SIZE:
-            self.device.MoveJog(MotorDirection.Forward, 0)
-        elif relative_movement < zero and relative_movement < -self.MINIMUM_STEP_SIZE:
-            self.device.MoveJog(MotorDirection.Backward, 0)
-            isForward = False
-        else:
-            # print("no move necessary")
-            movement_expected = False
-        
+        try:
+            if relative_movement > zero and relative_movement > self.MINIMUM_STEP_SIZE:
+                self.device.MoveJog(MotorDirection.Forward, 0)
+            elif relative_movement < zero and relative_movement < -self.MINIMUM_STEP_SIZE:
+                self.device.MoveJog(MotorDirection.Backward, 0)
+                isForward = False
+            else:
+                # print("no move necessary")
+                movement_expected = False
+        except Exception as e:
+            print(e)
+            print(self.serial_number)
+
         if movement_expected:
             travel = self.device.Position - motor_position
             while not (isForward and travel >= relative_movement or not isForward and travel <= relative_movement):

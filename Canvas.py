@@ -1,5 +1,6 @@
 from PIL import Image, ImageDraw
 import numpy as np
+from tqdm import tqdm
 
 
 class Pixel:
@@ -51,15 +52,14 @@ class Canvas:
         for point in points:
             x_pos = int(round(point[0] * self.mm_to_pixel_ratio))
             y_pos = int(round(point[1] * self.mm_to_pixel_ratio))
-            if len(self.pixels) - 1 > x_pos + self.shape_buffer >= 0 and \
-                    len(self.pixels[x_pos + self.shape_buffer]) - 1 > y_pos + self.shape_buffer >= 0:
+            if len(self.pixels) - 1 > x_pos + self.shape_buffer > 0 and \
+                    len(self.pixels[x_pos + self.shape_buffer]) - 1 > y_pos + self.shape_buffer > 0:
                 self.pixels[x_pos + self.shape_buffer][y_pos + self.shape_buffer].inc(cure_per_step)
 
     def draw(self):
-        print("Drawing on Canvas")
         new = Image.new(mode="RGBA", size=(len(self.pixels), len(self.pixels)), color=(0, 0, 0, 0))
         draw = ImageDraw.Draw(new)
-        for x in range(len(self.pixels) - 1):
+        for x in tqdm(range(len(self.pixels) - 1), desc="Drawing on Canvas"):
             for y in range(len(self.pixels) - 1):
                 pixel_color = self.pixels[x][y]
                 red = 0

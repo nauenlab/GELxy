@@ -1,6 +1,7 @@
 import math
 import matplotlib.pyplot as plt
 from tqdm import tqdm
+import copy
 
 class Coordinate:
 
@@ -67,14 +68,17 @@ class Coordinates:
         new_coords.coordinates += rhs.coordinates
         return new_coords
     
-    def plot(self, plot_lines=True, plot_points=False):
+    def plot(self, plot_lines=True, plot_points=False, show=True):
         if plot_lines:
             plt.plot(self.get_x_coordinates(), self.get_y_coordinates())
         if plot_points:
             plt.plot(self.get_x_coordinates(), self.get_y_coordinates(), '.', color='black')
         
         plt.axis('square')
-        plt.show()
+        if show:
+            plt.show()
+        
+        return plt
         
     def append(self, coordinate):
         self.x.append(coordinate.x)
@@ -147,6 +151,8 @@ class Coordinates:
             self.y[i] = v.y + (center.y - centroid.y) + r_transformation.y
             self.coordinates[i].x = self.x[i]
             self.coordinates[i].y = self.y[i]
+
+        self.coordinates = self.fix_coordinates_with_corrected_slope()        
 
         self.__calculate_velocities__(step_time)
         self.coordinates[0].lp = False
@@ -280,3 +286,66 @@ class Coordinates:
 
         return filled_shape
     
+    @staticmethod
+    def calculate_intersection_with_slope(p1, p2, border):
+        c_to_return = copy.deepcopy(p2)
+        # Handle vertical lines
+        if p1.x == p2.x:
+            c_to_return.x = p1.x
+            c_to_return.y = 0 if border == 'bottom' else 25
+            return c_to_return
+        # Handle horizontal lines
+        elif p1.y == p2.y:
+            c_to_return.x = 0 if border == 'left' else 25
+            c_to_return.y = p1.y
+            return c_to_return
+        
+        # Calculate slope
+        m = (p2.y - p1.y) / (p2.x - p1.x)
+        # Calculate y-intercept
+        b = p1.y - m * p1.x
+
+        
+        if border in ['left', 'right']:
+            x = 0 if border == 'left' else 25
+            y = m * x + b
+            c_to_return.x = x
+            c_to_return.y = y
+            return c_to_return
+        else:  # 'top' or 'bottom'
+            y = 25 if border == 'top' else 0
+            x = (y - b) / m
+            c_to_return.x = x
+            c_to_return.y = y
+            return c_to_return
+
+    def fix_coordinates_with_corrected_slope(self):
+        fixed_coords = Coordinates()
+        borders = {'left': 0, 'right': 25, 'top': 25, 'bottom': 0}
+        for i in range(len(self.coordinates)):
+            if i == 0:  # Add the first point if within bounds
+                if 0 <= self.coordinates[i].x <= 25 and 0 <= self.coordinates[i].y <= 25:
+                    fixed_coords.append(self.coordinates[i])
+                continue
+            
+            prev_coordinate = self.coordinates[i-1]
+            current_coordinate = self.coordinates[i]
+            
+            # Check if the segment crosses any border
+            for border, value in borders.items():
+                if border in ['left', 'right']:
+                    if (prev_coordinate.x < value < current_coordinate.x) or (current_coordinate.x < value < prev_coordinate.x):
+                        intersection = self.calculate_intersection_with_slope(prev_coordinate, current_coordinate, border)
+                        if 0 <= intersection.y <= 25:
+                            fixed_coords.append(intersection)
+                else:
+                    if (prev_coordinate.y < value < current_coordinate.y) or (current_coordinate.y < value < prev_coordinate.y):
+                        intersection = self.calculate_intersection_with_slope(prev_coordinate, current_coordinate, border)
+                        if 0 <= intersection.x <= 25:
+                            fixed_coords.append(intersection)
+            
+            # Add the second point if it's within bounds and no segment was added
+            if 0 <= current_coordinate.x <= 25 and 0 <= current_coordinate.y <= 25:
+                fixed_coords.append(current_coordinate)
+        
+        return fixed_coords

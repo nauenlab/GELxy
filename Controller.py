@@ -5,7 +5,7 @@ import sys
 import os
 from Coordinate import Coordinate
 from Constants import *
-import math
+from tqdm import tqdm
 
 
 
@@ -21,7 +21,7 @@ else:
 
 def main():
     shapes = []
-    center_coordinate = Coordinate(8.32135, 7.88237)
+    center_coordinate = Coordinate(4.71979, 11.52060)
     # shapes = CommonPatterns.audi(size_mm=2, center=center_coordinate)
     # shapes = CommonPatterns.atom(width_mm=2, height_mm=1, center=center_coordinate)
     # shapes = CommonPatterns.ovals(width1_mm=3, height1_mm=2, width2_mm=2, height2_mm=1, center=center_coordinate)
@@ -57,12 +57,12 @@ def main():
     # shapes.append(Rectangle(width_mm=5, height_mm=10, center=Coordinate(0, 0), rotation_angle=0.45, beam_diameter=BEAM_DIAMETER, uses_step_coordinates=False))
     # shapes.append(Triangle(width_mm=5, height_mm=5, rotation_angle=0, beam_diameter=BEAM_DIAMETER, uses_step_coordinates=False))
     # shapes.append(Gradient.Gradient(min_velocity=0.1, max_velocity=1.5, beam_diameter=BEAM_DIAMETER, is_horizontal=False, is_reversed=True))
-    shapes.append(EdgeDetection.EdgeDetection(img_file="test_images/2.jpg", center=center_coordinate, scale_factor=0.4, beam_diameter=BEAM_DIAMETER))
+    # shapes.append(EdgeDetection.EdgeDetection(img_file="test_images/2.jpg", center=center_coordinate, scale_factor=0.4, beam_diameter=BEAM_DIAMETER))
+    shapes.append(Triangle.Triangle(width_mm=5, height_mm=5, center=Coordinate(0, 10), rotation_angle=0, beam_diameter=BEAM_DIAMETER, uses_step_coordinates=False))
     
     coordinate_sets = []
 
     for shape in shapes:
-        # shape.plot()
         print(shape)
         coordinate_sets.append(shape.get_coordinates())
 
@@ -75,8 +75,7 @@ def main():
 
 def move(coordinates):
     print("Moving Motors")
-    for (i, coordinate) in enumerate(coordinates):
-        print(f"{i}/{len(coordinates)} complete", end='\r')
+    for coordinate in tqdm(coordinates, desc="Moving Motors", unit="coordinate"):
         manager.move(coordinate)
 
 
