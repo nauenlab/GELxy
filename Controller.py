@@ -1,5 +1,5 @@
 import CommonPatterns
-from Shapes import Rectangle, Square, EquilateralTriangle, Triangle, Line, Oval, Circle, SineWave, Gradient, EdgeDetection
+from Shapes import Rectangle, Square, EquilateralTriangle, Triangle, Line, Oval, Circle, SineWave, Gradient, EdgeDetection, Texture
 import signal
 import sys
 import os
@@ -58,7 +58,8 @@ def main():
     # shapes.append(Triangle(width_mm=5, height_mm=5, rotation_angle=0, beam_diameter=BEAM_DIAMETER, uses_step_coordinates=False))
     # shapes.append(Gradient.Gradient(min_velocity=0.1, max_velocity=1.5, beam_diameter=BEAM_DIAMETER, is_horizontal=False, is_reversed=True))
     # shapes.append(EdgeDetection.EdgeDetection(img_file="test_images/2.jpg", center=center_coordinate, scale_factor=0.4, beam_diameter=BEAM_DIAMETER))
-    shapes.append(Triangle.Triangle(width_mm=5, height_mm=5, center=Coordinate(0, 10), rotation_angle=0, beam_diameter=BEAM_DIAMETER, uses_step_coordinates=False))
+    # shapes.append(Triangle.Triangle(width_mm=5, height_mm=5, center=Coordinate(0, 10), rotation_angle=0, beam_diameter=BEAM_DIAMETER, uses_step_coordinates=False))
+    shapes.append(Texture.Texture(shape=Circle.Circle(width_mm=1, height_mm=1, center=Coordinate(0, 0), rotation_angle=0, beam_diameter=BEAM_DIAMETER, uses_step_coordinates=False, filled=True), rows=3, columns=3, is_staggered=False))
     
     coordinate_sets = []
 
