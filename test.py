@@ -61,18 +61,62 @@ def fix_coordinates_with_corrected_slope(coords):
     return fixed_coords, no_lamp_coords
 
 
-# Example shape with points going out of bounds
-shape = [(22, 2), (28, 10), (20, 20), (10, 30), (5, 5), (-5, 10), (10, 10), (1, 5), (-2, -2), (4, -5), (10, 2), (30, 30), (25, 25), (18, 25), (18, 18)]
-# shape = [(2.5, -1.66666666666), (0, 3.33333333333333), (-2.5, -1.6666666666), (2.5, -1.66666666666)]
-fixed_shape, no_l_c = fix_coordinates_with_corrected_slope(shape)
-print("Fixed Shape:", fixed_shape)
+# # Example shape with points going out of bounds
+# shape = [(22, 2), (28, 10), (20, 20), (10, 30), (5, 5), (-5, 10), (10, 10), (1, 5), (-2, -2), (4, -5), (10, 2), (30, 30), (25, 25), (18, 25), (18, 18)]
+# # shape = [(2.5, -1.66666666666), (0, 3.33333333333333), (-2.5, -1.6666666666), (2.5, -1.66666666666)]
+# fixed_shape, no_l_c = fix_coordinates_with_corrected_slope(shape)
+# print("Fixed Shape:", fixed_shape)
 
-bounds = [(0, 0), (0, 25), (25, 25), (25, 0), (0, 0)]
-plt.plot(*zip(*bounds), marker='o', color='g', ls='-')
-plt.plot(*zip(*shape), marker='o', color='r', ls='-')
-plt.plot(*zip(*fixed_shape), marker='o', color='b', ls=':')
-# plt.plot(*zip(*no_l_c), marker='o', color='y', ls=':')
+# bounds = [(0, 0), (0, 25), (25, 25), (25, 0), (0, 0)]
+# plt.plot(*zip(*bounds), marker='o', color='g', ls='-')
+# plt.plot(*zip(*shape), marker='o', color='r', ls='-')
+# plt.plot(*zip(*fixed_shape), marker='o', color='b', ls=':')
+# # plt.plot(*zip(*no_l_c), marker='o', color='y', ls=':')
 
 
-plt.show()
+# plt.show()
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+# calculation for beam diameter
+
+
+mm_to_pixel = 220 # 1 mm = 220 pixels
+
+
+
+pixels = 19
+
+beam_diameter = pixels / mm_to_pixel
+
+print(beam_diameter)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 

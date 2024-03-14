@@ -1,24 +1,23 @@
 from Coordinate import Coordinate, Coordinates
-
+import Constants
 
 class Texture:
 
-    def __init__(self, shape, rows, columns, is_staggered=False):
+    def __init__(self, shape, rows, columns):
         self.shape = shape
         self.rows = rows
         self.columns = columns
-        self.is_staggered = is_staggered
 
     def get_coordinates(self):
+        bound = Constants.MOTOR_MAX_TRAVEL
         coordinates = Coordinates()
+        x_dist = (bound / self.rows) / 2
+        y_dist = (bound / self.rows) / 2
         for i in range(self.rows):
             for j in range(self.columns):
-                if self.is_staggered and i % 2 == 1:
-                    x = i * self.shape.width
-                else:
-                    x = i * self.shape.width
-                y = j * self.shape.height
+                x = x_dist * (i) + x_dist
+                y = y_dist * (j) + y_dist
                 self.shape.center = Coordinate(x, y)
-                coordinates.append(self.shape.get_coordinates())
+                coordinates += self.shape.get_coordinates()
 
         return coordinates

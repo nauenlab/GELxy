@@ -12,7 +12,7 @@ from tqdm import tqdm
 if IS_VIRTUAL:
     from VirtualManager import VirtualManager
     # Sets up a virtual simulation of the motors and LED
-    manager = VirtualManager(canvas_dimensions_mm=15, led_ampere=LED_AMPS, acceleration=ACCELERATION, max_velocity=MAXIMUM_VELOCITY)
+    manager = VirtualManager(canvas_dimensions_mm=25, led_ampere=LED_AMPS, acceleration=ACCELERATION, max_velocity=MAXIMUM_VELOCITY)
 else:
     from Manager import Manager
     # Sets up the actual motors and LED
@@ -57,9 +57,10 @@ def main():
     # shapes.append(Rectangle(width_mm=5, height_mm=10, center=Coordinate(0, 0), rotation_angle=0.45, beam_diameter=BEAM_DIAMETER, uses_step_coordinates=False))
     # shapes.append(Triangle(width_mm=5, height_mm=5, rotation_angle=0, beam_diameter=BEAM_DIAMETER, uses_step_coordinates=False))
     # shapes.append(Gradient.Gradient(min_velocity=0.1, max_velocity=1.5, beam_diameter=BEAM_DIAMETER, is_horizontal=False, is_reversed=True))
-    # shapes.append(EdgeDetection.EdgeDetection(img_file="test_images/2.jpg", center=center_coordinate, scale_factor=0.4, beam_diameter=BEAM_DIAMETER))
+    # shapes.append(EdgeDetection.EdgeDetection(img_file="test_images/2.jpg", center=center_coordinate, scale_factor=0.02, beam_diameter=BEAM_DIAMETER))
     # shapes.append(Triangle.Triangle(width_mm=5, height_mm=5, center=Coordinate(0, 10), rotation_angle=0, beam_diameter=BEAM_DIAMETER, uses_step_coordinates=False))
-    shapes.append(Texture.Texture(shape=Circle.Circle(width_mm=1, height_mm=1, center=Coordinate(0, 0), rotation_angle=0, beam_diameter=BEAM_DIAMETER, uses_step_coordinates=False, filled=True), rows=3, columns=3, is_staggered=False))
+    # shapes.append(Texture.Texture(shape=EdgeDetection.EdgeDetection(img_file="test_images/2.jpg", center=center_coordinate, scale_factor=0.2, beam_diameter=BEAM_DIAMETER), rows=3, columns=3))
+    # shapes.append(Texture.Texture(shape=Circle.Circle(diameter_mm=1, center=Coordinate(0, 0), beam_diameter=BEAM_DIAMETER, filled=False), rows=3, columns=3))
     
     coordinate_sets = []
 
