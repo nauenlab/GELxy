@@ -59,7 +59,7 @@ def main():
     # shapes.append(Gradient.Gradient(min_velocity=0.1, max_velocity=1.5, beam_diameter=BEAM_DIAMETER, is_horizontal=False, is_reversed=True))
     # shapes.append(EdgeDetection.EdgeDetection(img_file="test_images/2.jpg", center=center_coordinate, scale_factor=0.02, beam_diameter=BEAM_DIAMETER))
     # shapes.append(Triangle.Triangle(width_mm=5, height_mm=5, center=Coordinate(0, 10), rotation_angle=0, beam_diameter=BEAM_DIAMETER, uses_step_coordinates=False))
-    # shapes.append(Texture.Texture(shape=EdgeDetection.EdgeDetection(img_file="test_images/2.jpg", center=center_coordinate, scale_factor=0.2, beam_diameter=BEAM_DIAMETER), rows=3, columns=3))
+    # shapes.append(Texture.Texture(shape=EdgeDetection.EdgeDetection(img_file="test_images/2.jpg", center=center_coordinate, scale_factor=0.2, beam_diameter=BEAM_DIAMETER), rows=10, columns=10))
     # shapes.append(Texture.Texture(shape=Circle.Circle(diameter_mm=1, center=Coordinate(0, 0), beam_diameter=BEAM_DIAMETER, filled=False), rows=3, columns=3))
     
     coordinate_sets = []
