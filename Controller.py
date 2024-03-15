@@ -3,9 +3,12 @@ from Shapes import Rectangle, Square, EquilateralTriangle, Triangle, Line, Oval,
 import signal
 import sys
 import os
-from Coordinate import Coordinate
+from Coordinate import Coordinate, Coordinates
 from Constants import *
 from tqdm import tqdm
+import multiprocessing
+from multiprocessing import Pool
+from gbl import handle_processes
 
 
 
@@ -54,32 +57,36 @@ def main():
     # shapes.append(Line(length_mm=3, center=Coordinate(8, 8), rotation_angle=0, beam_diameter=BEAM_DIAMETER, is_horizontal=True, uses_step_coordinates=False))
     # shapes.append(Line(length_mm=3, center=Coordinate(8, 8), rotation_angle=0.45, beam_diameter=BEAM_DIAMETER, is_horizontal=True, uses_step_coordinates=False))
     # shapes.append(Rectangle(width_mm=5, height_mm=10, center=Coordinate(0, 0), rotation_angle=0, beam_diameter=BEAM_DIAMETER, uses_step_coordinates=False))
-    # shapes.append(Rectangle(width_mm=5, height_mm=10, center=Coordinate(0, 0), rotation_angle=0.45, beam_diameter=BEAM_DIAMETER, uses_step_coordinates=False))
+    # shapes.append(Rectangle.Rectangle(width_mm=5, height_mm=10, center=center_coordinate, rotation_angle=0.45, beam_diameter=BEAM_DIAMETER, uses_step_coordinates=False))
     # shapes.append(Triangle(width_mm=5, height_mm=5, rotation_angle=0, beam_diameter=BEAM_DIAMETER, uses_step_coordinates=False))
     # shapes.append(Gradient.Gradient(min_velocity=0.1, max_velocity=1.5, beam_diameter=BEAM_DIAMETER, is_horizontal=False, is_reversed=True))
-    # shapes.append(EdgeDetection.EdgeDetection(img_file="test_images/2.jpg", center=center_coordinate, scale_factor=0.02, beam_diameter=BEAM_DIAMETER))
-    # shapes.append(Triangle.Triangle(width_mm=5, height_mm=5, center=Coordinate(0, 10), rotation_angle=0, beam_diameter=BEAM_DIAMETER, uses_step_coordinates=False))
-    # shapes.append(Texture.Texture(shape=EdgeDetection.EdgeDetection(img_file="test_images/2.jpg", center=center_coordinate, scale_factor=0.2, beam_diameter=BEAM_DIAMETER), rows=10, columns=10))
+    # shapes.append(EdgeDetection.EdgeDetection(img_file="test_images/2.jpg", center=center_coordinate, scale_factor=0.4, beam_diameter=BEAM_DIAMETER))
+    # shapes.append(Triangle.Triangle(width_mm=5, height_mm=5, center=center_coordinate, rotation_angle=0, beam_diameter=BEAM_DIAMETER, uses_step_coordinates=False))
+    shapes.append(Texture.Texture(shape=EdgeDetection.EdgeDetection(img_file="test_images/2.jpg", center=center_coordinate, scale_factor=0.2, beam_diameter=BEAM_DIAMETER), rows=10, columns=10))
     # shapes.append(Texture.Texture(shape=Circle.Circle(diameter_mm=1, center=Coordinate(0, 0), beam_diameter=BEAM_DIAMETER, filled=False), rows=3, columns=3))
     
-    coordinate_sets = []
-
+    coordinate_sets = multiprocessing.Manager().list()
+    processes = []
     for shape in shapes:
         print(shape)
-        coordinate_sets.append(shape.get_coordinates())
+        processes.append(multiprocessing.Process(target=append_coordinates, args=(shape, coordinate_sets)))
 
-    for coordinate_set in coordinate_sets:
-        move(coordinate_set)
+    handle_processes(processes)
+
+    coordinates = Coordinates()
+    for i in coordinate_sets:
+        coordinates += i
     
-    if IS_VIRTUAL:
-        manager.lamp.canvas.draw()
-
-
-def move(coordinates):
     print("Moving Motors")
     for coordinate in tqdm(coordinates, desc="Moving Motors", unit="coordinate"):
         manager.move(coordinate)
 
+    if IS_VIRTUAL:
+        manager.lamp.canvas.draw()
+        
+
+def append_coordinates(shape, coordinates):
+    coordinates.append(shape.get_coordinates())
 
 def exit_handler(*args):
     print("Cleaning Up!")
