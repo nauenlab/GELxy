@@ -256,7 +256,7 @@ class Coordinates:
         max_x = max(self.get_x_coordinates())
         min_y = min(self.get_y_coordinates())
         max_y = max(self.get_y_coordinates())
-        c_cpy = self.coordinates.copy()
+        c_cpy = copy.copy(self.coordinates)
 
         # Create a grid of points inside the bounding box
         resolution = beam_diameter / 2
@@ -283,9 +283,12 @@ class Coordinates:
         for c in c_cpy:
             filled_shape.append(c)
 
-        filled_shape.plot()
+        # filled_shape.plot()
 
         return filled_shape
+    
+
+    
     
     @staticmethod
     def calculate_intersection_with_slope(p1, p2, border):
