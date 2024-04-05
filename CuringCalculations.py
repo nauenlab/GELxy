@@ -6,17 +6,16 @@ DEFAULT_CURRENT = 100 # mA
 MAX_VELOCITY = 2.6 # mm/s
 MIN_VELOCITY = 0.001 # mm/s
 LIGHT_WAVELENGTH = 445 # nm
-
-# just a really small pixel square, do not change this
-# PIXEL = 0.000001 # mm^2
-PIXEL = 1
+MIN_CURRENT = 0.1 # mA
+MAX_CURRENT = 9000 # mA
 
 class Configuration:
     current = None
     velocity = None
+    iterations = 1
 
     def __repr__(self) -> str:
-        return f'Configuration(current={self.current}, velocity={self.velocity})'
+        return f"Configuration(current={self.current}, velocity={self.velocity}, iterations={self.iterations})"
     
 
     
@@ -47,7 +46,7 @@ class CuringCalculations:
         # how long a point is exposed as the light travels beam_diameter distance
         exposure_time_per_pixel = beam_diameter / velocity
 
-        total_photon_exposure_per_pixel = photon_density * exposure_time_per_pixel * PIXEL # photons
+        total_photon_exposure_per_pixel = photon_density * exposure_time_per_pixel # photons
         return total_photon_exposure_per_pixel
 
     def get_velocity_based_on_target_photon_exposure(self, beam_diameter, current, target_photon_exposure):
@@ -56,45 +55,44 @@ class CuringCalculations:
         beam_area = math.pi * (beam_diameter / 2)**2 # mm^2
         photon_density = photon_constant / beam_area # photons/s/mm^2
 
-        target_velocity = (beam_diameter * photon_density * PIXEL) / target_photon_exposure
+        target_velocity = (beam_diameter * photon_density) / target_photon_exposure
         return target_velocity 
 
     def get_current_based_on_target_photon_exposure(self, beam_diameter, velocity, target_photon_exposure):
         beam_area = math.pi * (beam_diameter / 2)**2 # mm^2
 
         exposure_time_per_pixel = beam_diameter / velocity
-        target_current = (target_photon_exposure * beam_area) / (exposure_time_per_pixel * PIXEL * 100)
+        target_current = (target_photon_exposure * beam_area) / (exposure_time_per_pixel * 100)
         return target_current
 
     def get_configuration(self):
         configuration = Configuration()
-        
-        # assuming linear relationship
-        target_photon_exposure = self.target_stiffness * self.average_ratio
-        new_velocity = self.get_velocity_based_on_target_photon_exposure(self.beam_diameter, DEFAULT_CURRENT, target_photon_exposure)
-        print(new_velocity)
-        if new_velocity < MIN_VELOCITY:
-            new_velocity = MIN_VELOCITY
-        elif new_velocity > MAX_VELOCITY:
-            new_velocity = MAX_VELOCITY
-        
-        total_photon_exposure_per_pixel = self.get_total_photon_exposure_per_pixel(self.beam_diameter, DEFAULT_CURRENT, new_velocity)
-        new_current = self.get_current_based_on_target_photon_exposure(self.beam_diameter, new_velocity, total_photon_exposure_per_pixel)
-        
-        configuration.velocity = new_velocity
-        configuration.current = new_current
+        unstable = True
+
+        while unstable:
+            # assuming linear relationship
+            target_photon_exposure = self.target_stiffness / (self.average_ratio * configuration.iterations)
+            new_velocity = self.get_velocity_based_on_target_photon_exposure(self.beam_diameter, DEFAULT_CURRENT, target_photon_exposure)
+            if new_velocity < MIN_VELOCITY:
+                new_velocity = MIN_VELOCITY
+            elif new_velocity > MAX_VELOCITY:
+                new_velocity = MAX_VELOCITY
+            
+            new_current = self.get_current_based_on_target_photon_exposure(self.beam_diameter, new_velocity, target_photon_exposure)
+
+            if new_current < MIN_CURRENT:
+                raise Exception("Unable to achieve target stiffness with current configuration, target stiffness and/or beam diameter is too low.")
+            elif new_current > MAX_CURRENT:
+                configuration.iterations += 1
+                new_current = MAX_CURRENT
+            else:
+                unstable = False
+            
+            configuration.velocity = new_velocity
+            configuration.current = new_current
         
         return configuration
     
-curing_calculations = CuringCalculations(target_stiffness=0.1, beam_diameter_mm=3)
-# configuration = CuringCalculations(target_stiffness=0.1, beam_diameter_mm=3).get_configuration()
-# print(configuration)
-
-prev_velocity = 0.1
-# Calculate photon exposure for given parameters
-x = curing_calculations.get_total_photon_exposure_per_pixel(3, 0.1, prev_velocity)
-# Calculate new velocity based on the target photon exposure obtained above
-new_velocity = curing_calculations.get_velocity_based_on_target_photon_exposure(3, 0.1, x)
-
-
-print(prev_velocity, new_velocity, prev_velocity == new_velocity)
+curing_calculations = CuringCalculations(target_stiffness=0.1, beam_diameter_mm=1)
+configuration = curing_calculations.get_configuration()
+print(configuration)
