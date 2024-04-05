@@ -20,10 +20,7 @@ class Configuration:
 
     
 class CuringCalculations:
-    def __init__(self, target_stiffness, beam_diameter_mm):
-        self.target_stiffness = target_stiffness
-        self.beam_diameter = beam_diameter_mm
-
+    def __init__(self):
         df = pd.read_excel('Curing Calculations Data.xlsx')
         stiffness_to_photon_ratios = []
         for index, row in df.iterrows():
@@ -32,10 +29,14 @@ class CuringCalculations:
             velocity = row['Velocity (mm/s)']
             stiffness = row['Stiffness (kPa)']
             total_photon_exposure_per_pixel = self.get_total_photon_exposure_per_pixel(beam_diameter, current, velocity)
-            stiffness_to_photon_ratios.append(stiffness / total_photon_exposure_per_pixel)
+            stiffness_to_photon_ratios.append(self.calculate_stiffness_to_photon_ratio(stiffness, total_photon_exposure_per_pixel))
 
         self.average_ratio = sum(stiffness_to_photon_ratios) / len(stiffness_to_photon_ratios)
 
+    def calculate_stiffness_to_photon_ratio(self, stiffness, photon_exposure):
+        # This will need to change as we get more data
+        # This is assuming a linear relationship between stiffness and photon exposure. In reality, it is likely more logarithmic.
+        return stiffness / photon_exposure
 
     def get_total_photon_exposure_per_pixel(self, beam_diameter, current, velocity):
         # made up number signifying that there are 100 photons in the light beam per second * current
@@ -65,20 +66,19 @@ class CuringCalculations:
         target_current = (target_photon_exposure * beam_area) / (exposure_time_per_pixel * 100)
         return target_current
 
-    def get_configuration(self):
+    def get_configuration(self, target_stiffness, beam_diameter_mm):
         configuration = Configuration()
         unstable = True
 
         while unstable:
-            # assuming linear relationship
-            target_photon_exposure = self.target_stiffness / (self.average_ratio * configuration.iterations)
-            new_velocity = self.get_velocity_based_on_target_photon_exposure(self.beam_diameter, DEFAULT_CURRENT, target_photon_exposure)
+            target_photon_exposure = self.calculate_stiffness_to_photon_ratio(target_stiffness, self.average_ratio) / configuration.iterations
+            new_velocity = self.get_velocity_based_on_target_photon_exposure(beam_diameter_mm, DEFAULT_CURRENT, target_photon_exposure)
             if new_velocity < MIN_VELOCITY:
                 new_velocity = MIN_VELOCITY
             elif new_velocity > MAX_VELOCITY:
                 new_velocity = MAX_VELOCITY
             
-            new_current = self.get_current_based_on_target_photon_exposure(self.beam_diameter, new_velocity, target_photon_exposure)
+            new_current = self.get_current_based_on_target_photon_exposure(beam_diameter_mm, new_velocity, target_photon_exposure)
 
             if new_current < MIN_CURRENT:
                 raise Exception("Unable to achieve target stiffness with current configuration, target stiffness and/or beam diameter is too low.")
@@ -92,7 +92,11 @@ class CuringCalculations:
             configuration.current = new_current
         
         return configuration
-    
-curing_calculations = CuringCalculations(target_stiffness=0.1, beam_diameter_mm=1)
-configuration = curing_calculations.get_configuration()
-print(configuration)
+
+import time
+og = time.time()
+curing_calculations = CuringCalculations()
+configuration = curing_calculations.get_configuration(target_stiffness=0.1, beam_diameter_mm=1)
+# print(configuration)
+fin = time.time()
+print(fin-og)
