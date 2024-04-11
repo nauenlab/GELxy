@@ -85,22 +85,52 @@ deviceX.SetSettings(deviceX.MotorDeviceSettings, True, False)
 
 
 vs = deviceX.GetVelocityParams()
-print(vs.Acceleration)
-print(vs.MaxVelocity)
 vs.Acceleration = Decimal(4.0)
 vs.MaxVelocity = Decimal(2.6)
 vs.MinVelocity = Decimal(2.6)
 deviceX.SetVelocityParams(vs)
 deviceX.SetBacklash(Decimal(0))
 vs = deviceX.GetVelocityParams()
-#print(MotorDeviceSettings)
-print(vs.Acceleration)
-print(vs.MaxVelocity)
-# print(dir(deviceX.AdvancedMotorLimits)) # use this!!!
-print(deviceX.DevicePosition)
-print(deviceX.Position)
-print(deviceX)
 
+MINIMUM_STEP_SIZE = Decimal(0.001)
+
+def jog_to(device, absolute_position):
+    # To make more accurate, reduce the polling frequency in the initializer
+
+    motor_position = device.Position
+    relative_movement = Decimal(absolute_position) - motor_position
+    # print("relative movement:", relative_movement)
+    # self.device.SetJogStepSize(relative_movement)
+
+    zero = Decimal(0)
+    movement_expected = True
+    isForward = True
+
+    try:
+        if relative_movement > zero and relative_movement > MINIMUM_STEP_SIZE:
+            device.MoveJog(MotorDirection.Forward, 0)
+        elif relative_movement < zero and relative_movement < -MINIMUM_STEP_SIZE:
+            device.MoveJog(MotorDirection.Backward, 0)
+            isForward = False
+        else:
+            # print("no move necessary")
+            movement_expected = False
+    except Exception as e:
+        print(e)
+
+    if movement_expected:
+        travel = device.Position - motor_position
+        while not (isForward and travel >= relative_movement or not isForward and travel <= relative_movement):
+            travel = device.Position - motor_position
+            continue
+        device.StopImmediate()
+
+        while device.Status.IsJogging:
+            continue
+
+        error = device.Position - motor_position - relative_movement
+        # print(f"new position: {self.device.Position}")
+        # print(f"error: {error}")
 
 
 settings = deviceX.MotorDeviceSettings
@@ -116,16 +146,66 @@ deviceY.Home(50000)
 
 settings.Jog.JogMode = JogParametersBase.JogModes.ContinuousHeld
 settings.Jog.JogStopMode = JogParametersBase.StopModes.Immediate
-print(settings.Jog.JogMode)
-print(settings.Jog.JogStopMode)
 
 deviceX.SetSettings(settings, True, False)
 print(deviceX.MotorDeviceSettings.Jog.JogStopMode)
 #print(deviceX.GetVelocityParams())
 #deviceX.MoveTo(Decimal(10), 10000)
 deviceX.SetJogStepSize(Decimal(1))
-deviceX.SetJogVelocityParams(Decimal(2.6), Decimal(4))
 
+def set_velocity(device, velocity):
+    vs = device.GetVelocityParams()
+    vs.Acceleration = Decimal(4.0)
+    vs.MaxVelocity = Decimal(velocity)
+    vs.MinVelocity = Decimal(velocity)
+    device.SetVelocityParams(vs)
+
+# deviceX.SetJogVelocityParams(2.6, Decimal(4))
+set_velocity(deviceX, 2.6)
+deviceX.MoveTo(Decimal(22), 30000)
+import pandas as pd
+
+def distance_to_travel(v, a, t):
+    t1 = v / a
+    d1 = a*(t1**2)/2
+    t2 = t - t1
+    d2 = v*t2
+    return d2 + d1
+
+d = {2: 0, 1: 0, 0.9: 0, 0.8: 0, 0.7: 0, 0.6: 0, 0.5: 0, 0.4: 0, 0.3: 0, 0.2: 0, 0.1: 0, 0.09: 0, 0.08: 0, 0.07: 0, 0.06: 0, 0.05: 0, 0.04: 0, 0.03: 0, 0.02: 0, 0.01: 0, 0.009: 0, 0.008: 0, 0.007: 0, 0.006: 0, 0.005: 0, 0.004: 0, 0.003: 0, 0.002: 0, 0.001: 0, 0.001: 0}
+for i in d.keys():
+    set_velocity(deviceX, i)
+    target_distance = distance_to_travel(i, 4, 10)
+    og = time.time()
+    deviceX.MoveTo(Decimal(22-target_distance), 30000)
+    fin = time.time()
+    d[i] = fin - og
+    print(i, d[i])
+    set_velocity(deviceX, 2.6)
+    deviceX.MoveTo(Decimal(22), 30000)
+    df = pd.DataFrame(data=d, index=[0])
+    df = df.T
+    df.to_excel('dict_move_r_x.xlsx')
+
+        
+
+for i in d.keys():
+    deviceX.SetJogVelocityParams(Decimal(i), Decimal(4))
+    target_distance = distance_to_travel(i, 4, 10)
+    og = time.time()
+    jog_to(deviceX, 22-target_distance)
+    fin = time.time()
+    d[i] = fin - og
+    print(i, d[i])
+    set_velocity(deviceX, 2.6)
+    deviceX.MoveTo(Decimal(22), 30000)
+    df = pd.DataFrame(data=d, index=[0])
+    df = df.T
+    df.to_excel('dict_jog_r_x.xlsx')
+
+
+
+sys.exit()
 print("checkpoint")
 for i in [5, -3, 5, -2, 0.5, 0.1, -3, 0.02, 0.01, 0.03, 0.01, -2]:
     initial = deviceX.Position
