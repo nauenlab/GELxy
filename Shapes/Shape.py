@@ -1,15 +1,17 @@
 import math
 from Coordinate import Coordinate, Coordinates
 from tqdm import tqdm
+from CuringCalculations import CuringCalculations
 
 class Shape:
 
-    def __init__(self, center, rotation_angle, beam_diameter, uses_step_coordinates, filled):
+    def __init__(self, center, rotation_angle, beam_diameter, uses_step_coordinates, filled, stiffness):
         self.center = center if center else Coordinate(0, 0)
         self.rotation_angle = rotation_angle if rotation_angle else 0
         self.beam_diameter = beam_diameter if beam_diameter else 0.1
         self.uses_step_coordinates = uses_step_coordinates if uses_step_coordinates else False
         self.filled = filled if filled else False
+        self.stiffness = stiffness if stiffness else 1
 
     def plot(self):
         # subclasses must have the get_coordinates function
@@ -26,8 +28,9 @@ class Shape:
             raise Exception("Shape does not have a line or radial coordinate function")
 
         if self.filled and coordinates:
+            configuration = CuringCalculations().get_configuration(self.stiffness, self.beam_diameter)
             coordinates = coordinates.fill(self.beam_diameter)
-            coordinates.normalize(step_time=10, center=self.center, rotation=self.rotation_angle)
+            coordinates.normalize(center=self.center, rotation=self.rotation_angle, configuration=configuration)
         
         return coordinates
     
@@ -55,7 +58,9 @@ class Shape:
         if self.filled:
             coordinates = coordinates.fill(self.beam_diameter)
 
-        coordinates.normalize(step_time=10, center=self.center, rotation=self.rotation_angle)
+        configuration = CuringCalculations().get_configuration(self.stiffness, self.beam_diameter)
+
+        coordinates.normalize(center=self.center, rotation=self.rotation_angle, configuration=configuration)
         return coordinates
 
     @staticmethod

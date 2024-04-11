@@ -2,7 +2,8 @@ import math
 import matplotlib.pyplot as plt
 from tqdm import tqdm
 import copy
-import Constants
+from Constants import MOTOR_MAX_TRAVEL
+from CuringCalculations import MIN_VELOCITY, MAX_VELOCITY
 
 class Coordinate:
 
@@ -10,6 +11,7 @@ class Coordinate:
         self.x = x
         self.y = y
         self.v = None
+        self.a = None
         self.lp = True
 
     def get_vmax(self, to, time):
@@ -24,10 +26,9 @@ class Coordinate:
         try:
             pvf = a * t - a * (math.sqrt(t ** 2 - ((2 * d) / a)))
         except ValueError:
-            pvf = 2.6
+            pvf = MAX_VELOCITY
 
-        # seems like 0.005 is the minimum velocity (value found by testing)
-        return max(pvf, 0.005)
+        return max(pvf, MIN_VELOCITY)
 
     def __str__(self):
         return f"\nx: {self.x}\ny: {self.y}\nv: {self.v}\nl: {self.lp}"
@@ -120,22 +121,31 @@ class Coordinates:
     def get_y_coordinates(self):
         return self.y
 
-    def __calculate_velocities__(self, step_time):
+    def update_with_configuration(self, configuration):
         prev = None
-        for (i, v) in tqdm(enumerate(self), desc="Calculating Velocities"):
+        for (i, v) in tqdm(enumerate(self), desc="Updating Coordinates with configuration"):
             if not prev:
                 prev = self.coordinates[i]
                 continue
-
+            
+            distance = self.distance(prev, self.coordinates[i])
+            step_time = distance / configuration.velocity
             vmax = prev.get_vmax(to=self.coordinates[i], time=step_time)
             self.v.append(vmax)
             prev = self.coordinates[i]
             prev.v = vmax
+            prev.a = configuration.current
 
-    def normalize(self, step_time, center, rotation):
+
+    def normalize(self, center, rotation, configuration):
+        original_coordinates = self.coordinates.copy()
+        while configuration.iterations > 1:
+            self.coordinates += original_coordinates
+            configuration.iterations -= 1
+
         min_x = min(self.get_x_coordinates())
         min_y = min(self.get_y_coordinates())
-
+        
         factor_x = 0 if min_x > 0 else abs(min_x)
         factor_y = 0 if min_y > 0 else abs(min_y)
 
@@ -155,7 +165,7 @@ class Coordinates:
 
         self.coordinates = self.fix_coordinates_with_corrected_slope()        
 
-        self.__calculate_velocities__(step_time)
+        self.update_with_configuration(configuration)
         self.coordinates[0].lp = False
 
     @staticmethod
@@ -288,20 +298,17 @@ class Coordinates:
         return filled_shape
     
 
-    
-    
     @staticmethod
     def calculate_intersection_with_slope(p1, p2, border):
-        bound = Constants.MOTOR_MAX_TRAVEL
         c_to_return = copy.deepcopy(p2)
         # Handle vertical lines
         if p1.x == p2.x:
             c_to_return.x = p1.x
-            c_to_return.y = 0 if border == 'bottom' else bound
+            c_to_return.y = 0 if border == 'bottom' else MOTOR_MAX_TRAVEL
             return c_to_return
         # Handle horizontal lines
         elif p1.y == p2.y:
-            c_to_return.x = 0 if border == 'left' else bound
+            c_to_return.x = 0 if border == 'left' else MOTOR_MAX_TRAVEL
             c_to_return.y = p1.y
             return c_to_return
         
@@ -312,25 +319,24 @@ class Coordinates:
 
         
         if border in ['left', 'right']:
-            x = 0 if border == 'left' else bound
+            x = 0 if border == 'left' else MOTOR_MAX_TRAVEL
             y = m * x + b
             c_to_return.x = x
             c_to_return.y = y
             return c_to_return
         else:  # 'top' or 'bottom'
-            y = bound if border == 'top' else 0
+            y = MOTOR_MAX_TRAVEL if border == 'top' else 0
             x = (y - b) / m
             c_to_return.x = x
             c_to_return.y = y
             return c_to_return
 
     def fix_coordinates_with_corrected_slope(self):
-        bound = Constants.MOTOR_MAX_TRAVEL
         fixed_coords = Coordinates()
-        borders = {'left': 0, 'right': bound, 'top':bound, 'bottom': 0}
+        borders = {'left': 0, 'right': MOTOR_MAX_TRAVEL, 'top': MOTOR_MAX_TRAVEL, 'bottom': 0}
         for i in range(len(self.coordinates)):
             if i == 0:  # Add the first point if within bounds
-                if 0 <= self.coordinates[i].x <= bound and 0 <= self.coordinates[i].y <= bound:
+                if 0 <= self.coordinates[i].x <= MOTOR_MAX_TRAVEL and 0 <= self.coordinates[i].y <= MOTOR_MAX_TRAVEL:
                     fixed_coords.append(self.coordinates[i])
                 continue
             
@@ -342,16 +348,16 @@ class Coordinates:
                 if border in ['left', 'right']:
                     if (prev_coordinate.x < value < current_coordinate.x) or (current_coordinate.x < value < prev_coordinate.x):
                         intersection = self.calculate_intersection_with_slope(prev_coordinate, current_coordinate, border)
-                        if 0 <= intersection.y <= bound:
+                        if 0 <= intersection.y <= MOTOR_MAX_TRAVEL:
                             fixed_coords.append(intersection)
                 else:
                     if (prev_coordinate.y < value < current_coordinate.y) or (current_coordinate.y < value < prev_coordinate.y):
                         intersection = self.calculate_intersection_with_slope(prev_coordinate, current_coordinate, border)
-                        if 0 <= intersection.x <= bound:
+                        if 0 <= intersection.x <= MOTOR_MAX_TRAVEL:
                             fixed_coords.append(intersection)
             
             # Add the second point if it's within bounds and no segment was added
-            if 0 <= current_coordinate.x <= bound and 0 <= current_coordinate.y <= bound:
+            if 0 <= current_coordinate.x <= MOTOR_MAX_TRAVEL and 0 <= current_coordinate.y <= MOTOR_MAX_TRAVEL:
                 fixed_coords.append(current_coordinate)
         
         return fixed_coords

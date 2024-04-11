@@ -5,7 +5,7 @@ import threading
 
 class Manager:
 
-    def __init__(self, led_ampere, serial_number_x, serial_number_y, acceleration=None, max_velocity=None):
+    def __init__(self, serial_number_x, serial_number_y, acceleration=None, max_velocity=None):
         self.x = Motor(serial_no=serial_number_x, acceleration=acceleration, max_velocity=max_velocity)
         self.y = Motor(serial_no=serial_number_y, acceleration=acceleration, max_velocity=max_velocity)
         home_threads = []
@@ -17,7 +17,7 @@ class Manager:
         for t in home_threads:
             t.join()
 
-        self.lamp = Lamp(led_ampere=led_ampere)
+        self.lamp = Lamp()
 
     def motors(self):
         return self.x, self.y
@@ -32,7 +32,7 @@ class Manager:
                 self.x.set_params(position.v[0])
             if position.v[1] != 0:
                 self.y.set_params(position.v[1])
-            self.lamp.turn_on()
+            self.lamp.turn_on(position.a)
         else:
             # set movement speed
             self.x.set_params(self.x.max_velocity)

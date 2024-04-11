@@ -15,11 +15,11 @@ from gbl import handle_processes
 if IS_VIRTUAL:
     from VirtualManager import VirtualManager
     # Sets up a virtual simulation of the motors and LED
-    manager = VirtualManager(canvas_dimensions_mm=25, led_ampere=LED_AMPS, acceleration=ACCELERATION, max_velocity=MAXIMUM_VELOCITY)
+    manager = VirtualManager(canvas_dimensions_mm=MOTOR_MAX_TRAVEL, acceleration=ACCELERATION, max_velocity=MAXIMUM_VELOCITY, beam_diameter=BEAM_DIAMETER)
 else:
     from Manager import Manager
     # Sets up the actual motors and LED
-    manager = Manager(led_ampere=LED_AMPS, serial_number_x="27602218", serial_number_y="27264864", acceleration=ACCELERATION, max_velocity=MAXIMUM_VELOCITY)
+    manager = Manager(serial_number_x="27602218", serial_number_y="27264864", acceleration=ACCELERATION, max_velocity=MAXIMUM_VELOCITY)
 
 
 def main():
@@ -48,7 +48,7 @@ def main():
     # shapes.append(Triangle.Triangle(width_mm=7, height_mm=2.5980762114, center=Coordinate(2, 2), rotation_angle=0, beam_diameter=BEAM_DIAMETER, uses_step_coordinates=True))
     # shapes.append(Rectangle.Rectangle(width_mm=4, height_mm=2, center=Coordinate(5, 5), rotation_angle=0, beam_diameter=BEAM_DIAMETER, uses_step_coordinates=True, filled=True))
     # shapes.append(Triangle.Triangle(width_mm=4, height_mm=2, center=Coordinate(5, 5), rotation_angle=0, beam_diameter=BEAM_DIAMETER, uses_step_coordinates=True, filled=True))
-    # shapes.append(Circle.Circle(diameter_mm=2, center=Coordinate(5, 5), beam_diameter=BEAM_DIAMETER, filled=True))
+    shapes.append(Circle.Circle(diameter_mm=2, stiffness=3, center=Coordinate(5, 5), beam_diameter=BEAM_DIAMETER, filled=True))
     # shapes.append(Triangle(width_mm=3, height_mm=2.5980762114, center=Coordinate(2, 2), rotation_angle=3.14/4.0, beam_diameter=BEAM_DIAMETER, uses_step_coordinates=False))
     # shapes.append(Rectangle.Rectangle(width_mm=2, height_mm=3, center=Coordinate(8, 8), rotation_angle=0, beam_diameter=BEAM_DIAMETER, uses_step_coordinates=False))
     # shapes.append(Rectangle.Rectangle(width_mm=2, height_mm=3, center=Coordinate(8, 8), rotation_angle=0, beam_diameter=BEAM_DIAMETER, uses_step_coordinates=True))
@@ -57,18 +57,18 @@ def main():
     # shapes.append(Line(length_mm=3, center=Coordinate(8, 8), rotation_angle=0, beam_diameter=BEAM_DIAMETER, is_horizontal=True, uses_step_coordinates=False))
     # shapes.append(Line(length_mm=3, center=Coordinate(8, 8), rotation_angle=0.45, beam_diameter=BEAM_DIAMETER, is_horizontal=True, uses_step_coordinates=False))
     # shapes.append(Rectangle(width_mm=5, height_mm=10, center=Coordinate(0, 0), rotation_angle=0, beam_diameter=BEAM_DIAMETER, uses_step_coordinates=False))
-    # shapes.append(Rectangle.Rectangle(width_mm=5, height_mm=10, center=center_coordinate, rotation_angle=0.45, beam_diameter=BEAM_DIAMETER, uses_step_coordinates=False))
+    # shapes.append(Rectangle.Rectangle(width_mm=5, height_mm=10, center=center_coordinate, rotation_angle=0.45, beam_diameter=BEAM_DIAMETER, uses_step_coordinates=False, filled=False))
     # shapes.append(Triangle(width_mm=5, height_mm=5, rotation_angle=0, beam_diameter=BEAM_DIAMETER, uses_step_coordinates=False))
     # shapes.append(Gradient.Gradient(min_velocity=0.1, max_velocity=1.5, beam_diameter=BEAM_DIAMETER, is_horizontal=False, is_reversed=True))
     # shapes.append(EdgeDetection.EdgeDetection(img_file="test_images/2.jpg", center=center_coordinate, scale_factor=0.4, beam_diameter=BEAM_DIAMETER))
-    # shapes.append(Triangle.Triangle(width_mm=5, height_mm=5, center=center_coordinate, rotation_angle=0, beam_diameter=BEAM_DIAMETER, uses_step_coordinates=False))
-    shapes.append(Texture.Texture(shape=EdgeDetection.EdgeDetection(img_file="test_images/2.jpg", center=center_coordinate, scale_factor=0.2, beam_diameter=BEAM_DIAMETER), rows=10, columns=10))
-    # shapes.append(Texture.Texture(shape=Circle.Circle(diameter_mm=1, center=Coordinate(0, 0), beam_diameter=BEAM_DIAMETER, filled=False), rows=3, columns=3))
+    # shapes.append(Triangle.Triangle(width_mm=5, height_mm=5, center=center_coordinate, rotation_angle=0, beam_diameter=BEAM_DIAMETER, uses_step_coordinates=False, filled=True))
+    # shapes.append(Texture.Texture(shape=EdgeDetection.EdgeDetection(img_file="test_images/2.jpg", center=center_coordinate, scale_factor=0.2, beam_diameter=BEAM_DIAMETER), rows=10, columns=10))
+    # shapes.append(Texture.Texture(shape=Circle.Circle(diameter_mm=1, center=Coordinate(0, 0), beam_diameter=BEAM_DIAMETER, filled=False), spacing_mm=2, margins=1))
+    # shapes.append(Texture.Texture(shape=Circle.Circle(diameter_mm=1, center=Coordinate(0, 0), stiffness=1, beam_diameter=BEAM_DIAMETER, filled=False), rows=10, columns=10))
     
     coordinate_sets = multiprocessing.Manager().list()
     processes = []
     for shape in shapes:
-        print(shape)
         processes.append(multiprocessing.Process(target=append_coordinates, args=(shape, coordinate_sets)))
 
     handle_processes(processes)

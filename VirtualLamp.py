@@ -1,24 +1,22 @@
 from threading import Thread
+from CuringCalculations import MAX_CURRENT
 
 
 class VirtualLamp:
 
-    DIAMETER = 0.1  # 0.1 mm
-    CURING_RATE = 10
-
-    def __init__(self, led_ampere, canvas):
-        self.led_ampere = led_ampere
+    def __init__(self, canvas):
         self.canvas = canvas
         self.is_on = False
 
     def __del__(self):
         pass
 
-    def turn_on(self):
+    def turn_on(self, _):
         self.is_on = True
 
-    def cure(self, x, y):
-        self.canvas.cure(x, y, self.DIAMETER, self.CURING_RATE)
+    def cure(self, x, y, beam_diameter, curing_rate):
+        curing_percentage = (curing_rate / MAX_CURRENT) * 10
+        self.canvas.cure(x, y, beam_diameter, curing_percentage)
 
     def turn_off(self):
         self.is_on = False

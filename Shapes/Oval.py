@@ -2,11 +2,12 @@ import math
 from Shapes.Shape import Shape
 from Coordinate import Coordinate, Coordinates
 from tqdm import tqdm
+from CuringCalculations import CuringCalculations
 
 class Oval(Shape):
 
-    def __init__(self, width_mm, height_mm, center=None, rotation_angle=None, beam_diameter=None, filled=False):
-        super().__init__(center=center, rotation_angle=rotation_angle, beam_diameter=beam_diameter, uses_step_coordinates=True, filled=filled)
+    def __init__(self, width_mm, height_mm, stiffness, center=None, rotation_angle=None, beam_diameter=None, filled=False):
+        super().__init__(center=center, rotation_angle=rotation_angle, beam_diameter=beam_diameter, uses_step_coordinates=True, filled=filled, stiffness=stiffness)
         self.width = float(width_mm)
         self.height = float(height_mm)
     
@@ -31,7 +32,8 @@ class Oval(Shape):
         else:
             coordinates.append_if_far_enough(Coordinate(coordinates[0].x, coordinates[0].y), self.beam_diameter)
 
-        coordinates.normalize(step_time=0.3, center=self.center, rotation=self.rotation_angle)
+        configuration = CuringCalculations().get_configuration(self.stiffness, self.beam_diameter)
+        coordinates.normalize(center=self.center, rotation=self.rotation_angle, configuration=configuration)
         return coordinates
 
 

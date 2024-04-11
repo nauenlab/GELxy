@@ -10,8 +10,7 @@ else:
 
 
 class Lamp:
-    def __init__(self, led_ampere):
-        self.led_ampere = led_ampere
+    def __init__(self):
         self.library = ctypes.cdll.LoadLibrary("TLDC2200_64.dll")
 
         # Connect to devices.
@@ -31,8 +30,8 @@ class Lamp:
         self.library.TLDC2200_setConstCurrent(self.dev_session, 0)
         self.library.TLDC2200_setLedOnOff(self.dev_session, False)
   
-    def turn_on(self):
-        self.library.TLDC2200_setConstCurrent(self.dev_session, ctypes.c_float(self.led_ampere))
+    def turn_on(self, led_ampere):
+        self.library.TLDC2200_setConstCurrent(self.dev_session, ctypes.c_float(led_ampere))
         
     def turn_off(self):
         self.library.TLDC2200_setConstCurrent(self.dev_session, 0)

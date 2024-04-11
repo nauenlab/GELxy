@@ -33,9 +33,7 @@ def points_in_circle(center, radius, mm_to_pixel_ratio):
 
 
 class Canvas:
-
     mm_to_pixel_ratio = 100
-    shape_buffer = 100  # 100 pixel buffer
 
     def __init__(self, dimensions_mm):
         self.pixels = []
@@ -47,7 +45,6 @@ class Canvas:
                 self.pixels[i].append(Pixel(0, 0, 0, 0))
 
     def cure(self, x, y, diameter, cure_per_step):
-        # Assuming mm_to_pixel_ratio and shape_buffer are class attributes
         radius = diameter / 2.0
         points = points_in_circle((x, y), radius, self.mm_to_pixel_ratio)
 
@@ -65,7 +62,7 @@ class Canvas:
                 red = 0
                 if pixel_color.alpha > 0:
                     red = 256
-                draw.point((x, y), fill=(red, 0, 0, pixel_color.alpha))
+                draw.point((x, y), fill=(red, 0, 0, int(pixel_color.alpha)))
 
         new.show()
 

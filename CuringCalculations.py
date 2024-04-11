@@ -1,10 +1,9 @@
 import math
 import pandas as pd
-from LensSimulator import Lens, Light
 
 DEFAULT_CURRENT = 100 # mA
 MAX_VELOCITY = 2.6 # mm/s
-MIN_VELOCITY = 0.001 # mm/s
+MIN_VELOCITY = 0.005 # mm/s
 LIGHT_WAVELENGTH = 445 # nm
 MIN_CURRENT = 0.1 # mA
 MAX_CURRENT = 9000 # mA
@@ -93,10 +92,6 @@ class CuringCalculations:
         
         return configuration
 
-import time
-og = time.time()
+
 curing_calculations = CuringCalculations()
 configuration = curing_calculations.get_configuration(target_stiffness=0.1, beam_diameter_mm=1)
-# print(configuration)
-fin = time.time()
-print(fin-og)
