@@ -20,15 +20,15 @@ class Pixel:
             self.alpha += v
 
 
-def points_in_circle(center, diameter, resolution):
+def points_in_circle(center, radius, mm_to_pixel_ratio):
+    resolution = 1.0 / mm_to_pixel_ratio
     points = []
-    radius = diameter / 2.0
-
-    for x in np.arange(center[0] - radius, center[0] + radius + resolution, resolution):
-        for y in np.arange(center[1] - radius, center[1] + radius + resolution, resolution):
-            if (x - center[0]) ** 2 + (y - center[1]) ** 2 <= radius ** 2:
-                points.append((x, y))
-
+    x0, y0 = center
+    for x in np.arange(-radius, radius + resolution, resolution):
+        for y in np.arange(-radius, radius + resolution, resolution):
+            if x**2 + y**2 <= radius**2:
+                points.append((int(round((x0 + x) * mm_to_pixel_ratio)), 
+                                int(round((y0 + y) *  mm_to_pixel_ratio))))
     return points
 
 
@@ -47,14 +47,14 @@ class Canvas:
                 self.pixels[i].append(Pixel(0, 0, 0, 0))
 
     def cure(self, x, y, diameter, cure_per_step):
-        diameter * self.mm_to_pixel_ratio
-        points = points_in_circle((x, y), diameter, 1.0 / self.mm_to_pixel_ratio)
+        # Assuming mm_to_pixel_ratio and shape_buffer are class attributes
+        radius = diameter / 2.0
+        points = points_in_circle((x, y), radius, self.mm_to_pixel_ratio)
+
         for point in points:
-            x_pos = int(round(point[0] * self.mm_to_pixel_ratio))
-            y_pos = int(round(point[1] * self.mm_to_pixel_ratio))
-            if len(self.pixels) - 1 > x_pos + self.shape_buffer > 0 and \
-                    len(self.pixels[x_pos + self.shape_buffer]) - 1 > y_pos + self.shape_buffer > 0:
-                self.pixels[x_pos + self.shape_buffer][y_pos + self.shape_buffer].inc(cure_per_step)
+            x_pos, y_pos = point
+            if 0 < x_pos < len(self.pixels) - 1 and 0 < y_pos < len(self.pixels[x_pos]) - 1:
+                self.pixels[x_pos][y_pos].inc(cure_per_step)
 
     def draw(self):
         new = Image.new(mode="RGBA", size=(len(self.pixels), len(self.pixels)), color=(0, 0, 0, 0))

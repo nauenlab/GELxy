@@ -17,14 +17,19 @@ class Shape:
         coordinates.plot()
 
     def get_coordinates(self):
+        coordinates = None
         if "__line_coordinates__" in dir(self):
-            if "uses_step_coordinates" in dir(self) and self.uses_step_coordinates:
-                return self.__step_coordinates__()
-            return self.__line_coordinates__()
+            coordinates = self.__step_coordinates__() if "uses_step_coordinates" in dir(self) and self.uses_step_coordinates else self.__line_coordinates__()
         elif "__radial_coordinates__" in dir(self):
-            return self.__radial_coordinates__()
+            coordinates = self.__radial_coordinates__()
         else:
             raise Exception("Shape does not have a line or radial coordinate function")
+
+        if self.filled and coordinates:
+            coordinates = coordinates.fill(self.beam_diameter)
+            coordinates.normalize(step_time=10, center=self.center, rotation=self.rotation_angle)
+        
+        return coordinates
     
     def __step_coordinates__(self):
         coordinates = Coordinates()

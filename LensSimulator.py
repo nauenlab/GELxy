@@ -96,11 +96,13 @@ class ThorLabsLens:
         return focal_length_at_wavelength
 
 
-print(ThorLabsLens(300, 635, ThorLabsLens.Material.nkb7).get_focal_length_at_wavelength(445))
+lamp = Light(445, 48.3e-3)  # https://www.thorlabs.com/drawings/3723ec5e4d4b8147-D1DFC6D3-0863-FD1E-3558291734442687/SOLIS-445C-AutoCADPDF.pdf
 
-
-
-
+LB1779_A_ML = ThorLabsLens(300, 635, ThorLabsLens.Material.nkb7)  # https://www.thorlabs.com/drawings/3723ec5e4d4b8147-D1DFC6D3-0863-FD1E-3558291734442687/LB1779-A-ML-AutoCADPDF.pdf
+LA1256_A = ThorLabsLens(299, 590, ThorLabsLens.Material.nkb7)  # https://www.thorlabs.com/drawings/3723ec5e4d4b8147-D1DFC6D3-0863-FD1E-3558291734442687/LA1256-A-AutoCADPDF.pdf
+LB1106_A = ThorLabsLens(124.6, 590, ThorLabsLens.Material.nkb7)  # https://www.thorlabs.com/drawings/3723ec5e4d4b8147-D1DFC6D3-0863-FD1E-3558291734442687/LB1106-A-AutoCADPDF.pdf
+LB1723_A = ThorLabsLens(59.8, 590, ThorLabsLens.Material.nkb7)  # https://www.thorlabs.com/drawings/3723ec5e4d4b8147-D1DFC6D3-0863-FD1E-3558291734442687/LB1723-A-AutoCADPDF.pdf
+ACL5040U_A = ThorLabsLens(40, 635, ThorLabsLens.Material.nkb7)  # https://www.thorlabs.com/drawings/3723ec5e4d4b8147-D1DFC6D3-0863-FD1E-3558291734442687/ACL5040U-A-AutoCADPDF.pdf
 
 
 
