@@ -2,18 +2,20 @@ import cv2
 from Coordinate import Coordinate, Coordinates
 import numpy as np
 from tqdm import tqdm
+from CuringCalculations import CuringCalculations
 
 dimensions = 15  # 15 mm * 100 mm_to_pixel_ratio
 
 
 class EdgeDetection:
 
-    def __init__(self, img_file, center=Coordinate(0, 0), rotation_angle=0, scale_factor=1, beam_diameter=0.1):
+    def __init__(self, img_file, stiffness, center=Coordinate(0, 0), rotation_angle=0, scale_factor=1, beam_diameter=0.1):
         self.img_file = img_file
         self.center = center
         self.rotation = rotation_angle
         self.scale_factor = scale_factor
         self.beam_diameter = beam_diameter
+        self.stiffness = stiffness
         self.edges = []
         self.canny_edge_detection()
 
@@ -64,8 +66,9 @@ class EdgeDetection:
                                 if self.edges[neighbor[1]][neighbor[0]] == 255 and neighbor not in visited:
                                     queue.append(neighbor)
 
+        configuration = CuringCalculations().get_configuration(self.stiffness, self.beam_diameter)
         coordinates = self.ordered_by_nearest_neighbor(coordinates)
-        coordinates.normalize(step_time=0.5, center=self.center, rotation=self.rotation)
+        coordinates.normalize(center=self.center, rotation=self.rotation, configuration=configuration)
         # print(len(coordinates))
         # coordinates.plot(plot_lines=True, plot_points=True)
         return coordinates

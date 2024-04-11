@@ -5,11 +5,12 @@ from Canvas import Canvas
 
 class VirtualManager:
 
-    def __init__(self, canvas_dimensions_mm, led_ampere, acceleration=None, max_velocity=None):
+    def __init__(self, canvas_dimensions_mm, acceleration=None, max_velocity=None, beam_diameter=None):
         self.canvas = Canvas(dimensions_mm=canvas_dimensions_mm)
         self.x = VirtualMotor(acceleration=acceleration, max_velocity=max_velocity)
         self.y = VirtualMotor(acceleration=acceleration, max_velocity=max_velocity)
-        self.lamp = VirtualLamp(led_ampere=led_ampere, canvas=self.canvas)
+        self.lamp = VirtualLamp(canvas=self.canvas)
+        self.beam_diameter = beam_diameter
 
     def motors(self):
         return self.x, self.y
@@ -27,7 +28,7 @@ class VirtualManager:
             x_pos = x_mvts[x_i]
             y_pos = y_mvts[y_i]
             if is_lamp_on:
-                self.lamp.cure(x_pos, y_pos)
+                self.lamp.cure(x_pos, y_pos, self.beam_diameter, position.a)
 
     def __del__(self):
         self.x.__del__()
