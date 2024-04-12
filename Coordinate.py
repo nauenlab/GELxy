@@ -163,8 +163,10 @@ class Coordinates:
             self.coordinates[i].x = self.x[i]
             self.coordinates[i].y = self.y[i]
 
-        self.coordinates = self.fix_coordinates_with_corrected_slope()        
-
+        self.coordinates = self.fix_coordinates_with_corrected_slope()
+        if len(self.coordinates) == 0:
+            raise Exception("No coordinates to plot, check the shape dimensions and bounds.")
+        
         self.update_with_configuration(configuration)
         self.coordinates[0].lp = False
 

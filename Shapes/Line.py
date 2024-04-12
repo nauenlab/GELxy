@@ -6,7 +6,7 @@ from CuringCalculations import CuringCalculations
 class Line(Shape):
 
     def __init__(self, length_mm, stiffness, center=None, rotation_angle=None, beam_diameter=None, is_horizontal=False, uses_step_coordinates=False):
-        super().__init__(center=center, rotation_angle=rotation_angle, beam_diameter=beam_diameter, uses_step_coordinates=uses_step_coordinates, stiffness=stiffness)
+        super().__init__(center=center, rotation_angle=rotation_angle, beam_diameter=beam_diameter, uses_step_coordinates=uses_step_coordinates, filled=False, stiffness=stiffness)
         self.length = float(length_mm)
         self.is_horizontal = is_horizontal
 

@@ -7,7 +7,6 @@ from Coordinate import Coordinate, Coordinates
 from Constants import *
 from tqdm import tqdm
 import multiprocessing
-from multiprocessing import Pool
 from gbl import handle_processes
 
 
@@ -48,7 +47,9 @@ def main():
     # shapes.append(Triangle.Triangle(width_mm=7, height_mm=2.5980762114, center=Coordinate(2, 2), rotation_angle=0, beam_diameter=BEAM_DIAMETER, uses_step_coordinates=True))
     # shapes.append(Rectangle.Rectangle(width_mm=4, height_mm=2, center=Coordinate(5, 5), rotation_angle=0, beam_diameter=BEAM_DIAMETER, uses_step_coordinates=True, filled=True))
     # shapes.append(Triangle.Triangle(width_mm=4, height_mm=2, center=Coordinate(5, 5), rotation_angle=0, beam_diameter=BEAM_DIAMETER, uses_step_coordinates=True, filled=True))
-    shapes.append(Circle.Circle(diameter_mm=2, stiffness=3, center=Coordinate(5, 5), beam_diameter=BEAM_DIAMETER, filled=True))
+    shapes.append(Circle.Circle(diameter_mm=2, stiffness=10, center=Coordinate(5, 5), beam_diameter=BEAM_DIAMETER, filled=True))
+    shapes.append(Circle.Circle(diameter_mm=2, stiffness=5, center=Coordinate(10, 5), beam_diameter=BEAM_DIAMETER))
+    shapes.append(Rectangle.Rectangle(width_mm=2, height_mm=3, stiffness=40, center=Coordinate(10, 10), rotation_angle=0, beam_diameter=BEAM_DIAMETER, uses_step_coordinates=True))
     # shapes.append(Triangle(width_mm=3, height_mm=2.5980762114, center=Coordinate(2, 2), rotation_angle=3.14/4.0, beam_diameter=BEAM_DIAMETER, uses_step_coordinates=False))
     # shapes.append(Rectangle.Rectangle(width_mm=2, height_mm=3, center=Coordinate(8, 8), rotation_angle=0, beam_diameter=BEAM_DIAMETER, uses_step_coordinates=False))
     # shapes.append(Rectangle.Rectangle(width_mm=2, height_mm=3, center=Coordinate(8, 8), rotation_angle=0, beam_diameter=BEAM_DIAMETER, uses_step_coordinates=True))
