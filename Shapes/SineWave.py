@@ -1,4 +1,3 @@
-
 import math
 from Shapes.Shape import Shape
 from Coordinate import Coordinate, Coordinates

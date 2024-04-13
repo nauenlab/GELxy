@@ -1,6 +1,4 @@
 
-
-
 IS_VIRTUAL = True
 ACCELERATION = 4.0  # mm/s^2
 MAXIMUM_VELOCITY = 0.8  # mm/s
