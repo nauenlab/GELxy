@@ -11,8 +11,13 @@ cam_size = (1280,720)
 
 #piCam sensor dimensions: 6.287mm x 4.712mm
 
-
 def perform_calibration():
+    """
+    Perform calibration to determine the beam diameter.
+
+    This function initializes the camera, captures an image, finds the pixel diameter of a bright dot in the image,
+    and calculates the beam diameter in millimeters. It continuously performs the calibration until interrupted.
+    """
     # Initialize the camera
     config = piCam.create_still_configuration({"size": cam_size})
     piCam.configure(config)
@@ -31,6 +36,13 @@ def perform_calibration():
 
 
 def find_pixel_diameter():
+    """
+    Find the pixel diameter of a bright dot in the image.
+
+    This function reads the calibration image, converts it to grayscale, applies a threshold to isolate the bright dot,
+    finds the contours, and determines the contour with the maximum area. It then calculates the diameter of the dot
+    and returns it.
+    """
     image = cv2.imread('calibration.jpg') 
     gray_image = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
 
@@ -56,6 +68,12 @@ def find_pixel_diameter():
 
 
 def exit_handler(*args):
+    """
+    Handle the exit signal.
+
+    This function is called when the program receives a termination signal (SIGTERM) or an interrupt signal (SIGINT).
+    It stops the camera, performs the final calibration, and exits the program.
+    """
     global LOOP
     if LOOP:
         LOOP = False

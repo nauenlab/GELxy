@@ -9,15 +9,36 @@ if os.path.exists("/home/saturn/Documents/GELxy"):
 elif os.path.exists("/Users/yushrajkapoor/Desktop/NauenLab/GELxy"):
     os.chdir("/Users/yushrajkapoor/Desktop/NauenLab/GELxy/Image Processing/Pictures")
 
-
 class AverageRainbow:
+    """
+    A class that performs image processing to generate an average rainbow image.
+
+    Attributes:
+        threshold (int): The brightness threshold for determining if a pixel is bright.
+        directory (str): The directory containing the image files.
+
+    Methods:
+        average(): Performs the average rainbow image processing.
+        has_light_point(img): Checks if an image has a bright pixel.
+        increase_contrast(img, rainbow_fraction): Increases the contrast of an image.
+        interpolate_color(step_fraction): Interpolates a color between two rainbow colors.
+    """
 
     threshold = 30
 
     def __init__(self, directory):
+        """
+        Initializes an instance of the AverageRainbow class.
+
+        Args:
+            directory (str): The directory containing the image files.
+        """
         self.directory = directory
 
     def average(self):
+        """
+        Performs the average rainbow image processing.
+        """
         # Get a list of all image files in the directory
         allfiles = os.listdir(self.directory)
         image_files = [filename for filename in allfiles if filename[-4:] in [".jpg", ".JPG"] and "image" in filename]
@@ -45,8 +66,15 @@ class AverageRainbow:
             print("No images found in the directory.")
 
     def has_light_point(self, img):
-        # Define the brightness threshold (adjust as needed)
+        """
+        Checks if an image has a bright pixel.
 
+        Args:
+            img (PIL.Image.Image): The image to check.
+
+        Returns:
+            bool: True if the image has a bright pixel, False otherwise.
+        """
         # Convert the image to grayscale for simplicity in brightness check
         img_gray = img.convert('L')
 
@@ -58,6 +86,16 @@ class AverageRainbow:
         return is_bright
 
     def increase_contrast(self, img, rainbow_fraction):
+        """
+        Increases the contrast of an image.
+
+        Args:
+            img (PIL.Image.Image): The image to increase contrast.
+            rainbow_fraction (float): The fraction of the rainbow color to apply.
+
+        Returns:
+            PIL.Image.Image: The image with increased contrast.
+        """
         enhanced_pixels = []
         for pixel_value in img.getdata():
 
@@ -72,6 +110,15 @@ class AverageRainbow:
 
     @staticmethod
     def interpolate_color(step_fraction):
+        """
+        Interpolates a color between two rainbow colors.
+
+        Args:
+            step_fraction (float): The fraction of the interpolation step.
+
+        Returns:
+            tuple: The interpolated RGB color.
+        """
         # Rainbow colors in RGB format
         rainbow_colors = [
             (255, 0, 0),  # Red

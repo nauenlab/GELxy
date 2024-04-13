@@ -1,7 +1,18 @@
 from Coordinate import Coordinate, Coordinates
 from tqdm import tqdm
 
+
 class Gradient:
+    """
+    Represents a gradient shape.
+
+    Args:
+        min_velocity (float): The minimum velocity of the gradient.
+        max_velocity (float): The maximum velocity of the gradient.
+        beam_diameter (float): The diameter of the beam.
+        is_horizontal (bool, optional): Whether the gradient is horizontal. Defaults to True.
+        is_reversed (bool, optional): Whether the gradient is reversed. Defaults to True.
+    """
 
     def __init__(self, min_velocity, max_velocity, beam_diameter, is_horizontal=True, is_reversed=True):
         self.is_horizontal = is_horizontal
@@ -11,6 +22,12 @@ class Gradient:
         self.beam_diameter = beam_diameter
 
     def get_coordinates(self):
+        """
+        Generates the coordinates for the gradient shape.
+
+        Returns:
+            Coordinates: The generated coordinates.
+        """
         coordinates = Coordinates()
         le = -5
         r = 15

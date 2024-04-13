@@ -18,7 +18,8 @@ if IS_VIRTUAL:
 else:
     from Hardware.Manager import Manager
     # Sets up the actual motors and LED
-    manager = Manager(serial_number_x="27602218", serial_number_y="27264864", acceleration=ACCELERATION, max_velocity=MAXIMUM_VELOCITY)
+    # !!! For the Lamp: In the USB number the serial number (M00...) needs to be changed to the one of the connected device.
+    manager = Manager(serial_number_x="27602218", serial_number_y="27264864", lamp_serial_number=b"USB0::0x1313::0x80C8::M00607903::INSTR", acceleration=ACCELERATION, max_velocity=MAXIMUM_VELOCITY)
 
 
 def main():

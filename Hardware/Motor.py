@@ -14,10 +14,27 @@ from System import Decimal
 
 
 class Motor:
-    # documented min step size 0.00003
+    """
+    Represents a motor controller for a KCube DC Servo motor.
+
+    Args:
+        serial_no (int): The serial number of the motor.
+        acceleration (float, optional): The acceleration value in mm/s^2. Defaults to None.
+        max_velocity (float, optional): The maximum velocity value in mm/s. Defaults to None.
+    """
+
+    # documented min step size 0.001
     MINIMUM_STEP_SIZE = Decimal(0.001)
 
     def __init__(self, serial_no, acceleration=None, max_velocity=None):
+        """
+        Initializes a new instance of the Motor class.
+
+        Args:
+            serial_no (int): The serial number of the motor.
+            acceleration (float, optional): The acceleration value in mm/s^2. Defaults to None.
+            max_velocity (float, optional): The maximum velocity value in mm/s. Defaults to None.
+        """
         self.acceleration = acceleration
         self.max_velocity = max_velocity
         self.serial_number = serial_no
@@ -33,7 +50,6 @@ class Motor:
             self.__init__(serial_no, acceleration, max_velocity)
             return
         self.device.WaitForSettingsInitialized(250)
-        # TODO: can we poll the device at a higher rate so we don't have to stop the code via sleep?
         self.device.StartPolling(1)
         time.sleep(0.25)  # wait statements are important to allow settings to be sent to the device
         self.device.EnableDevice()
@@ -62,6 +78,9 @@ class Motor:
         # self.max_velocity = max_velocity if max_velocity else MAXIMUM_VELOCITY
 
     def __del__(self):
+        """
+        Cleans up the resources used by the Motor instance.
+        """
         try:
             self.device.StopPolling()
         except:
@@ -72,15 +91,30 @@ class Motor:
             pass
 
     def home(self):
+        """
+        Homes the motor to the reference position.
+        """
         print(f"homing motor id {self.serial_number}")
         self.device.SetHomingVelocity(Decimal(2.6))
         self.device.Home(50000)
 
     def set_params(self, vmax):
-        # print("Velocity: ", vmax, "mm/s")
+        """
+        Sets the velocity parameters of the motor.
+
+        Args:
+            vmax (float): The maximum velocity value in mm/s.
+        """
         self.set_velocity_params(max_velocity=vmax)
 
     def set_velocity_params(self, acceleration=None, max_velocity=None):
+        """
+        Sets the velocity and acceleration parameters of the motor.
+
+        Args:
+            acceleration (float, optional): The acceleration value in mm/s^2. Defaults to None.
+            max_velocity (float, optional): The maximum velocity value in mm/s. Defaults to None.
+        """
         # Set the velocity and acceleration parameters
         vp = self.device.GetJogParams().VelocityParams
         vp.Acceleration = Decimal(acceleration) if acceleration else vp.Acceleration
@@ -90,12 +124,16 @@ class Motor:
         self.device.SetVelocityParams(vp)
 
     def jog_to(self, absolute_position):
+        """
+        Moves the motor to the specified absolute position using jogging.
+
+        Args:
+            absolute_position (float): The absolute position to move the motor to in mm.
+        """
         # To make more accurate, reduce the polling frequency in the initializer
 
         motor_position = self.device.Position
         relative_movement = Decimal(absolute_position) - motor_position
-        # print("relative movement:", relative_movement)
-        # self.device.SetJogStepSize(relative_movement)
 
         zero = Decimal(0)
         movement_expected = True
@@ -108,7 +146,6 @@ class Motor:
                 self.device.MoveJog(MotorDirection.Backward, 0)
                 isForward = False
             else:
-                # print("no move necessary")
                 movement_expected = False
         except Exception as e:
             print(e)
@@ -124,11 +161,13 @@ class Motor:
             while self.device.Status.IsJogging:
                 continue
 
-            error = self.device.Position - motor_position - relative_movement
-            # print(f"new position: {self.device.Position}")
-            # print(f"error: {error}")
-
     def move_absolute(self, absolute_position):
+        """
+        Moves the motor to the specified absolute position.
+
+        Args:
+            absolute_position (float): The absolute position to move the motor to in mm.
+        """
         self.set_velocity_params(acceleration=ACCELERATION, max_velocity=MAXIMUM_VELOCITY)
         self.device.MoveTo(Decimal(absolute_position), 15000)
         self.set_velocity_params(acceleration=self.acceleration, max_velocity=self.max_velocity)

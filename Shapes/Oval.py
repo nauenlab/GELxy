@@ -5,13 +5,43 @@ from tqdm import tqdm
 from CuringCalculations import CuringCalculations
 
 class Oval(Shape):
+    """
+    Represents an oval shape.
+
+    Attributes:
+        width_mm (float): The width of the oval in millimeters.
+        height_mm (float): The height of the oval in millimeters.
+        stiffness (float): The stiffness of the oval.
+        center (Coordinate, optional): The center coordinate of the oval. Defaults to None.
+        rotation_angle (float, optional): The rotation angle of the oval in degrees. Defaults to None.
+        beam_diameter (float, optional): The beam diameter. Defaults to None.
+        filled (bool, optional): Whether the oval is filled or not. Defaults to False.
+    """
 
     def __init__(self, width_mm, height_mm, stiffness, center=None, rotation_angle=None, beam_diameter=None, filled=False):
+        """
+        Initializes a new instance of the Oval class.
+
+        Args:
+            width_mm (float): The width of the oval in millimeters.
+            height_mm (float): The height of the oval in millimeters.
+            stiffness (float): The stiffness of the oval.
+            center (Coordinate, optional): The center coordinate of the oval. Defaults to None.
+            rotation_angle (float, optional): The rotation angle of the oval in degrees. Defaults to None.
+            beam_diameter (float, optional): The beam diameter. Defaults to None.
+            filled (bool, optional): Whether the oval is filled or not. Defaults to False.
+        """
         super().__init__(center=center, rotation_angle=rotation_angle, beam_diameter=beam_diameter, uses_step_coordinates=True, filled=filled, stiffness=stiffness)
         self.width = float(width_mm)
         self.height = float(height_mm)
     
     def __radial_coordinates__(self):
+        """
+        Calculates the radial coordinates of the oval.
+
+        Returns:
+            Coordinates: The calculated radial coordinates.
+        """
         coordinates = Coordinates()
         x_pos1 = math.cos(math.radians(0))
         y_pos1 = math.sin(math.radians(0))
