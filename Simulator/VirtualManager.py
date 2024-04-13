@@ -1,6 +1,6 @@
 from VirtualMotor import VirtualMotor
 from VirtualLamp import VirtualLamp
-from Canvas import Canvas
+from Simulator.Canvas import Canvas
 
 
 class VirtualManager:

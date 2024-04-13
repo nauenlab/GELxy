@@ -12,11 +12,11 @@ from gbl import handle_processes
 
 
 if IS_VIRTUAL:
-    from VirtualManager import VirtualManager
+    from Simulator.VirtualManager import VirtualManager
     # Sets up a virtual simulation of the motors and LED
     manager = VirtualManager(canvas_dimensions_mm=MOTOR_MAX_TRAVEL, acceleration=ACCELERATION, max_velocity=MAXIMUM_VELOCITY, beam_diameter=BEAM_DIAMETER)
 else:
-    from Manager import Manager
+    from Hardware.Manager import Manager
     # Sets up the actual motors and LED
     manager = Manager(serial_number_x="27602218", serial_number_y="27264864", acceleration=ACCELERATION, max_velocity=MAXIMUM_VELOCITY)
 
