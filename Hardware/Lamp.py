@@ -9,8 +9,6 @@ else:
     os.add_dll_directory(r"C:\Program Files\IVI Foundation\VISA\Win64\Bin")
 
 
-import ctypes
-
 class Lamp:
     """
     Represents a lamp controlled by the TLDC2200 device.

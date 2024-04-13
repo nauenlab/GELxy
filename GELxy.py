@@ -31,9 +31,9 @@ class App(Tk):
         
 
         self.create_options()
-        draggable_object = self.DraggableObject(self.canvas, Shape.Rectangle, 5, 5)
+        # draggable_object = self.DraggableObject(self.canvas, Shape.Rectangle, 5, 5)
         # draggable_object = self.DraggableObject(self.canvas, Shape.Circle, 5, 5)
-        # draggable_object = self.DraggableObject(self.canvas, Shape.CustomShape, 5, 5)
+        draggable_object = self.DraggableObject(self.canvas, Shape.CustomShape, 5, 5)
         # draggable_object = self.DraggableObject(self.canvas, Shape.Triangle, 5, 5)
         # draggable_object = self.DraggableObject(self.canvas, Shape.Line, 5, 5)
         
@@ -130,7 +130,7 @@ class App(Tk):
             pass
 
         def format_xy_coordinates(self, coordinates):
-            return [(30 + i.x * 13, 370 - i.y * 13) for i in coordinates]
+            return [(30 + i.x * 13, 370 - i.y * 13) for i in coordinates if i.lp]
 
 
 app = App()

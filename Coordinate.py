@@ -105,7 +105,7 @@ class Coordinates:
         Returns:
             iterator: An iterator object.
         """
-        self.a = 0
+        self.n = 0
         return self
 
     def __next__(self):
@@ -118,10 +118,10 @@ class Coordinates:
         Raises:
             StopIteration: If there are no more Coordinate objects to iterate over.
         """
-        if self.a < len(self.coordinates):
-            n = self.coordinates[self.a]
-            self.a += 1
-            return n
+        if self.n < len(self.coordinates):
+            next = self.coordinates[self.n]
+            self.n += 1
+            return next
         else:
             raise StopIteration
     

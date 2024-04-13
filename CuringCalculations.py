@@ -68,10 +68,8 @@ class CuringCalculations:
         Returns:
             float: The total photon exposure per pixel in photons.
         """
-        # made up number signifying that there are 100 photons in the light beam per second * current
-        photon_constant = current * 100 # photons/s
         beam_area = math.pi * (beam_diameter / 2)**2 # mm^2
-        photon_density = photon_constant / beam_area # photons/s/mm^2
+        photon_density = current / beam_area # photons/s/mm^2
 
         # how long a point is exposed as the light travels beam_diameter distance
         exposure_time_per_pixel = beam_diameter / velocity
@@ -91,10 +89,8 @@ class CuringCalculations:
         Returns:
             float: The velocity value in mm/s.
         """
-        # made up number signifying that there are 100 photons in the light beam per second * current
-        photon_constant = current * 100 # photons/s
         beam_area = math.pi * (beam_diameter / 2)**2 # mm^2
-        photon_density = photon_constant / beam_area # photons/s/mm^2
+        photon_density = current / beam_area # photons/s/mm^2
 
         target_velocity = (beam_diameter * photon_density) / target_photon_exposure
         return target_velocity 
@@ -114,7 +110,7 @@ class CuringCalculations:
         beam_area = math.pi * (beam_diameter / 2)**2 # mm^2
 
         exposure_time_per_pixel = beam_diameter / velocity
-        target_current = (target_photon_exposure * beam_area) / (exposure_time_per_pixel * 100)
+        target_current = (target_photon_exposure * beam_area) / exposure_time_per_pixel
         return target_current
 
     def get_configuration(self, target_stiffness, beam_diameter_mm):
@@ -132,31 +128,26 @@ class CuringCalculations:
             Exception: If unable to achieve the target stiffness with the current configuration.
         """
         configuration = Configuration()
-        unstable = True
+        target_exposure = self.calculate_stiffness_to_photon_ratio(target_stiffness, self.average_ratio)
 
-        while unstable:
-            target_photon_exposure = self.calculate_stiffness_to_photon_ratio(target_stiffness, self.average_ratio) / configuration.iterations
-            new_velocity = self.get_velocity_based_on_target_photon_exposure(beam_diameter_mm, DEFAULT_CURRENT, target_photon_exposure)
-            if new_velocity < MIN_VELOCITY:
-                new_velocity = MIN_VELOCITY
-            elif new_velocity > MAX_VELOCITY:
-                new_velocity = MAX_VELOCITY
+        while True:
+            velocity = self.get_velocity_based_on_target_photon_exposure(beam_diameter_mm, DEFAULT_CURRENT, target_exposure / configuration.iterations)
+            velocity = max(MIN_VELOCITY, min(velocity, MAX_VELOCITY))
             
-            new_current = self.get_current_based_on_target_photon_exposure(beam_diameter_mm, new_velocity, target_photon_exposure)
-
-            if new_current < MIN_CURRENT:
-                raise Exception("Unable to achieve target stiffness with current configuration, target stiffness and/or beam diameter is too low.")
-            elif new_current > MAX_CURRENT:
+            current = self.get_current_based_on_target_photon_exposure(beam_diameter_mm, velocity, target_exposure / configuration.iterations)
+            if current < MIN_CURRENT:
+                raise Exception("Configuration not achievable with current parameters.")
+            
+            if current > MAX_CURRENT:
                 configuration.iterations += 1
-                new_current = MAX_CURRENT
-            else:
-                unstable = False
+                continue
             
-            configuration.velocity = new_velocity
-            configuration.current = new_current
-        
+            configuration.velocity = velocity
+            configuration.current = current
+            break
+
         return configuration
+    
 
-
-# curing_calculations = CuringCalculations()
-# configuration = curing_calculations.get_configuration(target_stiffness=0.1, beam_diameter_mm=1)
+curing_calculations = CuringCalculations()
+configuration1 = curing_calculations.get_configuration(target_stiffness=0.1, beam_diameter_mm=1)

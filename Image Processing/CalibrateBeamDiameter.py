@@ -7,7 +7,7 @@ import signal
 import sys
 
 LOOP = True
-cam_size = (1280,720)
+cam_size = (1280, 720)
 
 #piCam sensor dimensions: 6.287mm x 4.712mm
 
