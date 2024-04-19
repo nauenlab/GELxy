@@ -1,4 +1,3 @@
-from tkinter.simpledialog import askfloat
 from tkinter.filedialog import askopenfile
 from tkinter import *
 from tkinter import ttk
@@ -6,6 +5,7 @@ import enum
 import re
 from Shapes import Rectangle, Square, EquilateralTriangle, Triangle, Line, Oval, Circle, SineWave, Gradient, EdgeDetection, Texture
 from Coordinate import Coordinate
+import math
 
 
 class Shape(enum.Enum):
@@ -28,20 +28,10 @@ class App(Tk):
         self.frame.pack(padx=20, pady=20, side=LEFT)
         self.frame.pack(side=LEFT)
         self.canvas.pack(side=LEFT)
-
-        # points = [(100, 100), (200, 200), (300, 100), (200, 50)]
-        # self.draw_coordinates(points)
-        
         self.create_options()
-        # draggable_object = self.DraggableObject(self.canvas, Shape.Rectangle, 5, 5)
-        # draggable_object = self.DraggableObject(self.canvas, Shape.Circle, 5, 5)
-        # draggable_object = self.DraggableObject(self.canvas, Shape.CustomShape, 5, 5)
-        # draggable_object = self.DraggableObject(self.canvas, Shape.Triangle, 5, 5)
-        # draggable_object = self.DraggableObject(self.canvas, Shape.Line, 5, 5)
         
-
     def create_canvas(self):
-        self.canvas = Canvas(self, width=400, height=400)
+        self.canvas = Canvas(self, width=400, height=400, highlightthickness=0)
         self.canvas.create_line(30, 400, 30, 0, arrow=LAST)  # y-axis
         self.canvas.create_line(0, 370, 400, 370, arrow=LAST)  # x-axis
         for i in range(1, 26):
@@ -71,7 +61,13 @@ class App(Tk):
         label.pack()
         
         entry = Entry(option_frame, width=10)
+        entry.bind("<KeyPress>", self.allow_only_decimal)
         entry.pack()
+
+        dimensions_label = Label(option_frame, text="Dimensions")
+        dimensions_label.pack()
+
+        self.add_height_width_entry(option_frame)
 
         center_label = Label(option_frame, text="Center")
         center_label.pack()
@@ -87,6 +83,23 @@ class App(Tk):
         fill_checkbutton = Checkbutton(option_frame, text="Fill Shape", variable=fill_var)
         fill_checkbutton.pack()
 
+    def add_height_width_entry(self, option_frame):
+        height_width_frame = Frame(option_frame)
+        height_width_frame.pack()
+
+        height_label = Label(height_width_frame, text="Height:")
+        height_label.pack(side=LEFT)
+
+        height_entry = Entry(height_width_frame, width=5)
+        height_entry.bind("<KeyPress>", self.allow_only_decimal)
+        height_entry.pack(side=LEFT)
+
+        width_label = Label(height_width_frame, text="Width:")
+        width_label.pack(side=LEFT)
+
+        width_entry = Entry(height_width_frame, width=5)
+        width_entry.bind("<KeyPress>", self.allow_only_decimal)
+        width_entry.pack(side=LEFT)
         
     def add_coordinate_entry(self, option_frame):
         center_frame = Frame(option_frame)
@@ -96,12 +109,14 @@ class App(Tk):
         x_label.pack(side=LEFT)
 
         x_entry = Entry(center_frame, width=5)
+        x_entry.bind("<KeyPress>", self.allow_only_decimal)
         x_entry.pack(side=LEFT)
 
         y_label = Label(center_frame, text="Y:")
         y_label.pack(side=LEFT)
 
         y_entry = Entry(center_frame, width=5)
+        y_entry.bind("<KeyPress>", self.allow_only_decimal)
         y_entry.pack(side=LEFT)
 
     def add_rotation_entry(self, option_frame):
@@ -109,6 +124,7 @@ class App(Tk):
         rotation_frame.pack()
 
         rotation_entry = Entry(rotation_frame, width=5)
+        rotation_entry.bind("<KeyPress>", self.allow_only_decimal)
         rotation_entry.pack(side=LEFT)
 
         degrees_label = Label(rotation_frame, text="degrees")
@@ -157,27 +173,27 @@ class App(Tk):
             return
         
         if selected_shape == "Line":
-            draggable_object = self.DraggableObject(self.canvas, Shape.Line, 5, 5, 0, 1)
+            draggable_object = self.DraggableObject(self.canvas, Shape.Line, x=5, y=5, rotation_angle=0, stiffness=1, beam_diameter=1)
         elif selected_shape == "Rectangle":
-            draggable_object = self.DraggableObject(self.canvas, Shape.Rectangle, 5, 5, 0, 1)
+            draggable_object = self.DraggableObject(self.canvas, Shape.Rectangle, x=5, y=5, rotation_angle=0, stiffness=1, beam_diameter=1)
         elif selected_shape == "Square":
-            draggable_object = self.DraggableObject(self.canvas, Shape.Square, 5, 5, 0, 1)
+            draggable_object = self.DraggableObject(self.canvas, Shape.Square, x=5, y=5, rotation_angle=0, stiffness=1, beam_diameter=1)
         elif selected_shape == "Triangle":
-            draggable_object = self.DraggableObject(self.canvas, Shape.Triangle, 5, 5, 0, 1)
+            draggable_object = self.DraggableObject(self.canvas, Shape.Triangle, x=5, y=5, rotation_angle=0, stiffness=1, beam_diameter=1)
         elif selected_shape == "Equilateral Triangle":
-            draggable_object = self.DraggableObject(self.canvas, Shape.EquilateralTriangle, 5, 5, 0, 1)
+            draggable_object = self.DraggableObject(self.canvas, Shape.EquilateralTriangle, x=5, y=5, rotation_angle=0, stiffness=1, beam_diameter=1)
         elif selected_shape == "Circle":
-            draggable_object = self.DraggableObject(self.canvas, Shape.Circle, 5, 5, 0, 1)
+            draggable_object = self.DraggableObject(self.canvas, Shape.Circle, x=5, y=5, rotation_angle=0, stiffness=1, beam_diameter=1)
         elif selected_shape == "Oval":
-            draggable_object = self.DraggableObject(self.canvas, Shape.Oval, 5, 5, 0, 1)
+            draggable_object = self.DraggableObject(self.canvas, Shape.Oval, x=5, y=5, rotation_angle=0, stiffness=1, beam_diameter=1)
         elif selected_shape == "Sine Wave":
-            draggable_object = self.DraggableObject(self.canvas, Shape.SineWave, 5, 5, 0, 1, amplitude=1, cycles=5, cycles_per_mm=0.5)
+            draggable_object = self.DraggableObject(self.canvas, Shape.SineWave, x=5, y=5, rotation_angle=0, stiffness=1, beam_diameter=1, amplitude=1, cycles=5, cycles_per_mm=0.5)
         elif selected_shape == "Gradient":
-            draggable_object = self.DraggableObject(self.canvas, Shape.Gradient, 5, 5, 0, 1)
+            draggable_object = self.DraggableObject(self.canvas, Shape.Gradient, x=5, y=5, rotation_angle=0, stiffness=1, beam_diameter=1)
         elif selected_shape == "Custom Shape":
-            draggable_object = self.DraggableObject(self.canvas, Shape.CustomShape, 5, 5, 0, 1, img_file=self.custom_shape_file_name, scale_factor=1)
+            draggable_object = self.DraggableObject(self.canvas, Shape.CustomShape, x=5, y=5, rotation_angle=0, stiffness=1, beam_diameter=1, img_file=self.custom_shape_file_name, scale_factor=1)
         elif selected_shape == "Texture":
-            draggable_object = self.DraggableObject(self.canvas, Shape.Texture, 5, 5, 0, 1, shape=Circle.Circle(diameter_mm=1, center=Coordinate(0, 0), beam_diameter=0.1, filled=False), spacing_mm=2, margins=1)
+            draggable_object = self.DraggableObject(self.canvas, Shape.Texture, x=5, y=5, rotation_angle=0, stiffness=1, beam_diameter=1, shape=Circle.Circle(diameter_mm=1, center=Coordinate(0, 0), beam_diameter=0.1, filled=False), spacing_mm=2, margins=1)
 
         popup.destroy()
     
@@ -191,76 +207,100 @@ class App(Tk):
             x2, y2 = coordinates[i+1]
             self.canvas.create_line(x1, y1, x2, y2)
 
+    def allow_only_decimal(self, event):
+        # Get the current content of the entry widget
+        current_text = self.focus_get().get()
+        
+        # Attempt to reconstruct the text only with valid decimal characters
+        if event.char.isdigit() or (event.char == '.' and '.' not in current_text) or event.keysym == "BackSpace" or event.keysym == "Delete" or \
+            event.keysym == "Left" or event.keysym == "Right" or event.keysym == "Shift_L" or event.keysym == "Shift_R" or event.keysym == "Control_L" or \
+            event.keysym == "Control_R" or event.keysym == "Return" or ((event.state == 4 or event.state == 8) and event.keysym in ('c', 'x', 'v', 'a')):
+            # Allow the event if it's a digit or a single '.'
+            if len(event.char) > 0 and len(current_text) >= 10:
+                return "break"
+            return
+        else:
+            # Prevent the insertion of invalid characters
+            return "break"
+
 
     class DraggableObject:
-        def __init__(self, canvas, shape, x, y, rotation_angle, stiffness, **kwargs):
+        def __init__(self, canvas, shape, **kwargs):
             self.canvas = canvas
-            self.shape = shape
-            self.x = x
-            self.y = y
-            self.rotation_angle = rotation_angle
-            self.stiffness = stiffness
             self.selected = False
             self.handle_size = 4
             self.handles = []
+            self.metadata = App.ObjectMetadata(shape, **kwargs)
+            self.rotation_angle = self.metadata.rotation_angle
 
-            if kwargs:
-                for key, value in kwargs.items():
-                    setattr(self, key, value)
             self.create_object()
 
             self.current_handle = None
-
 
         @property
         def resizing(self):
             self.current_handle = self.canvas.find_withtag(CURRENT)[0]
             return f"handle_{self.item}" in self.canvas.gettags(CURRENT)
         
+        @property
+        def rotating(self):
+            self.current_handle = self.canvas.find_withtag(CURRENT)[0]
+            return f"rotate_handle_{self.item}" in self.canvas.gettags(CURRENT)
 
         def create_object(self):
             # Create the shape based on type and additional parameters
             sp = None
-            if self.shape == Shape.Line:
-                sp = self.shape.value(length_mm=5, stiffness=self.stiffness, center=Coordinate(self.x, self.y), rotation_angle=self.rotation_angle, beam_diameter=1, is_horizontal=False, uses_step_coordinates=True)
-            elif self.shape == Shape.Rectangle:
-                sp = self.shape.value(width_mm=5, height_mm=5, stiffness=self.stiffness, center=Coordinate(self.x, self.y), rotation_angle=self.rotation_angle, beam_diameter=0.1, uses_step_coordinates=True, filled=False)
-            elif self.shape == Shape.Square:
-                sp = self.shape.value(side_length_mm=5, stiffness=self.stiffness, center=Coordinate(self.x, self.y), rotation_angle=self.rotation_angle, beam_diameter=1, uses_step_coordinates=True, filled=False)
-            elif self.shape == Shape.Triangle:
-                sp = self.shape.value(width_mm=5, height_mm=5, stiffness=self.stiffness, center=Coordinate(self.x, self.y), rotation_angle=self.rotation_angle, beam_diameter=1, uses_step_coordinates=True, filled=False)
-            elif self.shape == Shape.EquilateralTriangle:
-                sp = self.shape.value(side_length_mm=5, stiffness=self.stiffness, center=Coordinate(self.x, self.y), rotation_angle=self.rotation_angle, beam_diameter=1, uses_step_coordinates=True, filled=False)
-            elif self.shape == Shape.Circle:
-                sp = self.shape.value(diameter_mm=5, stiffness=self.stiffness, center=Coordinate(self.x, self.y), beam_diameter=1, filled=False)
-            elif self.shape == Shape.Oval:
-                sp = self.shape.value(width_mm=5, height_mm=5, stiffness=self.stiffness, center=Coordinate(self.x, self.y), rotation_angle=self.rotation_angle, beam_diameter=1)
-            elif self.shape == Shape.SineWave:
-                sp = self.shape.value(amplitude_mm=self.amplitude, cycles=self.cycles, cycles_per_mm=self.cycles_per_mm, stiffness=self.stiffness, rotation_angle=self.rotation_angle, center=Coordinate(self.x, self.y), beam_diameter=1)
-            elif self.shape == Shape.Gradient:
-                sp = self.shape.value(min_velocity=0.1, max_velocity=1.5, stiffness=self.stiffness, rotation_angle=self.rotation_angle, beam_diameter=1, is_horizontal=False, is_reversed=True)
-            elif self.shape == Shape.CustomShape:
-                sp = self.shape.value(img_file=self.img_file, stiffness=self.stiffness, center=Coordinate(self.x, self.y), rotation_angle=self.rotation_angle, scale_factor=self.scale_factor, beam_diameter=1)
-            elif self.shape == Shape.Texture:
-                sp = self.shape.value(shape=self.texture_shape, spacing_mm=self.spacing, margins=self.margins)
+            if self.metadata.shape == Shape.Line:
+                sp = self.metadata.shape.value(length_mm=5, stiffness=self.metadata.stiffness, center=Coordinate(self.metadata.x, self.metadata.y), rotation_angle=self.metadata.rotation_angle, beam_diameter=self.metadata.beam_diameter, is_horizontal=False, uses_step_coordinates=True)
+            elif self.metadata.shape == Shape.Rectangle:
+                sp = self.metadata.shape.value(width_mm=5, height_mm=7, stiffness=self.metadata.stiffness, center=Coordinate(self.metadata.x, self.metadata.y), rotation_angle=self.metadata.rotation_angle, beam_diameter=self.metadata.beam_diameter, uses_step_coordinates=True, filled=False)
+            elif self.metadata.shape == Shape.Square:
+                sp = self.metadata.shape.value(side_length_mm=5, stiffness=self.metadata.stiffness, center=Coordinate(self.metadata.x, self.metadata.y), rotation_angle=self.metadata.rotation_angle, beam_diameter=self.metadata.beam_diameter, uses_step_coordinates=True, filled=False)
+            elif self.metadata.shape == Shape.Triangle:
+                sp = self.metadata.shape.value(width_mm=5, height_mm=7, stiffness=self.metadata.stiffness, center=Coordinate(self.metadata.x, self.metadata.y), rotation_angle=self.metadata.rotation_angle, beam_diameter=self.metadata.beam_diameter, uses_step_coordinates=True, filled=False)
+            elif self.metadata.shape == Shape.EquilateralTriangle:
+                sp = self.metadata.shape.value(side_length_mm=5, stiffness=self.metadata.stiffness, center=Coordinate(self.metadata.x, self.metadata.y), rotation_angle=self.metadata.rotation_angle, beam_diameter=self.metadata.beam_diameter, uses_step_coordinates=True, filled=False)
+            elif self.metadata.shape == Shape.Circle:
+                sp = self.metadata.shape.value(diameter_mm=5, stiffness=self.metadata.stiffness, center=Coordinate(self.metadata.x, self.metadata.y), beam_diameter=self.metadata.beam_diameter, filled=False)
+            elif self.metadata.shape == Shape.Oval:
+                sp = self.metadata.shape.value(width_mm=5, height_mm=10, stiffness=self.metadata.stiffness, center=Coordinate(self.metadata.x, self.metadata.y), rotation_angle=self.metadata.rotation_angle, beam_diameter=self.metadata.beam_diameter)
+            elif self.metadata.shape == Shape.SineWave:
+                sp = self.metadata.shape.value(amplitude_mm=self.metadata.amplitude, cycles=self.metadata.cycles, cycles_per_mm=self.metadata.cycles_per_mm, stiffness=self.metadata.stiffness, rotation_angle=self.metadata.rotation_angle, center=Coordinate(self.metadata.x, self.metadata.y), beam_diameter=self.metadata.beam_diameter)
+            elif self.metadata.shape == Shape.Gradient:
+                sp = self.metadata.shape.value(min_velocity=0.1, max_velocity=1.5, stiffness=self.metadata.stiffness, rotation_angle=self.metadata.rotation_angle, beam_diameter=self.metadata.beam_diameter, is_horizontal=False, is_reversed=True)
+            elif self.metadata.shape == Shape.CustomShape:
+                sp = self.metadata.shape.value(img_file=self.img_file, stiffness=self.metadata.stiffness, center=Coordinate(self.metadata.x, self.metadata.y), rotation_angle=self.metadata.rotation_angle, scale_factor=self.scale_factor, beam_diameter=self.metadata.beam_diameter)
+            elif self.metadata.shape == Shape.Texture:
+                sp = self.metadata.shape.value(shape=self.metadata.texture_shape, spacing_mm=self.metadata.spacing, margins=self.metadata.margins)
             
-            self.item = self.canvas.create_polygon(self.format_xy_coordinates(sp.get_coordinates()))
+            self.item = self.canvas.create_line(self.format_xy_coordinates(sp.get_coordinates()))
             # Bind events
             self.canvas.tag_bind(self.item, "<ButtonPress-1>", self.on_button_press)
             self.canvas.tag_bind(self.item, "<B1-Motion>", self.on_move)
             self.canvas.tag_bind(self.item, "<ButtonRelease-1>", self.on_button_release)
+            self.canvas.bind("<BackSpace>", self.delete_object)
+
 
         def on_button_press(self, event):
             self.drag_data = {"x": event.x, "y": event.y}
             if not self.resizing:
                 self.select_object()
                 self.current_handle = None
+            self.canvas.focus_set()
+
+        def delete_object(self, event):
+            if self.selected:
+                self.canvas.delete(self.item)
+                self.selected = False
+                self.handles = []
 
         def on_move(self, event):
             if not self.selected:
                 return
             if self.resizing and self.current_handle:
                 self.resize(event)
+            elif self.rotating and self.current_handle:
+                self.rotate(event)
             else:
                 dx = event.x - self.drag_data["x"]
                 dy = event.y - self.drag_data["y"]
@@ -268,7 +308,11 @@ class App(Tk):
                 self.canvas.coords(self.item, *new_coords)
                 self.drag_data["x"] = event.x
                 self.drag_data["y"] = event.y
-                self.update_handles()
+                # self.update_handles()
+                for handle in self.handles:
+                    handle_coords = self.canvas.coords(handle)
+                    new_handle_coords = [coord + (dx if i % 2 == 0 else dy) for i, coord in enumerate(handle_coords)]
+                    self.canvas.coords(handle, *new_handle_coords)
 
         def on_button_release(self, event):
             self.drag_data = None
@@ -280,18 +324,26 @@ class App(Tk):
             cx, cy = (bbox[0] + bbox[2]) / 2, (bbox[1] + bbox[3]) / 2
             
             self.handles = [
-                self.canvas.create_rectangle(bbox[0] - self.handle_size, bbox[1] - self.handle_size, bbox[0] + self.handle_size, bbox[1] + self.handle_size, outline="red", fill="blue", tags=f"handle_{self.item}"),  # top_left
-                self.canvas.create_rectangle(cx - self.handle_size, bbox[1] - self.handle_size, cx + self.handle_size, bbox[1] + self.handle_size, outline="orange", fill="blue", tags=f"handle_{self.item}"),  # top_middle
-                self.canvas.create_rectangle(bbox[2] - self.handle_size, bbox[1] - self.handle_size, bbox[2] + self.handle_size, bbox[1] + self.handle_size, outline="green", fill="blue", tags=f"handle_{self.item}"),  # top_right
-                self.canvas.create_rectangle(bbox[0] - self.handle_size, cy - self.handle_size, bbox[0] + self.handle_size, cy + self.handle_size, outline="blue", fill="blue", tags=f"handle_{self.item}"),  # middle_left
-                self.canvas.create_rectangle(bbox[2] - self.handle_size, cy - self.handle_size, bbox[2] + self.handle_size, cy + self.handle_size, outline="purple", fill="blue", tags=f"handle_{self.item}"),  # middle_right
-                self.canvas.create_rectangle(bbox[0] - self.handle_size, bbox[3] - self.handle_size, bbox[0] + self.handle_size, bbox[3] + self.handle_size, outline="blue", fill="blue", tags=f"handle_{self.item}"),  # bottom_left
-                self.canvas.create_rectangle(cx - self.handle_size, bbox[3] - self.handle_size, cx + self.handle_size, bbox[3] + self.handle_size, outline="blue", fill="blue", tags=f"handle_{self.item}"),  # bottom_middle
-                self.canvas.create_rectangle(bbox[2] - self.handle_size, bbox[3] - self.handle_size, bbox[2] + self.handle_size, bbox[3] + self.handle_size, outline="blue", fill="blue", tags=f"handle_{self.item}")  # bottom_right
+                self.canvas.create_polygon(bbox[0] - self.handle_size, bbox[1] - self.handle_size, bbox[0] + self.handle_size, bbox[1] - self.handle_size, bbox[0] + self.handle_size, bbox[1] + self.handle_size, bbox[0] - self.handle_size, bbox[1] + self.handle_size, fill="blue", tags=f"handle_{self.item}"), # top_left
+                self.canvas.create_polygon(cx - self.handle_size, bbox[1] - self.handle_size, cx + self.handle_size, bbox[1] - self.handle_size, cx + self.handle_size, bbox[1] + self.handle_size, cx - self.handle_size, bbox[1] + self.handle_size, fill="blue", tags=f"handle_{self.item}"),  # top_middle
+                self.canvas.create_polygon(bbox[2] - self.handle_size, bbox[1] - self.handle_size, bbox[2] + self.handle_size, bbox[1] - self.handle_size, bbox[2] + self.handle_size, bbox[1] + self.handle_size, bbox[2] - self.handle_size, bbox[1] + self.handle_size, fill="blue", tags=f"handle_{self.item}"),  # top_right
+                self.canvas.create_polygon(bbox[0] - self.handle_size, cy - self.handle_size, bbox[0] + self.handle_size, cy - self.handle_size, bbox[0] + self.handle_size, cy + self.handle_size, bbox[0] - self.handle_size, cy + self.handle_size, fill="blue", tags=f"handle_{self.item}"),  # middle_left
+                self.canvas.create_polygon(bbox[2] - self.handle_size, cy - self.handle_size, bbox[2] + self.handle_size, cy - self.handle_size, bbox[2] + self.handle_size, cy + self.handle_size, bbox[2] - self.handle_size, cy + self.handle_size, fill="blue", tags=f"handle_{self.item}"),  # middle_right
+                self.canvas.create_polygon(bbox[0] - self.handle_size, bbox[3] - self.handle_size, bbox[0] + self.handle_size, bbox[3] - self.handle_size, bbox[0] + self.handle_size, bbox[3] + self.handle_size, bbox[0] - self.handle_size, bbox[3] + self.handle_size, fill="blue", tags=f"handle_{self.item}"),  # bottom_left
+                self.canvas.create_polygon(cx - self.handle_size, bbox[3] - self.handle_size, cx + self.handle_size, bbox[3] - self.handle_size, cx + self.handle_size, bbox[3] + self.handle_size, cx - self.handle_size, bbox[3] + self.handle_size, fill="blue", tags=f"handle_{self.item}"),  # bottom_middle
+                self.canvas.create_polygon(bbox[2] - self.handle_size, bbox[3] - self.handle_size, bbox[2] + self.handle_size, bbox[3] - self.handle_size, bbox[2] + self.handle_size, bbox[3] + self.handle_size, bbox[2] - self.handle_size, bbox[3] + self.handle_size, fill="blue", tags=f"handle_{self.item}"),  # bottom_right
+                self.canvas.create_polygon(cx - self.handle_size, bbox[1] - 4*self.handle_size, cx + self.handle_size, bbox[1] - 4*self.handle_size, cx + self.handle_size, bbox[1] - 2*self.handle_size, cx - self.handle_size, bbox[1] - 2*self.handle_size, fill="blue", tags=f"rotate_handle_{self.item}"),  # rotation_handle
             ]
+
             for handle in self.handles:
                 self.canvas.tag_bind(handle, "<ButtonPress-1>", self.on_button_press)
                 self.canvas.tag_bind(handle, "<B1-Motion>", self.on_move)
+                
+
+        def delete_object(self, event):
+            if self.selected:
+                self.hide_handles()
+                self.canvas.delete(self.item)
 
         def hide_handles(self):
             for handle in self.handles:
@@ -344,8 +396,6 @@ class App(Tk):
             except ZeroDivisionError:
                 scale_y = 1 
 
-            print(scale_x, scale_y)
-
             # Apply scaling to each coordinate
             new_coords = []
             origin_coords = self.canvas.coords(self.item)
@@ -357,18 +407,127 @@ class App(Tk):
             self.canvas.coords(self.item, *new_coords)
             self.update_handles()
 
+            # Moves the handles, using a similar approach
+            # for handle in self.handles:
+            #     handle_coords = self.canvas.coords(handle)
+            #     new_handle_coords = []
+            #     for i in range(0, len(handle_coords), 2):
+            #         hx, hy = handle_coords[i], handle_coords[i+1]
+            #         new_hx = fixed_x + (hx - fixed_x) * scale_x
+            #         new_hy = fixed_y + (hy - fixed_y) * scale_y
+            #         new_handle_coords.extend([new_hx, new_hy])
+            
+            # for handle in self.handles:
+            #     handle_coords = self.canvas.coords(handle)
+            #     new_handle_coords = []
+            #     for i in range(0, len(handle_coords), 2):
+            #         hx, hy = handle_coords[i], handle_coords[i+1]
+            #         new_hx = fixed_x + (hx - fixed_x) * scale_x
+            #         new_hy = fixed_y + (hy - fixed_y) * scale_y
+            #         new_handle_coords.extend([new_hx, new_hy])
+                    
+                
+            #     self.canvas.coords(handle, *new_handle_coords)
+            
+            # rotate_handle = self.handles[-1]
+            # rotate_handle_coords = self.canvas.coords(rotate_handle)
+            # new_rotate_handle_coords = [rotate_handle_coords[0], fixed_y - 4*self.handle_size, rotate_handle_coords[2], fixed_y - 2*self.handle_size]
+            # self.canvas.coords(rotate_handle, new_rotate_handle_coords)
 
-        def update_handles(self):
+        def rotate(self, event):
+            if not self.rotating or not self.current_handle:
+                return
+
+            # Calculate the center of the shape (rotation pivot point)
             bbox = self.canvas.bbox(self.item)
             cx, cy = (bbox[0] + bbox[2]) / 2, (bbox[1] + bbox[3]) / 2
-            self.canvas.coords(self.handles[0], bbox[0] - self.handle_size, bbox[1] - self.handle_size, bbox[0] + self.handle_size, bbox[1] + self.handle_size)  # top_left
-            self.canvas.coords(self.handles[1], cx - self.handle_size, bbox[1] - self.handle_size, cx + self.handle_size, bbox[1] + self.handle_size)  # top_middle
-            self.canvas.coords(self.handles[2], bbox[2] - self.handle_size, bbox[1] - self.handle_size, bbox[2] + self.handle_size, bbox[1] + self.handle_size)  # top_right
-            self.canvas.coords(self.handles[3], bbox[0] - self.handle_size, cy - self.handle_size, bbox[0] + self.handle_size, cy + self.handle_size)  # middle_left
-            self.canvas.coords(self.handles[4], bbox[2] - self.handle_size, cy - self.handle_size, bbox[2] + self.handle_size, cy + self.handle_size)  # middle_right
-            self.canvas.coords(self.handles[5], bbox[0] - self.handle_size, bbox[3] - self.handle_size, bbox[0] + self.handle_size, bbox[3] + self.handle_size)  # bottom_left
-            self.canvas.coords(self.handles[6], cx - self.handle_size, bbox[3] - self.handle_size, cx + self.handle_size, bbox[3] + self.handle_size)  # bottom_middle
-            self.canvas.coords(self.handles[7], bbox[2] - self.handle_size, bbox[3] - self.handle_size, bbox[2] + self.handle_size, bbox[3] + self.handle_size)  # bottom_right
+
+            # Determine initial and current angles to calculate the rotation angle
+            origin_x, origin_y = self.canvas.coords(self.current_handle)[:2]  # Using the handle's initial position
+            initial_angle = math.atan2(origin_y - cy, origin_x - cx)
+            self.rotation_angle = math.atan2(event.y - cy, event.x - cx)
+            angle = self.rotation_angle - initial_angle
+            print(self.rotation_angle*10)
+
+            # Rotate the shape
+            new_coords = []
+            origin_coords = self.canvas.coords(self.item)
+            for i in range(0, len(origin_coords), 2):
+                x, y = origin_coords[i], origin_coords[i+1]
+                new_x = cx + (x - cx) * math.cos(angle) - (y - cy) * math.sin(angle)
+                new_y = cy + (x - cx) * math.sin(angle) + (y - cy) * math.cos(angle)
+                new_coords.extend([new_x, new_y])
+
+            self.canvas.coords(self.item, *new_coords)
+
+            # # Rotate the handles, using a similar approach
+            # for handle in self.handles[:-1]:
+            #     handle_coords = self.canvas.coords(handle)
+            #     new_handle_coords = []
+            #     # Assume each handle is a small square or point, and rotate its center
+            #     for i in range(0, len(handle_coords), 2):
+            #         hx, hy = handle_coords[i], handle_coords[i+1]
+            #         new_hx = cx + (hx - cx) * math.cos(angle) - (hy - cy) * math.sin(angle)
+            #         new_hy = cy + (hx - cx) * math.sin(angle) + (hy - cy) * math.cos(angle)
+            #         new_handle_coords.extend([new_hx, new_hy])
+                
+            #     self.canvas.coords(handle, *new_handle_coords)
+
+            # # Move, but don't rotate the rotation handle
+            # rotate_handle = self.handles[-1]
+            # rotate_handle_coords = self.canvas.coords(rotate_handle)
+            # new_rotate_handle_coords = []
+            # for i in range(0, len(rotate_handle_coords), 2):
+            #     hx, hy = rotate_handle_coords[i], rotate_handle_coords[i+1]
+            #     new_hx = cx + (hx - cx) - (hy - cy)
+            #     new_hy = cy + (hx - cx) + (hy - cy)
+            #     new_rotate_handle_coords.extend([new_hx, new_hy])
+            
+            # self.canvas.coords(rotate_handle, *new_rotate_handle_coords)
+
+
+            # Optionally call update_handles if it performs additional necessary adjustments
+            self.update_handles()
+            
+        def update_handles(self):
+            bbox = self.canvas.bbox(self.item)
+            corners_rotated = []
+            for i in range(0, len(bbox), 2):
+                x, y = bbox[i], bbox[i+1]
+                new_x = x * math.cos(self.rotation_angle) - y * math.sin(self.rotation_angle)
+                new_y = x * math.sin(self.rotation_angle) + y * math.cos(self.rotation_angle)
+                corners_rotated.extend([new_x, new_y])
+            
+            cx, cy = (corners_rotated[0] + corners_rotated[2]) / 2, (corners_rotated[1] + corners_rotated[3]) / 2
+
+            for i, handle in enumerate(self.handles):
+                handle_center = []
+                if i == 0:
+                    handle_center = [corners_rotated[0], corners_rotated[1]]
+                elif i == 1:
+                    handle_center = [cx, corners_rotated[1]]
+                elif i == 2:
+                    handle_center = [corners_rotated[2], corners_rotated[1]]
+                elif i == 3:
+                    handle_center = [corners_rotated[0], cy]
+                elif i == 4:
+                    handle_center = [corners_rotated[2], cy]
+                elif i == 5:
+                    handle_center = [corners_rotated[0], corners_rotated[3]]
+                elif i == 6:
+                    handle_center = [cx, corners_rotated[3]]
+                elif i == 7:
+                    handle_center = [corners_rotated[2], corners_rotated[3]]
+                elif i == 8:
+                    handle_center = [cx, corners_rotated[1] - 4*self.handle_size]
+                
+                # x1, y1,...xn, yn
+                new_handle_coordinates = [handle_center[0] - self.handle_size, handle_center[1] - self.handle_size, handle_center[0] + self.handle_size, handle_center[1] - self.handle_size, handle_center[0] + self.handle_size, handle_center[1] + self.handle_size, handle_center[0] - self.handle_size, handle_center[1] + self.handle_size]
+                
+                self.canvas.coords(handle, *new_handle_coordinates)
+                
+            
+            
 
 
         def select_object(self):
@@ -385,7 +544,15 @@ class App(Tk):
         
         def format_xy_coordinates(self, coordinates):
             return [(30 + i.x * 13, 370 - i.y * 13) for i in coordinates if i.lp]      
+    
 
+    class ObjectMetadata:
+        def __init__(self, shape, **kwargs):
+            self.shape = shape
+            for key, value in kwargs.items():
+                setattr(self, key, value)
+
+        
 
 app = App()
 app.mainloop()
