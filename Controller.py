@@ -7,19 +7,19 @@ from Coordinate import Coordinate, Coordinates
 from Constants import *
 from tqdm import tqdm
 import multiprocessing
-from multiprocessing import Pool
 from gbl import handle_processes
 
 
 
 if IS_VIRTUAL:
-    from VirtualManager import VirtualManager
+    from Simulator.VirtualManager import VirtualManager
     # Sets up a virtual simulation of the motors and LED
     manager = VirtualManager(canvas_dimensions_mm=MOTOR_MAX_TRAVEL, acceleration=ACCELERATION, max_velocity=MAXIMUM_VELOCITY, beam_diameter=BEAM_DIAMETER)
 else:
-    from Manager import Manager
+    from Hardware.Manager import Manager
     # Sets up the actual motors and LED
-    manager = Manager(serial_number_x="27602218", serial_number_y="27264864", acceleration=ACCELERATION, max_velocity=MAXIMUM_VELOCITY)
+    # !!! For the Lamp: In the USB number the serial number (M00...) needs to be changed to the one of the connected device.
+    manager = Manager(serial_number_x="27602218", serial_number_y="27264864", lamp_serial_number=b"USB0::0x1313::0x80C8::M00607903::INSTR", acceleration=ACCELERATION, max_velocity=MAXIMUM_VELOCITY)
 
 
 def main():
@@ -48,7 +48,9 @@ def main():
     # shapes.append(Triangle.Triangle(width_mm=7, height_mm=2.5980762114, center=Coordinate(2, 2), rotation_angle=0, beam_diameter=BEAM_DIAMETER, uses_step_coordinates=True))
     # shapes.append(Rectangle.Rectangle(width_mm=4, height_mm=2, center=Coordinate(5, 5), rotation_angle=0, beam_diameter=BEAM_DIAMETER, uses_step_coordinates=True, filled=True))
     # shapes.append(Triangle.Triangle(width_mm=4, height_mm=2, center=Coordinate(5, 5), rotation_angle=0, beam_diameter=BEAM_DIAMETER, uses_step_coordinates=True, filled=True))
-    shapes.append(Circle.Circle(diameter_mm=2, stiffness=3, center=Coordinate(5, 5), beam_diameter=BEAM_DIAMETER, filled=True))
+    shapes.append(Circle.Circle(diameter_mm=2, stiffness=10, center=Coordinate(5, 5), beam_diameter=BEAM_DIAMETER, filled=True))
+    shapes.append(Circle.Circle(diameter_mm=2, stiffness=5, center=Coordinate(10, 5), beam_diameter=BEAM_DIAMETER))
+    shapes.append(Rectangle.Rectangle(width_mm=2, height_mm=3, stiffness=40, center=Coordinate(10, 10), rotation_angle=0, beam_diameter=BEAM_DIAMETER, uses_step_coordinates=True))
     # shapes.append(Triangle(width_mm=3, height_mm=2.5980762114, center=Coordinate(2, 2), rotation_angle=3.14/4.0, beam_diameter=BEAM_DIAMETER, uses_step_coordinates=False))
     # shapes.append(Rectangle.Rectangle(width_mm=2, height_mm=3, center=Coordinate(8, 8), rotation_angle=0, beam_diameter=BEAM_DIAMETER, uses_step_coordinates=False))
     # shapes.append(Rectangle.Rectangle(width_mm=2, height_mm=3, center=Coordinate(8, 8), rotation_angle=0, beam_diameter=BEAM_DIAMETER, uses_step_coordinates=True))

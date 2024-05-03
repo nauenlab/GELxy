@@ -1,4 +1,3 @@
-
 import math
 from Shapes.Shape import Shape
 from Coordinate import Coordinate, Coordinates
@@ -6,6 +5,31 @@ from tqdm import tqdm
 from CuringCalculations import CuringCalculations
 
 class SineWave(Shape):
+    """
+    Represents a sine wave shape.
+
+    Args:
+        amplitude_mm (float): The amplitude of the sine wave in millimeters.
+        cycles (float): The number of cycles of the sine wave.
+        cycles_per_mm (float): The number of cycles per millimeter.
+        stiffness (float): The stiffness of the shape.
+        cycle_offset (float, optional): The offset of the cycle in degrees. Defaults to 0.
+        center (Coordinate, optional): The center coordinate of the shape. Defaults to None.
+        rotation_angle (float, optional): The rotation angle of the shape in degrees. Defaults to None.
+        beam_diameter (float, optional): The diameter of the beam. Defaults to None.
+
+    Attributes:
+        amplitude (float): The amplitude of the sine wave in millimeters.
+        cycles (float): The number of cycles of the sine wave.
+        frequency (float): The frequency of the sine wave in degrees.
+        cycle_offset (float): The offset of the cycle in degrees.
+
+    Inherits from:
+        Shape
+
+    Uses:
+        Coordinate, Coordinates, tqdm, CuringCalculations
+    """
 
     def __init__(self, amplitude_mm, cycles, cycles_per_mm, stiffness, cycle_offset=0, center=None, rotation_angle=None, beam_diameter=None):
         super().__init__(center=center, rotation_angle=rotation_angle, beam_diameter=beam_diameter, uses_step_coordinates=True, filled=False, stiffness=stiffness)
@@ -15,6 +39,12 @@ class SineWave(Shape):
         self.cycle_offset = float(cycle_offset)
     
     def __radial_coordinates__(self):
+        """
+        Generates the radial coordinates of the sine wave.
+
+        Returns:
+            Coordinates: The generated radial coordinates.
+        """
         coordinates = Coordinates()
 
         mx = self.cycles * 360

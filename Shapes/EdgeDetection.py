@@ -8,8 +8,40 @@ dimensions = 15  # 15 mm * 100 mm_to_pixel_ratio
 
 
 class EdgeDetection:
+    """
+    A class that performs edge detection on an image and extracts coordinates of the detected edges.
+
+    Args:
+        img_file (str): The path to the input image file.
+        stiffness (float): The stiffness of the material.
+        center (Coordinate, optional): The center coordinate of the image. Defaults to Coordinate(0, 0).
+        rotation_angle (float, optional): The rotation angle of the image in degrees. Defaults to 0.
+        scale_factor (float, optional): The scale factor of the image. Defaults to 1.
+        beam_diameter (float, optional): The diameter of the beam. Defaults to 0.1.
+
+    Attributes:
+        img_file (str): The path to the input image file.
+        center (Coordinate): The center coordinate of the image.
+        rotation (float): The rotation angle of the image in degrees.
+        scale_factor (float): The scale factor of the image.
+        beam_diameter (float): The diameter of the beam.
+        stiffness (float): The stiffness of the material.
+        edges (list): The list of detected edges.
+        factor (float): The scaling factor based on the dimensions and maximum dimension of the image.
+    """
 
     def __init__(self, img_file, stiffness, center=Coordinate(0, 0), rotation_angle=0, scale_factor=1, beam_diameter=0.1):
+        """
+        Initialize the EdgeDetection object.
+
+        Parameters:
+        - img_file (str): The path to the image file.
+        - stiffness (float): The stiffness value.
+        - center (Coordinate, optional): The center coordinate of the image. Defaults to (0, 0).
+        - rotation_angle (float, optional): The rotation angle of the image in degrees. Defaults to 0.
+        - scale_factor (float, optional): The scale factor of the image. Defaults to 1.
+        - beam_diameter (float, optional): The beam diameter. Defaults to 0.1.
+        """
         self.img_file = img_file
         self.center = center
         self.rotation = rotation_angle
@@ -24,18 +56,36 @@ class EdgeDetection:
 
     @property
     def height(self):
+        """
+        The height of the image.
+
+        Returns:
+            int: The height of the image.
+
+        """
         if len(self.edges) == 0:
             return 0
         return len(self.edges[0])
 
     @property
     def width(self):
+        """
+        The width of the image.
+
+        Returns:
+            int: The width of the image.
+
+        """
         return len(self.edges)
 
     def canny_edge_detection(self):
+        """
+        Performs Canny edge detection on the input image.
+
+        """
         img = cv2.imread(self.img_file)
 
-        # Convert to graycsale
+        # Convert to grayscale
         img_gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
         # Blur the image for better edge detection
         img_blur = cv2.GaussianBlur(img_gray, (3, 3), 0)
@@ -46,6 +96,13 @@ class EdgeDetection:
         self.edges = [np.flip(row, 0) for row in edge_detection]
 
     def get_coordinates(self):
+        """
+        Extracts the coordinates of the detected edges.
+
+        Returns:
+            Coordinates: The extracted coordinates.
+
+        """
         coordinates = Coordinates()
         visited = []
 
@@ -69,12 +126,20 @@ class EdgeDetection:
         configuration = CuringCalculations().get_configuration(self.stiffness, self.beam_diameter)
         coordinates = self.ordered_by_nearest_neighbor(coordinates)
         coordinates.normalize(center=self.center, rotation=self.rotation, configuration=configuration)
-        # print(len(coordinates))
-        # coordinates.plot(plot_lines=True, plot_points=True)
         return coordinates
     
     def ordered_by_nearest_neighbor(self, coordinates):
-    # Start at the first point
+        """
+        Orders the coordinates by nearest neighbor.
+
+        Args:
+            coordinates (Coordinates): The input coordinates.
+
+        Returns:
+            Coordinates: The ordered coordinates.
+
+        """
+        # Start at the first point
         current_point = coordinates[0]
         path = Coordinates()
         path.append(current_point)
@@ -94,6 +159,16 @@ class EdgeDetection:
         return path
 
     def get_neighbors(self, coord):
+        """
+        Gets the neighboring coordinates of a given coordinate.
+
+        Args:
+            coord (tuple): The input coordinate.
+
+        Returns:
+            list: The neighboring coordinates.
+
+        """
         x, y = coord
         neighbors = []
 

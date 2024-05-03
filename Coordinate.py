@@ -5,9 +5,20 @@ import copy
 from Constants import MOTOR_MAX_TRAVEL
 from CuringCalculations import MIN_VELOCITY, MAX_VELOCITY
 
+
 class Coordinate:
+    """
+    Represents a coordinate point in a 2D space.
+    """
 
     def __init__(self, x, y):
+        """
+        Initializes a Coordinate object with the given x and y values.
+
+        Args:
+            x (float): The x-coordinate value.
+            y (float): The y-coordinate value.
+        """
         self.x = x
         self.y = y
         self.v = None
@@ -15,12 +26,33 @@ class Coordinate:
         self.lp = True
 
     def get_vmax(self, to, time):
+        """
+        Calculates the maximum velocity for a movement from this coordinate to another coordinate within a given time.
+
+        Args:
+            to (Coordinate): The destination coordinate.
+            time (float): The time duration for the movement.
+
+        Returns:
+            tuple: A tuple containing the maximum velocity in the x-direction and y-direction.
+        """
         xi, yi = self.x, self.y
         xf, yf = to.x, to.y
         return self.__calculate_vmax__(xi, xf, time), self.__calculate_vmax__(yi, yf, time)
 
     @staticmethod
     def __calculate_vmax__(i, f, t):
+        """
+        Calculates the maximum velocity for a movement from a starting position to a final position within a given time.
+
+        Args:
+            i (float): The initial position.
+            f (float): The final position.
+            t (float): The time duration for the movement.
+
+        Returns:
+            float: The maximum velocity.
+        """
         d = math.fabs(f - i)
         a = 4.0
         try:
@@ -31,39 +63,99 @@ class Coordinate:
         return max(pvf, MIN_VELOCITY)
 
     def __str__(self):
+        """
+        Returns a string representation of the Coordinate object.
+
+        Returns:
+            str: The string representation of the Coordinate object.
+        """
         return f"\nx: {self.x}\ny: {self.y}\nv: {self.v}\nl: {self.lp}"
 
     def same_location_as(self, coord):
+        """
+        Checks if this Coordinate object has the same location as another Coordinate object.
+
+        Args:
+            coord (Coordinate): The other Coordinate object to compare with.
+
+        Returns:
+            bool: True if the coordinates are the same, False otherwise.
+        """
         return self.x == coord.x and self.y == coord.y
 
 
 class Coordinates:
+    """
+    Represents a collection of Coordinate objects.
+    """
 
     def __init__(self):
+        """
+        Initializes an empty Coordinates object.
+        """
         self.x = []
         self.y = []
         self.coordinates = []
         self.v = []
     
     def __iter__(self):
-        self.a = 0
+        """
+        Returns an iterator object for iterating over the Coordinates object.
+
+        Returns:
+            iterator: An iterator object.
+        """
+        self.n = 0
         return self
 
     def __next__(self):
-        if self.a < len(self.coordinates):
-            n = self.coordinates[self.a]
-            self.a += 1
-            return n
+        """
+        Returns the next Coordinate object in the iteration.
+
+        Returns:
+            Coordinate: The next Coordinate object.
+
+        Raises:
+            StopIteration: If there are no more Coordinate objects to iterate over.
+        """
+        if self.n < len(self.coordinates):
+            next = self.coordinates[self.n]
+            self.n += 1
+            return next
         else:
             raise StopIteration
     
     def __len__(self):
+        """
+        Returns the number of Coordinate objects in the Coordinates object.
+
+        Returns:
+            int: The number of Coordinate objects.
+        """
         return len(self.coordinates)
 
     def __getitem__(self, item):
+        """
+        Returns the Coordinate object at the specified index.
+
+        Args:
+            item (int): The index of the Coordinate object.
+
+        Returns:
+            Coordinate: The Coordinate object at the specified index.
+        """
         return self.coordinates[item]
     
     def __add__(self, rhs):
+        """
+        Concatenates two Coordinates objects.
+
+        Args:
+            rhs (Coordinates): The Coordinates object to concatenate with.
+
+        Returns:
+            Coordinates: A new Coordinates object that is the concatenation of the two Coordinates objects.
+        """
         new_coords = self
         new_coords.x += rhs.x
         new_coords.y += rhs.y
@@ -71,6 +163,17 @@ class Coordinates:
         return new_coords
     
     def plot(self, plot_lines=True, plot_points=False, show=True):
+        """
+        Plots the coordinates on a 2D graph.
+
+        Args:
+            plot_lines (bool, optional): Whether to plot lines connecting the coordinates. Defaults to True.
+            plot_points (bool, optional): Whether to plot points at the coordinates. Defaults to False.
+            show (bool, optional): Whether to display the plot. Defaults to True.
+
+        Returns:
+            matplotlib.pyplot: The plot object.
+        """
         if plot_lines:
             plt.plot(self.get_x_coordinates(), self.get_y_coordinates())
         if plot_points:
@@ -83,11 +186,24 @@ class Coordinates:
         return plt
         
     def append(self, coordinate):
+        """
+        Appends a Coordinate object to the Coordinates object.
+
+        Args:
+            coordinate (Coordinate): The Coordinate object to append.
+        """
         self.x.append(coordinate.x)
         self.y.append(coordinate.y)
         self.coordinates.append(coordinate)
 
     def append_if_far_enough(self, coord, beam_diameter):
+        """
+        Appends a Coordinate object to the Coordinates object if it is far enough from the previous coordinate.
+
+        Args:
+            coord (Coordinate): The Coordinate object to append.
+            beam_diameter (float): The minimum distance required between the coordinates.
+        """
         if len(self) != 0:
             prev = self[-1]
             if self.distance(coord, prev) >= beam_diameter:
@@ -96,6 +212,13 @@ class Coordinates:
             self.append(coord)
     
     def append_if_far_enough_field(self, coord, beam_diameter):
+        """
+        Appends a Coordinate object to the Coordinates object if it is far enough from all existing coordinates.
+
+        Args:
+            coord (Coordinate): The Coordinate object to append.
+            beam_diameter (float): The minimum distance required between the coordinates.
+        """
         if len(self) != 0:
             for i in self:
                 if self.distance(coord, i) < beam_diameter:
@@ -105,6 +228,13 @@ class Coordinates:
             self.append(coord)
     
     def append_if_no_duplicate(self, coord, beam_diameter):
+        """
+        Appends a Coordinate object to the Coordinates object if it is not a duplicate and is close enough to the previous coordinate.
+
+        Args:
+            coord (Coordinate): The Coordinate object to append.
+            beam_diameter (float): The maximum distance allowed between the coordinates.
+        """
         if len(self) != 0:
             prev = self[-1]
             if not prev.same_location_as(coord):
@@ -116,12 +246,30 @@ class Coordinates:
             self.append(coord)
 
     def get_x_coordinates(self):
+        """
+        Returns a list of x-coordinates of the Coordinate objects.
+
+        Returns:
+            list: A list of x-coordinates.
+        """
         return self.x
 
     def get_y_coordinates(self):
+        """
+        Returns a list of y-coordinates of the Coordinate objects.
+
+        Returns:
+            list: A list of y-coordinates.
+        """
         return self.y
 
     def update_with_configuration(self, configuration):
+        """
+        Updates the Coordinate objects with a given configuration.
+
+        Args:
+            configuration (Configuration): The configuration object containing velocity and current values.
+        """
         prev = None
         for (i, v) in tqdm(enumerate(self), desc="Updating Coordinates with configuration"):
             if not prev:
@@ -138,6 +286,14 @@ class Coordinates:
 
 
     def normalize(self, center, rotation, configuration):
+        """
+        Normalizes the Coordinate objects by translating and rotating them.
+
+        Args:
+            center (Coordinate): The center coordinate for normalization.
+            rotation (float): The rotation angle in radians.
+            configuration (Configuration): The configuration object containing iteration count and velocity values.
+        """
         original_coordinates = self.coordinates.copy()
         while configuration.iterations > 1:
             self.coordinates += original_coordinates
@@ -163,13 +319,26 @@ class Coordinates:
             self.coordinates[i].x = self.x[i]
             self.coordinates[i].y = self.y[i]
 
-        self.coordinates = self.fix_coordinates_with_corrected_slope()        
-
+        self.coordinates = self.fix_coordinates_with_corrected_slope()
+        if len(self.coordinates) == 0:
+            raise Exception("No coordinates to plot, check the shape dimensions and bounds.")
+        
         self.update_with_configuration(configuration)
         self.coordinates[0].lp = False
 
     @staticmethod
     def rotation_transformation(c, rotation, centroid):
+        """
+        Applies a rotation transformation to a Coordinate object.
+
+        Args:
+            c (Coordinate): The Coordinate object to transform.
+            rotation (float): The rotation angle in radians.
+            centroid (Coordinate): The centroid coordinate.
+
+        Returns:
+            Coordinate: The transformed Coordinate object.
+        """
         delta_x = c.x - centroid.x
         delta_y = c.y - centroid.y
         cos_theta = math.cos(rotation)
@@ -181,6 +350,12 @@ class Coordinates:
         return Coordinate(new_x - c.x, new_y - c.y)
 
     def __get_centroid__(self):
+        """
+        Calculates the centroid of the Coordinate objects.
+
+        Returns:
+            Coordinate: The centroid coordinate.
+        """
         sum_x = 0
         sum_y = 0
         closed = False
@@ -200,6 +375,16 @@ class Coordinates:
 
     @staticmethod
     def distance(c1, c2):
+        """
+        Calculates the Euclidean distance between two Coordinate objects.
+
+        Args:
+            c1 (Coordinate): The first Coordinate object.
+            c2 (Coordinate): The second Coordinate object.
+
+        Returns:
+            float: The Euclidean distance between the two Coordinate objects.
+        """
         delta_x = c2.x - c1.x
         delta_y = c2.y - c1.y
 
@@ -207,7 +392,13 @@ class Coordinates:
     
     def is_inside_polygon(self, point):
         """
-        Returns True if the given point is inside the polygon, False otherwise.
+        Checks if a point is inside the polygon defined by the Coordinate objects.
+
+        Args:
+            point (Coordinate): The point to check.
+
+        Returns:
+            bool: True if the point is inside the polygon, False otherwise.
         """
         # Check if the point is outside the bounding box of the polygon
         min_x = min(self.get_x_coordinates())
@@ -242,8 +433,15 @@ class Coordinates:
         return count % 2 == 1
     
     def is_point_inside_shape(self, p):
-        # Check if a point is inside a shape using ray-casting algorithm
-        # Reference: https://wrf.ecse.rpi.edu/Research/Short_Notes/pnpoly.html
+        """
+        Checks if a point is inside the shape defined by the Coordinate objects using the ray-casting algorithm.
+
+        Args:
+            p (Coordinate): The point to check.
+
+        Returns:
+            bool: True if the point is inside the shape, False otherwise.
+        """
         num_coords = len(self.coordinates)
         inside = False
 
@@ -258,9 +456,14 @@ class Coordinates:
 
     def fill(self, beam_diameter):
         """
-        Returns an array of Coordinate objects that represents the filled shape.
-        """
+        Fills the shape defined by the Coordinate objects with points.
 
+        Args:
+            beam_diameter (float): The diameter of the beam used to fill the shape.
+
+        Returns:
+            Coordinates: An array of Coordinate objects representing the filled shape.
+        """
         # Find the bounding box of the shape
         min_x = min(self.get_x_coordinates())
         max_x = max(self.get_x_coordinates())
@@ -284,6 +487,9 @@ class Coordinates:
                 points.append(Coordinate(x, y))
             
         # Check which points are inside the shape
+        # ...
+
+        return points
         filled_shape = Coordinates()
         for point in points:
             if self.is_point_inside_shape(point):
@@ -300,6 +506,30 @@ class Coordinates:
 
     @staticmethod
     def calculate_intersection_with_slope(p1, p2, border):
+        """
+        Calculates the intersection point between a line segment defined by two points (p1 and p2)
+        and a border (left, right, top, or bottom) of a rectangular region.
+
+        Parameters:
+        - p1 (Point): The first point of the line segment.
+        - p2 (Point): The second point of the line segment.
+        - border (str): The border of the rectangular region where the intersection point is calculated.
+                                        Possible values: 'left', 'right', 'top', 'bottom'.
+
+        Returns:
+        - c_to_return (Point): The intersection point.
+
+        Notes:
+        - If the line segment is vertical, the intersection point will have the same x-coordinate as p1.x
+            and the y-coordinate will be 0 if border is 'bottom', or MOTOR_MAX_TRAVEL if border is 'top'.
+        - If the line segment is horizontal, the intersection point will have the same y-coordinate as p1.y
+            and the x-coordinate will be 0 if border is 'left', or MOTOR_MAX_TRAVEL if border is 'right'.
+        - If the line segment is neither vertical nor horizontal, the intersection point will be calculated
+            using the slope-intercept form of a line equation: y = mx + b, where m is the slope and b is the y-intercept.
+            The x-coordinate of the intersection point will be 0 if border is 'left', or MOTOR_MAX_TRAVEL if border is 'right'.
+            The y-coordinate of the intersection point will be 0 if border is 'bottom', or MOTOR_MAX_TRAVEL if border is 'top'.
+
+        """
         c_to_return = copy.deepcopy(p2)
         # Handle vertical lines
         if p1.x == p2.x:
@@ -332,8 +562,15 @@ class Coordinates:
             return c_to_return
 
     def fix_coordinates_with_corrected_slope(self):
+        """
+        Fixes the coordinates that are out of bounds by adding intersection points with the borders based on the corrected slope.
+        
+        Returns:
+            fixed_coords (Coordinates): The fixed coordinates with added intersection points.
+        """
         fixed_coords = Coordinates()
         borders = {'left': 0, 'right': MOTOR_MAX_TRAVEL, 'top': MOTOR_MAX_TRAVEL, 'bottom': 0}
+        
         for i in range(len(self.coordinates)):
             if i == 0:  # Add the first point if within bounds
                 if 0 <= self.coordinates[i].x <= MOTOR_MAX_TRAVEL and 0 <= self.coordinates[i].y <= MOTOR_MAX_TRAVEL:

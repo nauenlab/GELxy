@@ -4,8 +4,17 @@ import threading
 
 
 class Manager:
+    """
+    The Manager class controls the motors and lamp in the GELxy hardware system.
 
-    def __init__(self, serial_number_x, serial_number_y, acceleration=None, max_velocity=None):
+    Args:
+        serial_number_x (str): The serial number of the Thorlabs KDC101 motor for the x-axis.
+        serial_number_y (str): The serial number of the Thorlabs KDC101 motor for the y-axis.
+        acceleration (float, optional): The acceleration value for the motors. Defaults to None.
+        max_velocity (float, optional): The maximum velocity value for the motors. Defaults to None.
+    """
+
+    def __init__(self, serial_number_x, serial_number_y, lamp_serial_number, acceleration=None, max_velocity=None):
         self.x = Motor(serial_no=serial_number_x, acceleration=acceleration, max_velocity=max_velocity)
         self.y = Motor(serial_no=serial_number_y, acceleration=acceleration, max_velocity=max_velocity)
         home_threads = []
@@ -17,12 +26,24 @@ class Manager:
         for t in home_threads:
             t.join()
 
-        self.lamp = Lamp()
+        self.lamp = Lamp(lamp_serial_number)
 
     def motors(self):
+        """
+        Get the motor objects for the x and y axes.
+
+        Returns:
+            tuple: A tuple containing the motor objects for the x and y axes.
+        """
         return self.x, self.y
 
     def move(self, position):
+        """
+        Move the motors to the specified position.
+
+        Args:
+            position (Position): The position object containing the coordinates and movement parameters.
+        """
         x_thread_target = self.x.jog_to
         y_thread_target = self.y.jog_to
         
@@ -50,7 +71,7 @@ class Manager:
             thread.join()
 
         if position.lp:
-            # turn on light
+            # turn off light
             self.lamp.turn_off()
 
     def __del__(self):

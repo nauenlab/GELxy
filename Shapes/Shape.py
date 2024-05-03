@@ -3,9 +3,32 @@ from Coordinate import Coordinate, Coordinates
 from tqdm import tqdm
 from CuringCalculations import CuringCalculations
 
+
 class Shape:
+    """
+    Represents a shape in a coordinate system.
+
+    Attributes:
+        center (Coordinate): The center coordinate of the shape.
+        rotation_angle (float): The rotation angle of the shape in degrees.
+        beam_diameter (float): The diameter of the beam used to draw the shape.
+        uses_step_coordinates (bool): Indicates whether the shape uses step coordinates.
+        filled (bool): Indicates whether the shape should be filled.
+        stiffness (float): The stiffness of the shape.
+    """
 
     def __init__(self, center, rotation_angle, beam_diameter, uses_step_coordinates, filled, stiffness):
+        """
+        Initializes a new instance of the Shape class.
+
+        Args:
+            center (Coordinate): The center coordinate of the shape.
+            rotation_angle (float): The rotation angle of the shape in degrees.
+            beam_diameter (float): The diameter of the beam used to draw the shape.
+            uses_step_coordinates (bool): Indicates whether the shape uses step coordinates.
+            filled (bool): Indicates whether the shape should be filled.
+            stiffness (float): The stiffness of the shape.
+        """
         self.center = center if center else Coordinate(0, 0)
         self.rotation_angle = rotation_angle if rotation_angle else 0
         self.beam_diameter = beam_diameter if beam_diameter else 0.1
@@ -14,11 +37,23 @@ class Shape:
         self.stiffness = stiffness if stiffness else 1
 
     def plot(self):
+        """
+        Plots the shape.
+        """
         # subclasses must have the get_coordinates function
         coordinates = self.get_coordinates()
         coordinates.plot()
 
     def get_coordinates(self):
+        """
+        Gets the coordinates of the shape.
+
+        Returns:
+            Coordinates: The coordinates of the shape.
+        
+        Raises:
+            Exception: If the shape does not have a line or radial coordinate function.
+        """
         coordinates = None
         if "__line_coordinates__" in dir(self):
             coordinates = self.__step_coordinates__() if "uses_step_coordinates" in dir(self) and self.uses_step_coordinates else self.__line_coordinates__()
@@ -35,6 +70,12 @@ class Shape:
         return coordinates
     
     def __step_coordinates__(self):
+        """
+        Gets the step coordinates of the shape.
+
+        Returns:
+            Coordinates: The step coordinates of the shape.
+        """
         coordinates = Coordinates()
         resolution = 0.005
         line_coordinates = self.__line_coordinates__(raw=True)
@@ -65,6 +106,18 @@ class Shape:
 
     @staticmethod
     def distance(x1, y1, x2, y2):
+        """
+        Calculates the distance between two points.
+
+        Args:
+            x1 (float): The x-coordinate of the first point.
+            y1 (float): The y-coordinate of the first point.
+            x2 (float): The x-coordinate of the second point.
+            y2 (float): The y-coordinate of the second point.
+
+        Returns:
+            float: The distance between the two points.
+        """
         xd = x2 - x1
         yd = y2 - y1
         return math.sqrt(xd ** 2 + yd ** 2)

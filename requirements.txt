@@ -1,0 +1,9 @@
+tqdm
+imageio
+pillow
+pandas
+numpy
+opencv-python
+picamera2
+matplotlib
+clr
