@@ -320,7 +320,7 @@ class Coordinates:
             self.coordinates[i].x = self.x[i]
             self.coordinates[i].y = self.y[i]
 
-        centroid = self.__get_centroid__()
+        centroid = self.get_centroid()
         for (i, v) in tqdm(enumerate(self), desc="Calculating Transformations"):
             r_transformation = self.rotation_transformation(v, rotation, centroid)
             self.x[i] = v.x + (center.x - centroid.x) + r_transformation.x
@@ -358,7 +358,7 @@ class Coordinates:
 
         return Coordinate(new_x - c.x, new_y - c.y)
 
-    def __get_centroid__(self):
+    def get_centroid(self):
         """
         Calculates the centroid of the Coordinate objects.
 
