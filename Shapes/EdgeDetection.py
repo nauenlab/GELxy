@@ -30,30 +30,29 @@ class EdgeDetection:
         factor (float): The scaling factor based on the dimensions and maximum dimension of the image.
     """
 
-    class EdgeDetection:
-        def __init__(self, img_file, stiffness, center=Coordinate(0, 0), rotation_angle=0, scale_factor=1, beam_diameter=0.1):
-            """
-            Initialize the EdgeDetection object.
+    def __init__(self, img_file, stiffness, center=Coordinate(0, 0), rotation_angle=0, scale_factor=1, beam_diameter=0.1):
+        """
+        Initialize the EdgeDetection object.
 
-            Parameters:
-            - img_file (str): The path to the image file.
-            - stiffness (float): The stiffness value.
-            - center (Coordinate, optional): The center coordinate of the image. Defaults to (0, 0).
-            - rotation_angle (float, optional): The rotation angle of the image in degrees. Defaults to 0.
-            - scale_factor (float, optional): The scale factor of the image. Defaults to 1.
-            - beam_diameter (float, optional): The beam diameter. Defaults to 0.1.
-            """
-            self.img_file = img_file
-            self.center = center
-            self.rotation = rotation_angle
-            self.scale_factor = scale_factor
-            self.beam_diameter = beam_diameter
-            self.stiffness = stiffness
-            self.edges = []
-            self.canny_edge_detection()
+        Parameters:
+        - img_file (str): The path to the image file.
+        - stiffness (float): The stiffness value.
+        - center (Coordinate, optional): The center coordinate of the image. Defaults to (0, 0).
+        - rotation_angle (float, optional): The rotation angle of the image in degrees. Defaults to 0.
+        - scale_factor (float, optional): The scale factor of the image. Defaults to 1.
+        - beam_diameter (float, optional): The beam diameter. Defaults to 0.1.
+        """
+        self.img_file = img_file
+        self.center = center
+        self.rotation = rotation_angle
+        self.scale_factor = scale_factor
+        self.beam_diameter = beam_diameter
+        self.stiffness = stiffness
+        self.edges = []
+        self.canny_edge_detection()
 
-            max_dimension = max(self.height, self.width)
-            self.factor = (dimensions / max_dimension) * self.scale_factor
+        max_dimension = max(self.height, self.width)
+        self.factor = (dimensions / max_dimension) * self.scale_factor
 
     @property
     def height(self):

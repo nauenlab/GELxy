@@ -49,11 +49,13 @@ class Motor:
             time.sleep(1)
             self.__init__(serial_no, acceleration, max_velocity)
             return
+    
         self.device.WaitForSettingsInitialized(250)
         self.device.StartPolling(1)
         time.sleep(0.25)  # wait statements are important to allow settings to be sent to the device
         self.device.EnableDevice()
         time.sleep(0.25)  # Wait for device to enable
+        print(f"Motor connected {serial_no}.")
 
         if not self.device.IsSettingsInitialized():
             self.device.WaitForSettingsInitialized(10000)  # 10 second timeout

@@ -20,7 +20,7 @@ class Texture:
         append_coordinates(shape): Helper method to get coordinates of a single shape.
     """
 
-    def __init__(self, shape, rows=None, columns=None, spacing_mm=None, margins=None):
+    def __init__(self, shape, center=None, rows=None, columns=None, spacing_mm=None, margins=None):
         """
         Initializes a Texture object.
 
@@ -35,6 +35,7 @@ class Texture:
             Exception: If spacing or margins are specified when rows or columns are populated.
         """
         self.shape = shape
+        self.center = center
         self.rows = rows
         self.columns = columns
         self.spacing = spacing_mm
@@ -54,12 +55,11 @@ class Texture:
         Returns:
             Coordinates: The coordinates of all shapes in the texture.
         """
+        bound = Constants.MOTOR_MAX_TRAVEL
+        coordinates = Coordinates()
         if self.is_spacing:
-            bound = Constants.MOTOR_MAX_TRAVEL
-            coordinates = Coordinates()
-            
             args = []
-            x = 0
+            x = 1
             y = 0
             while True:
                 x_spacing = self.margins + (x * self.spacing)
@@ -70,7 +70,7 @@ class Texture:
                     y += 1
                 if y_spacing > bound - self.margins:
                     break
-                
+
                 self.shape.center = Coordinate(x_spacing, y_spacing)
                 shape_copy = copy(self.shape)
                 args.append(shape_copy)
@@ -78,12 +78,8 @@ class Texture:
 
             with Pool() as pool:
                 for result in pool.map(self.append_coordinates, args):
-                    coordinates += result
-            
-            return coordinates
+                    coordinates += result    
         else:
-            bound = Constants.MOTOR_MAX_TRAVEL
-            coordinates = Coordinates()
             x_dist = (bound / self.rows) / 2
             y_dist = (bound / self.rows) / 2
             
@@ -99,8 +95,16 @@ class Texture:
             with Pool() as pool:
                 for result in pool.map(self.append_coordinates, args):
                     coordinates += result
-            
-            return coordinates
+
+        if self.center:
+            centroid = coordinates.get_centroid()
+            x_dist = centroid.x - self.center.x
+            y_dist = centroid.y - self.center.y
+            for i in coordinates:
+                i.x -= x_dist
+                i.y -= y_dist
+        
+        return coordinates
 
     def append_coordinates(self, shape):
         """

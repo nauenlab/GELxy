@@ -69,7 +69,16 @@ class Coordinate:
         Returns:
             str: The string representation of the Coordinate object.
         """
-        return f"\nx: {self.x}\ny: {self.y}\nv: {self.v}\nl: {self.lp}"
+        return f"\nx: {self.x}\ny: {self.y}\nv: {self.v}\nl: {self.lp}\na: {self.a}\n\n"
+
+    def __repr__(self):
+        """
+        Returns a string representation of the Coordinate object.
+
+        Returns:
+            str: The string representation of the Coordinate object.
+        """
+        return self.__str__()
 
     def same_location_as(self, coord):
         """
@@ -105,7 +114,7 @@ class Coordinates:
         Returns:
             iterator: An iterator object.
         """
-        self.a = 0
+        self.n = 0
         return self
 
     def __next__(self):
@@ -118,10 +127,10 @@ class Coordinates:
         Raises:
             StopIteration: If there are no more Coordinate objects to iterate over.
         """
-        if self.a < len(self.coordinates):
-            n = self.coordinates[self.a]
-            self.a += 1
-            return n
+        if self.n < len(self.coordinates):
+            next = self.coordinates[self.n]
+            self.n += 1
+            return next
         else:
             raise StopIteration
     
@@ -311,7 +320,7 @@ class Coordinates:
             self.coordinates[i].x = self.x[i]
             self.coordinates[i].y = self.y[i]
 
-        centroid = self.__get_centroid__()
+        centroid = self.get_centroid()
         for (i, v) in tqdm(enumerate(self), desc="Calculating Transformations"):
             r_transformation = self.rotation_transformation(v, rotation, centroid)
             self.x[i] = v.x + (center.x - centroid.x) + r_transformation.x
@@ -349,7 +358,7 @@ class Coordinates:
 
         return Coordinate(new_x - c.x, new_y - c.y)
 
-    def __get_centroid__(self):
+    def get_centroid(self):
         """
         Calculates the centroid of the Coordinate objects.
 

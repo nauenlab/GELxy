@@ -3,62 +3,6 @@ import numpy as np
 from tqdm import tqdm
 
 
-class Pixel:
-    """
-    A class representing a pixel.
-
-    Attributes:
-        MAX_ALPHA (int): The maximum value for the alpha component.
-    """
-
-    MAX_ALPHA = 256
-
-    class Canvas:
-        """
-        A class representing a canvas.
-
-        Attributes:
-            red (int): The red component of the canvas color.
-            green (int): The green component of the canvas color.
-            blue (int): The blue component of the canvas color.
-            alpha (int): The alpha component of the canvas color.
-        """
-
-        def __init__(self, red, green, blue, alpha):
-            """
-            Initializes a new instance of the Canvas class.
-
-            Args:
-                red (int): The red component of the canvas color.
-                green (int): The green component of the canvas color.
-                blue (int): The blue component of the canvas color.
-                alpha (int): The alpha component of the canvas color.
-            """
-            self.red = red
-            self.green = green
-            self.blue = blue
-            self.alpha = alpha
-
-    def tuple(self):
-        """
-        Returns the pixel components as a tuple.
-
-        Returns:
-            tuple: A tuple containing the red, green, blue, and alpha components of the pixel.
-        """
-        return self.red, self.green, self.blue, self.alpha
-
-    def inc(self, v):
-        """
-        Increases the alpha component of the pixel by a given value up until a maximum value.
-
-        Args:
-            v (int): The value to increase the alpha component by.
-        """
-        if self.alpha + v <= self.MAX_ALPHA:
-            self.alpha += v
-
-
 def points_in_circle(center, radius, mm_to_pixel_ratio):
     """
     Generate a list of points within a circle.
@@ -81,6 +25,22 @@ def points_in_circle(center, radius, mm_to_pixel_ratio):
     
     return points
 
+
+class Pixel:
+    MAX_ALPHA = 256
+
+    def __init__(self, red, green, blue, alpha):
+        self.red = red
+        self.green = green
+        self.blue = blue
+        self.alpha = alpha
+
+    def tuple(self):
+        return self.red, self.green, self.blue, self.alpha
+
+    def inc(self, v):
+        if self.alpha + v <= self.MAX_ALPHA:
+            self.alpha += v
 
 
 class Canvas:

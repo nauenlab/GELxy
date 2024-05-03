@@ -39,7 +39,7 @@ Note: Make sure you have the necessary permissions to install packages using pip
 
 ## Authors
 
-* **Yush Kapoor** - *Initial work* - [yushdotkapoor](https://github.com/yushdotkapoor)
+* **Yush Kapoor** - [yushdotkapoor](https://github.com/yushdotkapoor)
 
 ## License
 
