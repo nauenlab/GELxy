@@ -59,7 +59,7 @@ class Texture:
             coordinates = Coordinates()
             
             args = []
-            x = 0
+            x = 1
             y = 0
             while True:
                 x_spacing = self.margins + (x * self.spacing)
@@ -70,7 +70,7 @@ class Texture:
                     y += 1
                 if y_spacing > bound - self.margins:
                     break
-                
+
                 self.shape.center = Coordinate(x_spacing, y_spacing)
                 shape_copy = copy(self.shape)
                 args.append(shape_copy)

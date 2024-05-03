@@ -58,7 +58,7 @@ def main():
     # shapes.append(EdgeDetection.EdgeDetection(img_file="test_images/2.jpg", stiffness=10, center=center_coordinate, rotation_angle=0, scale_factor=0.4, beam_diameter=BEAM_DIAMETER))
     
     # Texture
-    shapes.append(Texture.Texture(shape=EquilateralTriangle.EquilateralTriangle(side_length_mm=2, stiffness=10, center=None, rotation_angle=None, beam_diameter=None, uses_step_coordinates=None, filled=False), rows=None, columns=None, spacing_mm=4, margins=10))
+    shapes.append(Texture.Texture(shape=EquilateralTriangle.EquilateralTriangle(side_length_mm=1, stiffness=10, center=None, rotation_angle=0, beam_diameter=BEAM_DIAMETER, uses_step_coordinates=True, filled=False), rows=None, columns=None, spacing_mm=2, margins=10))
 
     coordinate_sets = multiprocessing.Manager().list()
     processes = []

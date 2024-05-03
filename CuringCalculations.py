@@ -72,8 +72,9 @@ class CuringCalculations:
         photon_density = current / beam_area # photons/s/mm^2
 
         # how long a point is exposed as the light travels beam_diameter distance
+        # TODO: This variable is considering the light beam through the largest part of the circle (diameter). It does not consider smaller light paths.
         exposure_time_per_pixel = beam_diameter / velocity
-
+        
         total_photon_exposure_per_pixel = photon_density * exposure_time_per_pixel # photons
         return total_photon_exposure_per_pixel
 
@@ -150,4 +151,4 @@ class CuringCalculations:
     
 
 curing_calculations = CuringCalculations()
-configuration1 = curing_calculations.get_configuration(target_stiffness=0.1, beam_diameter_mm=1)
+configuration1 = curing_calculations.get_configuration(target_stiffness=0.1, beam_diameter_mm=3)
