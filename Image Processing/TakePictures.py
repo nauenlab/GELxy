@@ -7,64 +7,64 @@ import signal
 import sys
 
 
-def take_pictures():
-    """
-    Continuously captures images using a camera and saves them to a specified directory.
 
-    The images are captured at a specified exposure time and with specified color gains.
+"""
+Continuously captures images using a camera and saves them to a specified directory.
 
-    Pressing Ctrl + C will break the loop and trigger the AveragePictures function to run.
+The images are captured at a specified exposure time and with specified color gains.
 
-    Returns:
-        None
-    """
+Pressing Ctrl + C will break the loop and trigger the AveragePictures function to run.
 
-    if os.path.exists("/home/saturn/Documents/GELxy"):
-        DIRECTORY = '/home/saturn/Documents/GELxy/Image Processing/Pictures'
-    elif os.path.exists("/Users/yushrajkapoor/Desktop"):
-        DIRECTORY = '/Users/yushrajkapoor/Desktop'
+Returns:
+    None
+"""
 
-    # Initialize the camera
-    picam2 = Picamera2()
-    config = picam2.create_still_configuration({"size": (507, 380)})
-    picam2.configure(config)
-    picam2.exposure_mode = "off"
-    picam2.awb_mode = "off"
-    picam2.start()
+if os.path.exists("/home/saturn/Documents/GELxy"):
+    DIRECTORY = '/home/saturn/Documents/GELxy/Image Processing/Pictures'
+elif os.path.exists("/Users/yushrajkapoor/Desktop"):
+    DIRECTORY = '/Users/yushrajkapoor/Desktop'
 
-    controls = {"ExposureTime": 10000, "AnalogueGain": 1.0, "ColourGains": (3.76, 1.5)}
+# Initialize the camera
+picam2 = Picamera2()
+config = picam2.create_still_configuration({"size": (507, 380)})
+picam2.configure(config)
+picam2.exposure_mode = "off"
+picam2.awb_mode = "off"
+picam2.start()
 
-    picam2.set_controls(controls)
+controls = {"ExposureTime": 10000, "AnalogueGain": 1.0, "ColourGains": (3.76, 1.5)}
 
-    dt = datetime.datetime.now().strftime("%Y-%m-%d %H;%M;%S")
-    print(dt)
+picam2.set_controls(controls)
 
-    LOOP = True
-    sleep_time = 0.1
+dt = datetime.datetime.now().strftime("%Y-%m-%d %H;%M;%S")
+print(dt)
 
-    def exit_handler(*args):
-        global LOOP
-        if LOOP:
-            LOOP = False
-            time.sleep(sleep_time * 2)
-            print("Exit!")
-            AveragePictures(f"{DIRECTORY}/{dt}").average()
-        else:
-            sys.exit()
+LOOP = True
+sleep_time = 0.1
 
-    signal.signal(signal.SIGTERM, exit_handler)
-    signal.signal(signal.SIGINT, exit_handler)
+def exit_handler(*args):
+    global LOOP
+    if LOOP:
+        LOOP = False
+        time.sleep(sleep_time * 2)
+        print("Exit!")
+        AveragePictures(f"{DIRECTORY}/{dt}").average()
+    else:
+        sys.exit()
 
-    os.mkdir(f"{DIRECTORY}/{dt}")
-    i = 0
-    while LOOP:
-        # Press Ctrl + C to break the loop, the Average Pictures function will then run
-        picam2.capture_file(f"{DIRECTORY}/{dt}/image{i:04}.jpg")
-        time.sleep(sleep_time)
-        i += 1
+signal.signal(signal.SIGTERM, exit_handler)
+signal.signal(signal.SIGINT, exit_handler)
+
+os.mkdir(f"{DIRECTORY}/{dt}")
+i = 0
+while LOOP:
+    # Press Ctrl + C to break the loop, the Average Pictures function will then run
+    picam2.capture_file(f"{DIRECTORY}/{dt}/image{i:04}.jpg")
+    time.sleep(sleep_time)
+    i += 1
 
 
-take_pictures()
+
 
 
 

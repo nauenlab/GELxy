@@ -1,8 +1,15 @@
 import cv2
 from picamera2 import Picamera2
 import time
+import enum
 
-def open_camera():
+
+class VisualType(enum.Enum):
+    show = 0
+    save = 1
+
+
+def open_camera(visual_type):
     """
     Opens the camera and displays the video feed.
 
@@ -23,11 +30,17 @@ def open_camera():
     controls = {"ExposureTime": 10000, "AnalogueGain": 1.0, "ColourGains": (3.76, 1.5)}
     piCam.set_controls(controls)
 
-    while True:
-        frame = piCam.capture_array()
-        cv2.imshow("piCam", frame)
-        if cv2.waitKey(1) == ord('q'):
-            break
-    cv2.destroyAllWindows()
+    if visual_type == VisualType.save:
+        sleep_time = 0.4
+        while True:
+            piCam.capture_file(f"preview.jpg")
+            time.sleep(sleep_time)
+    elif visual_type == VisualType.show:
+        while True:
+            frame = piCam.capture_array()
+            cv2.imshow("piCam", frame)
+            if cv2.waitKey(1) == ord('q'):
+                break
+        cv2.destroyAllWindows()
 
-open_camera()
+open_camera(visual_type=VisualType.save)
