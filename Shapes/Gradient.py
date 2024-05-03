@@ -1,6 +1,7 @@
 from Coordinate import Coordinate, Coordinates
 from tqdm import tqdm
-
+from CuringCalculations import CuringCalculations
+import copy
 
 class Gradient:
     """
@@ -14,10 +15,10 @@ class Gradient:
         is_reversed (bool, optional): Whether the gradient is reversed. Defaults to True.
     """
 
-    def __init__(self, min_velocity, max_velocity, beam_diameter, is_horizontal=True, is_reversed=True):
+    def __init__(self, min_stiffness, max_stiffness, beam_diameter, is_horizontal=True, is_reversed=True):
         self.is_horizontal = is_horizontal
-        self.min_velocity = min_velocity
-        self.max_velocity = max_velocity
+        self.min_stiffness = min_stiffness
+        self.max_stiffness = max_stiffness
         self.is_reversed = is_reversed
         self.beam_diameter = beam_diameter
 
@@ -33,26 +34,35 @@ class Gradient:
         r = 15
         u = -5
         d = 15
-        resolution = self.beam_diameter
-        for i in tqdm(range(0, int(d * (1 / resolution)) + 1, int(resolution * (1 / resolution))), desc="Getting Coordinates"):
-            i = float(i) / (1 / resolution)
+        curing_calculations = CuringCalculations()
+        iter_range = range(0, int(d * (1 / self.beam_diameter)) + 1, int(self.beam_diameter * (1 / self.beam_diameter)))
+        stiffness_step = float(self.max_stiffness - self.min_stiffness)/(len(iter_range)*2)
+        cur_s = self.min_stiffness
+        for i in tqdm(iter_range, desc="Getting Coordinates"):
+            i = float(i) / (1 / self.beam_diameter)
+            temp_coords = Coordinates()
             if self.is_horizontal:
-                coordinates.append(Coordinate(i, u))
-                coordinates.append(Coordinate(i, d))
+                temp_coords.append(Coordinate(i, u))
+                temp_coords.append(Coordinate(i, d))
             else:
-                coordinates.append(Coordinate(le, i))
-                coordinates.append(Coordinate(r, i))
+                temp_coords.append(Coordinate(le, i))
+                temp_coords.append(Coordinate(r, i))
+            
+            configuration = curing_calculations.get_configuration(cur_s, self.beam_diameter)
+            temp_coords.update_with_configuration(configuration)
+            for i in temp_coords:
+                print(i)
+            original_coordinates = copy.deepcopy(temp_coords)
+            while configuration.iterations > 1:
+                temp_coords += original_coordinates
+                configuration.iterations -= 1
+            
+            temp_coords[0].lp = False
+            coordinates += temp_coords
+            cur_s += stiffness_step
 
-        velocity_step = float(self.max_velocity - self.min_velocity)/len(coordinates)
-        cur_v = self.min_velocity
-        if self.is_reversed:
-            coordinates.coordinates.reverse()
-        first = True
-        for coordinate in coordinates:
-            if first:
-                coordinate.lp = False
-            first = not first
-            coordinate.v = (cur_v, cur_v)
-            cur_v += velocity_step
-
+        
+        # if self.is_reversed:
+        #     coordinates.coordinates.reverse()
+        
         return coordinates

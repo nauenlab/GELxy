@@ -69,7 +69,16 @@ class Coordinate:
         Returns:
             str: The string representation of the Coordinate object.
         """
-        return f"\nx: {self.x}\ny: {self.y}\nv: {self.v}\nl: {self.lp}"
+        return f"\nx: {self.x}\ny: {self.y}\nv: {self.v}\nl: {self.lp}\na: {self.a}\n\n"
+
+    def __repr__(self):
+        """
+        Returns a string representation of the Coordinate object.
+
+        Returns:
+            str: The string representation of the Coordinate object.
+        """
+        return self.__str__()
 
     def same_location_as(self, coord):
         """
