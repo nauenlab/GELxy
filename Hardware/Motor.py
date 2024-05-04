@@ -171,7 +171,7 @@ class Motor:
             absolute_position (float): The absolute position to move the motor to in mm.
         """
         self.set_velocity_params(acceleration=ACCELERATION, max_velocity=MAXIMUM_VELOCITY)
-        self.device.MoveTo(Decimal(absolute_position), 15000)
+        self.device.MoveTo(Decimal(absolute_position), 30000)
         self.set_velocity_params(acceleration=self.acceleration, max_velocity=self.max_velocity)
 
 
