@@ -1,6 +1,7 @@
 import multiprocessing
 import time
-import Constants
+
+MAXIMUM_PARALLEL_PROCESSES = 10
 
 class Multiprocessor:
     def get_coordinate_sets(self, shapes):
@@ -29,7 +30,7 @@ class Multiprocessor:
             None
         """
         # Define the number of processes to run at a time
-        num_processes = Constants.MAXIMUM_PARALLEL_PROCESSES
+        num_processes = MAXIMUM_PARALLEL_PROCESSES
 
         # Start the first set of processes
         current_processes = []

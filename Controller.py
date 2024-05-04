@@ -8,6 +8,20 @@ from Constants import *
 from tqdm import tqdm
 from Multiprocessor import Multiprocessor
 
+### INSTRUCTIONS
+### STEP 1: Connect the motors and LED to the computer using USB cables.
+
+### STEP 2: Change the IS_VIRTUAL value to True if you want to run the motors in a virtual simulation. Change the IS_VIRTUAL value to False if you want to run the motors in real life.
+###         It is recommended to run the motors in a virtual simulation first to see how the motors will move before running the motors in real life.
+### STEP 3: Change the center_coordinate value in the main function. The center coordinate will be used to determine the center of each shape, texture, or pattern.
+### STEP 4: Choose which shapes, textures, or patterns to draw and uncomment the desired shape, texture, or pattern from the list in the main function.
+### STEP 5: Run the program. The motors will move to draw the shapes, textures, or patterns.
+
+IS_VIRTUAL = True
+
+X_MOTOR_SERIAL_NUMBER = "27602218"
+Y_MOTOR_SERIAL_NUMBER = "27264864"
+LAMP_SERIAL_NUMBER = b"USB0::0x1313::0x80C8::M00607903::INSTR"
 
 class Controller:
 
@@ -67,7 +81,7 @@ class Controller:
             from Hardware.Manager import Manager
             # Sets up the actual motors and LED
             # !!! For the Lamp: In the USB number the serial number (M00...) needs to be changed to the one of the connected device.
-            self.manager = Manager(serial_number_x="27602218", serial_number_y="27264864", lamp_serial_number=b"USB0::0x1313::0x80C8::M00607903::INSTR", acceleration=ACCELERATION, max_velocity=MAXIMUM_VELOCITY)
+            self.manager = Manager(serial_number_x=X_MOTOR_SERIAL_NUMBER, serial_number_y=Y_MOTOR_SERIAL_NUMBER, lamp_serial_number=LAMP_SERIAL_NUMBER, acceleration=ACCELERATION, max_velocity=MAXIMUM_VELOCITY)
         
         print("Moving Motors")
         for coordinate in tqdm(coordinates, desc="Moving Motors", unit="coordinate"):
