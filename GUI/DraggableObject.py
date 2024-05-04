@@ -69,6 +69,8 @@ class DraggableObject(Tk):
             self.select_object()
             self.current_handle = None
         self.canvas.focus_set()
+        print("what")
+        self.rotation_angle = self.getangle(event)
 
     def delete_object(self, event):
         if self.selected:
@@ -116,6 +118,7 @@ class DraggableObject(Tk):
             self.canvas.create_polygon(bbox[2] - self.handle_size, bbox[3] - self.handle_size, bbox[2] + self.handle_size, bbox[3] - self.handle_size, bbox[2] + self.handle_size, bbox[3] + self.handle_size, bbox[2] - self.handle_size, bbox[3] + self.handle_size, fill="blue", tags=f"handle_{self.item}"),  # bottom_right
             self.canvas.create_polygon(cx - self.handle_size, bbox[1] - 4*self.handle_size, cx + self.handle_size, bbox[1] - 4*self.handle_size, cx + self.handle_size, bbox[1] - 2*self.handle_size, cx - self.handle_size, bbox[1] - 2*self.handle_size, fill="blue", tags=f"rotate_handle_{self.item}"),  # rotation_handle
         ]
+        self.rotate_handle_distance = 2*self.handle_size + (bbox[3] - bbox[1]) / 2
 
         for handle in self.handles:
             self.canvas.tag_bind(handle, "<ButtonPress-1>", self.on_button_press)
@@ -187,7 +190,7 @@ class DraggableObject(Tk):
             new_coords.extend([new_x, new_y])
 
         self.canvas.coords(self.item, *new_coords)
-        self.update_handles()
+        # self.update_handles()
 
         # Moves the handles, using a similar approach
         # for handle in self.handles:
@@ -216,60 +219,51 @@ class DraggableObject(Tk):
         # new_rotate_handle_coords = [rotate_handle_coords[0], fixed_y - 4*self.handle_size, rotate_handle_coords[2], fixed_y - 2*self.handle_size]
         # self.canvas.coords(rotate_handle, new_rotate_handle_coords)
 
+    def getangle(self, event):
+        bbox = self.canvas.bbox(self.item)
+        cx, cy = (bbox[0] + bbox[2]) / 2, (bbox[1] + bbox[3]) / 2
+        dx = self.canvas.canvasx(event.x) - cx
+        dy = self.canvas.canvasy(event.y) - cy
+        try:
+            return complex(dx, dy) / abs(complex(dx, dy))
+        except ZeroDivisionError:
+            return 0.0 # cannot determine angle
+        
     def rotate(self, event):
         if not self.rotating or not self.current_handle:
             return
 
-        # Calculate the center of the shape (rotation pivot point)
+        # # Calculate the center of the shape (rotation pivot point)
         bbox = self.canvas.bbox(self.item)
         cx, cy = (bbox[0] + bbox[2]) / 2, (bbox[1] + bbox[3]) / 2
 
-        # Determine initial and current angles to calculate the rotation angle
-        origin_x, origin_y = self.canvas.coords(self.current_handle)[:2]  # Using the handle's initial position
-        initial_angle = math.atan2(origin_y - cy, origin_x - cx)
-        self.rotation_angle = math.atan2(event.y - cy, event.x - cx)
-        angle = self.rotation_angle - initial_angle
-        print(self.rotation_angle*10)
+        # if event.x - cx == 0:
+        #     slope = 0
+        # else:
+        #     slope = (event.y - cy) / (event.x - cx)
+        # new_handle_cx = cx + self.rotate_handle_distance * math.cos(math.atan(slope))
+        # new_handle_cy = cy + self.rotate_handle_distance * math.sin(math.atan(slope))
+        # new_handle_coords = [new_handle_cx - self.handle_size, new_handle_cy - self.handle_size, new_handle_cx + self.handle_size, new_handle_cy - self.handle_size, new_handle_cx + self.handle_size, new_handle_cy + self.handle_size, new_handle_cx - self.handle_size, new_handle_cy + self.handle_size]
+        # self.canvas.coords(self.current_handle, new_handle_coords)
 
-        # Rotate the shape
+        angle = self.getangle(event) / self.rotation_angle
+        offset = complex(cx, cy)
+
         new_coords = []
+        origin_coords = self.canvas.coords(self.item)
+        # for i in range(0, len(origin_coords), 2):
+        #     new_x = fixed_x + (origin_coords[i] - fixed_x) * scale_x
+        #     new_y = fixed_y + (origin_coords[i+1] - fixed_y) * scale_y
+        #     new_coords.extend([new_x, new_y])
+
         origin_coords = self.canvas.coords(self.item)
         for i in range(0, len(origin_coords), 2):
             x, y = origin_coords[i], origin_coords[i+1]
-            new_x = cx + (x - cx) * math.cos(angle) - (y - cy) * math.sin(angle)
-            new_y = cy + (x - cx) * math.sin(angle) + (y - cy) * math.cos(angle)
-            new_coords.extend([new_x, new_y])
-
+            v = angle * (complex(x, y) - offset) + offset
+            new_coords.append(v.real)
+            new_coords.append(v.imag)
         self.canvas.coords(self.item, *new_coords)
 
-        # # Rotate the handles, using a similar approach
-        # for handle in self.handles[:-1]:
-        #     handle_coords = self.canvas.coords(handle)
-        #     new_handle_coords = []
-        #     # Assume each handle is a small square or point, and rotate its center
-        #     for i in range(0, len(handle_coords), 2):
-        #         hx, hy = handle_coords[i], handle_coords[i+1]
-        #         new_hx = cx + (hx - cx) * math.cos(angle) - (hy - cy) * math.sin(angle)
-        #         new_hy = cy + (hx - cx) * math.sin(angle) + (hy - cy) * math.cos(angle)
-        #         new_handle_coords.extend([new_hx, new_hy])
-            
-        #     self.canvas.coords(handle, *new_handle_coords)
-
-        # # Move, but don't rotate the rotation handle
-        # rotate_handle = self.handles[-1]
-        # rotate_handle_coords = self.canvas.coords(rotate_handle)
-        # new_rotate_handle_coords = []
-        # for i in range(0, len(rotate_handle_coords), 2):
-        #     hx, hy = rotate_handle_coords[i], rotate_handle_coords[i+1]
-        #     new_hx = cx + (hx - cx) - (hy - cy)
-        #     new_hy = cy + (hx - cx) + (hy - cy)
-        #     new_rotate_handle_coords.extend([new_hx, new_hy])
-        
-        # self.canvas.coords(rotate_handle, *new_rotate_handle_coords)
-
-
-        # Optionally call update_handles if it performs additional necessary adjustments
-        self.update_handles()
         
     def update_handles(self):
         bbox = self.canvas.bbox(self.item)
@@ -308,8 +302,6 @@ class DraggableObject(Tk):
             
             self.canvas.coords(handle, *new_handle_coordinates)
             
-        
-        
 
 
     def select_object(self):

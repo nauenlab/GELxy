@@ -46,8 +46,12 @@ class Controller:
         # shapes.append(EdgeDetection.EdgeDetection(img_file="test_images/2.jpg", stiffness=10, center=center_coordinate, rotation_angle=0, scale_factor=0.4, beam_diameter=BEAM_DIAMETER))
         
         # Texture
-        texture_shape = EquilateralTriangle.EquilateralTriangle(side_length_mm=1, stiffness=1, center=None, rotation_angle=0, beam_diameter=BEAM_DIAMETER, uses_step_coordinates=True, filled=False)
-        shapes.append(Texture.Texture(shape=texture_shape, center=center_coordinate, rows=None, columns=None, spacing_mm=1.5, margins=11))
+        # texture_shape = EquilateralTriangle.EquilateralTriangle(side_length_mm=1, stiffness=1, center=None, rotation_angle=0, beam_diameter=BEAM_DIAMETER, uses_step_coordinates=False, filled=False)
+        # shapes.append(Texture.Texture(shape=texture_shape, center=center_coordinate, rows=None, columns=None, spacing_mm=1.5, margins=11))
+
+        # Common Patterns
+        # shapes.extend(CommonPatterns.atom(width_mm=5, height_mm=2, center=center_coordinate, stiffness=10))
+        # shapes.extend(CommonPatterns.deathly_hallows(size_mm=5, center=center_coordinate, stiffness=10))
 
         coordinate_sets = Multiprocessor().get_coordinate_sets(shapes)
 

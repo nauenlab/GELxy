@@ -3,11 +3,8 @@ import numpy as np
 from PIL import Image
 from tqdm import tqdm
 from AveragePicturesFast import AveragePictures
-
-if os.path.exists("/home/saturn/Documents/GELxy"):
-    os.chdir("/home/saturn/Documents/GELxy/Image Processing/Pictures")
-elif os.path.exists("/Users/yushrajkapoor/Desktop/NauenLab/GELxy"):
-    os.chdir("/Users/yushrajkapoor/Desktop/NauenLab/GELxy/Image Processing/Pictures")
+import os
+os.chdir(os.path.dirname(os.path.realpath(__file__)) + "/Pictures")
 
 class AverageRainbow:
     """
@@ -24,7 +21,7 @@ class AverageRainbow:
         interpolate_color(step_fraction): Interpolates a color between two rainbow colors.
     """
 
-    threshold = 30
+    threshold = 150
 
     def __init__(self, directory):
         """
@@ -151,4 +148,4 @@ if __name__ == '__main__':
     # for i in os.listdir():
     #     if os.path.isdir(i):
     #         AverageRainbow(i).average()
-    AverageRainbow("2024-01-26 22;26;56").average()
+    AverageRainbow("2024-05-03 19;47;56").average()

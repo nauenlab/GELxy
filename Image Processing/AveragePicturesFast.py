@@ -1,14 +1,11 @@
 import os
 import cv2
 import numpy as np
-import imageio.v2 as imageio
 from tqdm import tqdm
 from PIL import Image
+import os
+os.chdir(os.path.dirname(os.path.realpath(__file__)) + "/Pictures")
 
-if os.path.exists("/home/saturn/Documents/GELxy"):
-    os.chdir("/home/saturn/Documents/GELxy/Image Processing/Pictures")
-elif os.path.exists("/Users/yushrajkapoor/Desktop/NauenLab/GELxy"):
-    os.chdir("/Users/yushrajkapoor/Desktop/NauenLab/GELxy/Image Processing/Pictures")
 
 
 class AveragePictures:
@@ -83,5 +80,5 @@ class AveragePictures:
 
 
 if __name__ == '__main__':
-    AveragePictures('2024-01-26 20;42;14').average()
+    AveragePictures('2024-05-03 19;47;56').average()
     # AveragePictures('/Users/yushrajkapoor/Desktop/Atom').average()

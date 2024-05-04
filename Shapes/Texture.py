@@ -94,6 +94,7 @@ class Texture:
 
             with Pool() as pool:
                 for result in pool.map(self.append_coordinates, args):
+                    result[0].lp = False
                     coordinates += result
 
         if self.center:

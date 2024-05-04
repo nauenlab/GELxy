@@ -4,11 +4,8 @@ import numpy as np
 import imageio.v2 as imageio
 from tqdm import tqdm
 from PIL import Image
-
-if os.path.exists("/home/saturn/Documents/GELxy"):
-    os.chdir("/home/saturn/Documents/GELxy/Image Processing/Pictures")
-elif os.path.exists("/Users/yushrajkapoor/Desktop/NauenLab/GELxy"):
-    os.chdir("/Users/yushrajkapoor/Desktop/NauenLab/GELxy/Image Processing/Pictures")
+import os
+os.chdir(os.path.dirname(os.path.realpath(__file__)) + "/Pictures")
 
     
 class AveragePictures:
@@ -21,7 +18,7 @@ class AveragePictures:
         threshold (int): The threshold value for contrast enhancement.
     """
 
-    CREATE_GIF = True  # This should only be true for devices that have enough RAM (Do not set true for Raspberry Pi)
+    CREATE_GIF = False  # This should only be true for devices that have enough RAM (Do not set true for Raspberry Pi)
 
     def __init__(self, directory):
         """
@@ -32,7 +29,7 @@ class AveragePictures:
         """
         self.directory = directory
         self.target_output = "Average_Slow.jpg"
-        self.threshold = 50
+        self.threshold = 150
 
     def average(self):
         """
@@ -110,7 +107,9 @@ class AveragePictures:
         enhanced_pixels = []
         for pixel_value in img.getdata():
             if sum(pixel_value) / 3 > self.threshold:
-                enhanced_pixels.append((255, 255, 255))
+                white = (255, 255, 255)
+                blue = (0, 0, 255)
+                enhanced_pixels.append(blue)
             else:
                 enhanced_pixels.append((0, 0, 0))
 
@@ -119,5 +118,5 @@ class AveragePictures:
         return enhanced_image
 
 if __name__ == '__main__':
-    AveragePictures('2024-01-26 16;47;14').average()
+    AveragePictures('2024-05-03 18;54;47').average()
     # AveragePictures('/Users/yushrajkapoor/Desktop/Atom').average()
