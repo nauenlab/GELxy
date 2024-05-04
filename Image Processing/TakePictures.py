@@ -58,8 +58,10 @@ signal.signal(signal.SIGINT, exit_handler)
 os.mkdir(f"{DIRECTORY}/{dt}")
 i = 0
 while LOOP:
-    # Press Ctrl + C to break the loop, the Average Pictures function will then run
-    picam2.capture_file(f"{DIRECTORY}/{dt}/image{i:04}.jpg")
+    # The first few pictures should be disregarded because the exposure control is still setting for come reason
+    if i > 3:
+        # Press Ctrl + C to break the loop, the Average Pictures function will then run
+        picam2.capture_file(f"{DIRECTORY}/{dt}/image{i:04}.jpg")
     time.sleep(sleep_time)
     i += 1
 
