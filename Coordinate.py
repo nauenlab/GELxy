@@ -2,8 +2,7 @@ import math
 import matplotlib.pyplot as plt
 from tqdm import tqdm
 import copy
-from Constants import MOTOR_MAX_TRAVEL
-from CuringCalculations import MIN_VELOCITY, MAX_VELOCITY
+from Constants import MOTOR_MAX_TRAVEL, MINIMUM_VELOCITY, MAXIMUM_VELOCITY
 
 
 class Coordinate:
@@ -58,9 +57,9 @@ class Coordinate:
         try:
             pvf = a * t - a * (math.sqrt(t ** 2 - ((2 * d) / a)))
         except ValueError:
-            pvf = MAX_VELOCITY
+            pvf = MAXIMUM_VELOCITY
 
-        return max(pvf, MIN_VELOCITY)
+        return max(pvf, MINIMUM_VELOCITY)
 
     def __str__(self):
         """

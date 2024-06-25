@@ -1,12 +1,7 @@
 import math
 import pandas as pd
+from Constants import MAXIMUM_VELOCITY, MINIMUM_VELOCITY, DEFAULT_CURRENT, MAXIMUM_CURRENT
 
-DEFAULT_CURRENT = 100 # mA
-MAX_VELOCITY = 2.6 # mm/s
-MIN_VELOCITY = 0.005 # mm/s
-LIGHT_WAVELENGTH = 445 # nm
-MIN_CURRENT = 0.1 # mA
-MAX_CURRENT = 9000 # mA
 
 
 class Configuration:
@@ -35,7 +30,7 @@ class CuringCalculations:
             beam_diameter = row['Beam Diameter (mm)']
             current = row['Current (mA)']
             velocity = row['Velocity (mm/s)']
-            stiffness = row['Stiffness (kPa)']
+            stiffness = row['Stiffness (Pa)']
             total_photon_exposure_per_pixel = self.get_total_photon_exposure_per_pixel(beam_diameter, current, velocity)
             stiffness_to_photon_ratios.append(self.calculate_stiffness_to_photon_ratio(stiffness, total_photon_exposure_per_pixel))
 
@@ -46,7 +41,7 @@ class CuringCalculations:
         Calculates the stiffness-to-photon ratio based on the given stiffness and photon exposure.
 
         Args:
-            stiffness (float): The stiffness value in kPa.
+            stiffness (float): The stiffness value in Pa.
             photon_exposure (float): The total photon exposure in photons.
 
         Returns:
@@ -119,7 +114,7 @@ class CuringCalculations:
         Calculates the configuration based on the target stiffness and beam diameter.
 
         Args:
-            target_stiffness (float): The target stiffness value in kPa.
+            target_stiffness (float): The target stiffness value in Pa.
             beam_diameter_mm (float): The beam diameter in mm.
 
         Returns:
@@ -133,13 +128,13 @@ class CuringCalculations:
 
         while True:
             velocity = self.get_velocity_based_on_target_photon_exposure(beam_diameter_mm, DEFAULT_CURRENT, target_exposure / configuration.iterations)
-            velocity = max(MIN_VELOCITY, min(velocity, MAX_VELOCITY))
+            velocity = max(MINIMUM_VELOCITY, min(velocity, MAXIMUM_VELOCITY))
             
             current = self.get_current_based_on_target_photon_exposure(beam_diameter_mm, velocity, target_exposure / configuration.iterations)
-            if current < MIN_CURRENT:
+            if current < MINIMUM_VELOCITY:
                 raise Exception("Configuration not achievable with current parameters.")
             
-            if current > MAX_CURRENT:
+            if current > MAXIMUM_CURRENT:
                 configuration.iterations += 1
                 continue
             
@@ -151,4 +146,5 @@ class CuringCalculations:
     
 
 curing_calculations = CuringCalculations()
-configuration1 = curing_calculations.get_configuration(target_stiffness=0.1, beam_diameter_mm=3)
+configuration1 = curing_calculations.get_configuration(target_stiffness=10619.1, beam_diameter_mm=3)
+print(configuration1)
