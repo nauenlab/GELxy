@@ -89,7 +89,7 @@ class CuringCalculations:
         photon_density = current / beam_area # photons/s/mm^2
 
         target_velocity = (beam_diameter * photon_density) / target_photon_exposure
-        return target_velocity 
+        return target_velocity
 
     def get_current_based_on_target_photon_exposure(self, beam_diameter, velocity, target_photon_exposure):
         """
@@ -145,6 +145,6 @@ class CuringCalculations:
         return configuration
     
 
-curing_calculations = CuringCalculations()
-configuration1 = curing_calculations.get_configuration(target_stiffness=10619.1, beam_diameter_mm=3)
-print(configuration1)
+# curing_calculations = CuringCalculations()
+# configuration1 = curing_calculations.get_configuration(target_stiffness=10619.1, beam_diameter_mm=3)
+# print(configuration1)
