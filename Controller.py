@@ -7,6 +7,7 @@ from Coordinate import Coordinate, Coordinates
 from Constants import *
 from tqdm import tqdm
 from Multiprocessor import Multiprocessor
+from Simulator.EstimatedCompletionTime import EstimatedCompletionTime
 
 ### INSTRUCTIONS
 ### STEP 1: Connect the motors and LED to the computer using USB cables.
@@ -73,6 +74,10 @@ class Controller:
         for i in coordinate_sets:
             coordinates += i
         
+        # Estimated Completion Time
+        completion_time = EstimatedCompletionTime(coordinates).get_completion_time()
+        print(f"Estimated Completion Time: {int(completion_time // 3600)} hours {int((completion_time % 3600) // 60)} minutes {int(completion_time % 60)} seconds")
+
         if IS_VIRTUAL:
             from Simulator.VirtualManager import VirtualManager
             # Sets up a virtual simulation of the motors and LED

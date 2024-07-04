@@ -39,6 +39,22 @@ class Coordinate:
         xf, yf = to.x, to.y
         return self.__calculate_vmax__(xi, xf, time), self.__calculate_vmax__(yi, yf, time)
 
+    def movement_time(self, to):
+        """
+        Calculates the time required to move from this coordinate to another coordinate with a given velocity.
+
+        Args:
+            to (Coordinate): The destination coordinate.
+            velocity (float): The velocity value.
+
+        Returns:
+            float: The time duration for the movement.
+        """
+        x_velocity, y_velocity = self.v if self.v else (MAXIMUM_VELOCITY, MAXIMUM_VELOCITY)
+        xi, yi = self.x, self.y
+        xf, yf = to.x, to.y
+        return max(abs(xf - xi) / x_velocity, abs(yf - yi) / y_velocity)
+
     @staticmethod
     def __calculate_vmax__(i, f, t):
         """
@@ -302,9 +318,11 @@ class Coordinates:
             rotation (float): The rotation angle in radians.
             configuration (Configuration): The configuration object containing iteration count and velocity values.
         """
-        original_coordinates = self.coordinates.copy()
+        print(configuration)
+        original_coordinates = copy.deepcopy(self)
         while configuration.iterations > 1:
-            self.coordinates += original_coordinates
+            copy_to_add = copy.deepcopy(original_coordinates)
+            self += copy_to_add
             configuration.iterations -= 1
 
         min_x = min(self.get_x_coordinates())
