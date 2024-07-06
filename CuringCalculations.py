@@ -47,9 +47,8 @@ class CuringCalculations:
         Returns:
             float: The stiffness-to-photon ratio.
         """
-        # This will need to change as we get more data
-        # This is assuming a linear relationship between stiffness and photon exposure. In reality, it is likely more logarithmic.
         return stiffness / photon_exposure
+        
 
     def get_total_photon_exposure_per_pixel(self, beam_diameter, current, velocity):
         """
@@ -146,5 +145,5 @@ class CuringCalculations:
     
 
 # curing_calculations = CuringCalculations()
-# configuration1 = curing_calculations.get_configuration(target_stiffness=10619.1, beam_diameter_mm=3)
+# configuration1 = curing_calculations.get_configuration(target_stiffness=10619.1, beam_diameter_mm=4.2)
 # print(configuration1)

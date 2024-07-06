@@ -78,7 +78,7 @@ class Texture:
 
             with Pool() as pool:
                 for result in pool.map(self.append_coordinates, args):
-                    coordinates += result    
+                    coordinates += result
         else:
             x_dist = (bound / self.rows) / 2
             y_dist = (bound / self.rows) / 2
