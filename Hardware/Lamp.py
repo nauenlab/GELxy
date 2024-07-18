@@ -1,6 +1,7 @@
 import ctypes
 import os
 import sys
+from Constants import MAXIMUM_CURRENT
 
 # If you're using Python 3.7 or older change add_dll_directory to chdir
 if sys.version_info < (3, 8):
@@ -45,6 +46,10 @@ class Lamp:
         Args:
             led_ampere (float): The current in amperes to set for the lamp.
         """
+        if led_ampere > MAXIMUM_CURRENT:
+            raise ValueError(f"The current cannot be greater than {MAXIMUM_CURRENT} mA")
+        if led_ampere < 0:
+            raise ValueError("The current cannot be negative")
         self.library.TLDC2200_setConstCurrent(self.dev_session, ctypes.c_float(led_ampere))
         
     def turn_off(self):
