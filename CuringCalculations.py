@@ -138,7 +138,7 @@ class CuringCalculations:
                 continue
             
             configuration.velocity = velocity
-            configuration.current = current
+            configuration.current = float(current) / 1000.0 # conversion from mA to A
             break
 
         return configuration

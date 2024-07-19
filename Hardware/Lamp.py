@@ -50,6 +50,7 @@ class Lamp:
             raise ValueError(f"The current cannot be greater than {MAXIMUM_CURRENT} mA")
         if led_ampere < 0:
             raise ValueError("The current cannot be negative")
+        
         self.library.TLDC2200_setConstCurrent(self.dev_session, ctypes.c_float(led_ampere))
         
     def turn_off(self):
