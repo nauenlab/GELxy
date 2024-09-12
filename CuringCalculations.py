@@ -1,6 +1,6 @@
 import math
 import pandas as pd
-from Constants import MAXIMUM_VELOCITY, MINIMUM_VELOCITY, DEFAULT_CURRENT, MAXIMUM_CURRENT
+from Constants import MAXIMUM_VELOCITY, MINIMUM_VELOCITY, DEFAULT_CURRENT, MAXIMUM_CURRENT, MINIMUM_CURRENT
 
 
 
@@ -63,7 +63,7 @@ class CuringCalculations:
             float: The total photon exposure per pixel in photons.
         """
         beam_area = math.pi * (beam_diameter / 2)**2 # mm^2
-        photon_density = current / beam_area # photons/s/mm^2
+        photon_density = current / beam_area # mA/mm^2
 
         # how long a point is exposed as the light travels beam_diameter distance
         # TODO: This variable is considering the light beam through the largest part of the circle (diameter). It does not consider smaller light paths.
@@ -130,7 +130,7 @@ class CuringCalculations:
             velocity = max(MINIMUM_VELOCITY, min(velocity, MAXIMUM_VELOCITY))
             
             current = self.get_current_based_on_target_photon_exposure(beam_diameter_mm, velocity, target_exposure / configuration.iterations)
-            if current < MINIMUM_VELOCITY:
+            if current < MINIMUM_CURRENT:
                 raise Exception("Configuration not achievable with current parameters.")
             
             if current > MAXIMUM_CURRENT:
