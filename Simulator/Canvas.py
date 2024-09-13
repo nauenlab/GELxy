@@ -15,28 +15,39 @@ def points_in_circle(center, radius, mm_to_pixel_ratio):
     Returns:
         list: A list of points within the circle, represented as tuples of (x, y) coordinates.
     """
-    # Convert center and radius to pixel units
     x0_pixel = int(round(center[0] * mm_to_pixel_ratio))
     y0_pixel = int(round(center[1] * mm_to_pixel_ratio))
     pixel_radius = int(round(radius * mm_to_pixel_ratio))
 
-    # Create a grid of pixel coordinates within the bounding square
-    x = np.arange(-pixel_radius, pixel_radius + 1)
-    y = np.arange(-pixel_radius, pixel_radius + 1)
-    X, Y = np.meshgrid(x, y)
+    points = []
 
-    # Compute squared distances from the circle center
-    distance_squared = X**2 + Y**2
+    x = 0
+    y = pixel_radius
+    d = 1 - pixel_radius
 
-    # Create a boolean mask for points inside the circle
-    mask = distance_squared <= pixel_radius**2
+    while x <= y:
+        # For each pixel from x to y, draw horizontal lines across the circle
+        for yi in range(x, y + 1):
+            # Exploit symmetry by drawing lines across each octant
+            points.extend([
+                (x0_pixel + x, y0_pixel + yi),
+                (x0_pixel - x, y0_pixel + yi),
+                (x0_pixel + x, y0_pixel - yi),
+                (x0_pixel - x, y0_pixel - yi),
+                (x0_pixel + yi, y0_pixel + x),
+                (x0_pixel - yi, y0_pixel + x),
+                (x0_pixel + yi, y0_pixel - x),
+                (x0_pixel - yi, y0_pixel - x),
+            ])
+        if d < 0:
+            d += 2 * x + 3
+        else:
+            d += 2 * (x - y) + 5
+            y -= 1
+        x += 1
 
-    # Extract the coordinates of points inside the circle
-    X_inside = X[mask] + x0_pixel
-    Y_inside = Y[mask] + y0_pixel
-
-    # Combine the coordinates into a list of tuples
-    points = list(zip(X_inside, Y_inside))
+    # Remove duplicates if any
+    points = list(set(points))
 
     return points
 
