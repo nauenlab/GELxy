@@ -3,7 +3,6 @@ import pandas as pd
 from Constants import MAXIMUM_VELOCITY, MINIMUM_VELOCITY, DEFAULT_CURRENT, MAXIMUM_CURRENT, MINIMUM_CURRENT
 
 
-
 class Configuration:
     """
     Represents the configuration for curing calculations.

@@ -1,4 +1,4 @@
-from CuringCalculations import MAXIMUM_CURRENT
+from Constants import MAXIMUM_CURRENT, TIME_STEP
 
 
 class VirtualLamp:
@@ -48,7 +48,7 @@ class VirtualLamp:
             curing_rate (float): The rate of curing.
 
         """
-        curing_percentage = (curing_rate / MAXIMUM_CURRENT) * 10
+        curing_percentage = (curing_rate / MAXIMUM_CURRENT) * 1000 * TIME_STEP
         self.canvas.cure(x, y, beam_diameter, curing_percentage)
 
     def turn_off(self):
