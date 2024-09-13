@@ -19,21 +19,15 @@ class Line(Shape):
         length (float): The length of the line.
         is_horizontal (bool): Indicates if the line is horizontal.
 
-    Methods:
-        __line_coordinates__(raw=False): Returns the coordinates of the line.
-
     """
 
     def __init__(self, length_mm, stiffness, center=None, rotation_angle=None, beam_diameter=None, uses_step_coordinates=False):
         super().__init__(center=center, rotation_angle=rotation_angle, beam_diameter=beam_diameter, uses_step_coordinates=uses_step_coordinates, filled=False, stiffness=stiffness)
         self.length = float(length_mm)
 
-    def __line_coordinates__(self, raw=False):
+    def __line_coordinates__(self):
         """
         Returns the coordinates of the line.
-
-        Args:
-            raw (bool, optional): Indicates if the coordinates should be returned in raw form. Defaults to False.
 
         Returns:
             Coordinates: The coordinates of the line.
@@ -43,9 +37,6 @@ class Line(Shape):
         coordinates.append(Coordinate(0, -self.length/2))
         coordinates.append(Coordinate(0, self.length/2))
 
-        if not raw:
-            configuration = CuringCalculations().get_configuration(self.stiffness, self.beam_diameter)
-            coordinates.normalize(center=self.center, rotation=self.rotation_angle, configuration=configuration)
         return coordinates
 
 

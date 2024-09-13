@@ -36,12 +36,9 @@ class Rectangle(Shape):
         self.width = float(width_mm)
         self.height = float(height_mm)
 
-    def __line_coordinates__(self, raw=False):
+    def __line_coordinates__(self):
         """
         Returns the line coordinates of the rectangle.
-
-        Args:
-            raw (bool, optional): Indicates whether to return raw coordinates or normalized coordinates. Defaults to False.
 
         Returns:
             Coordinates: The line coordinates of the rectangle.
@@ -53,9 +50,6 @@ class Rectangle(Shape):
         coordinates.append(Coordinate(self.width, 0))
         coordinates.append(Coordinate(0, 0))
 
-        if not raw:
-            configuration = CuringCalculations().get_configuration(self.stiffness, self.beam_diameter)
-            coordinates.normalize(center=self.center, rotation=self.rotation_angle, configuration=configuration)
         return coordinates
 
 

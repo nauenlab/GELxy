@@ -2,7 +2,9 @@ import math
 import matplotlib.pyplot as plt
 from tqdm import tqdm
 import copy
-from Constants import MOTOR_MAX_TRAVEL, MINIMUM_VELOCITY, MAXIMUM_VELOCITY
+from shapely.geometry import Polygon
+from shapely.geometry.polygon import orient
+from Constants import MOTOR_MAX_TRAVEL, MINIMUM_VELOCITY, MAXIMUM_VELOCITY, MINIMUM_DISTANCE_BETWEEN_TWO_LIGHT_BEAMS
 
 
 class Coordinate:
@@ -220,7 +222,7 @@ class Coordinates:
         self.y.append(coordinate.y)
         self.coordinates.append(coordinate)
 
-    def append_if_far_enough(self, coord, beam_diameter):
+    def append_if_far_enough(self, coord):
         """
         Appends a Coordinate object to the Coordinates object if it is far enough from the previous coordinate.
 
@@ -230,12 +232,12 @@ class Coordinates:
         """
         if len(self) != 0:
             prev = self[-1]
-            if self.distance(coord, prev) >= beam_diameter:
+            if self.distance(coord, prev) >= MINIMUM_DISTANCE_BETWEEN_TWO_LIGHT_BEAMS:
                 self.append(coord)
         else:
             self.append(coord)
     
-    def append_if_far_enough_field(self, coord, beam_diameter):
+    def append_if_far_enough_field(self, coord):
         """
         Appends a Coordinate object to the Coordinates object if it is far enough from all existing coordinates.
 
@@ -245,13 +247,13 @@ class Coordinates:
         """
         if len(self) != 0:
             for i in self:
-                if self.distance(coord, i) < beam_diameter:
+                if self.distance(coord, i) < MINIMUM_DISTANCE_BETWEEN_TWO_LIGHT_BEAMS:
                     return
             self.append(coord)
         else:
             self.append(coord)
     
-    def append_if_no_duplicate(self, coord, beam_diameter):
+    def append_if_no_duplicate(self, coord):
         """
         Appends a Coordinate object to the Coordinates object if it is not a duplicate and is close enough to the previous coordinate.
 
@@ -262,7 +264,7 @@ class Coordinates:
         if len(self) != 0:
             prev = self[-1]
             if not prev.same_location_as(coord):
-                if self.distance(coord, prev) < beam_diameter / 4:
+                if self.distance(coord, prev) < MINIMUM_DISTANCE_BETWEEN_TWO_LIGHT_BEAMS / 2:
                     self.coordinates[-1] = coord
                 else:
                     self.append(coord)
@@ -480,7 +482,7 @@ class Coordinates:
 
         return inside
 
-    def fill(self, beam_diameter):
+    def fill(self):
         """
         Fills the shape defined by the Coordinate objects with points.
 
@@ -490,44 +492,37 @@ class Coordinates:
         Returns:
             Coordinates: An array of Coordinate objects representing the filled shape.
         """
-        # Find the bounding box of the shape
-        min_x = min(self.get_x_coordinates())
-        max_x = max(self.get_x_coordinates())
-        min_y = min(self.get_y_coordinates())
-        max_y = max(self.get_y_coordinates())
-        c_cpy = copy.copy(self.coordinates)
+        # Convert shape's coordinates to a shapely Polygon
+        coordinates = [(coord.x, coord.y) for coord in self.coordinates]
 
-        # Create a grid of points inside the bounding box
-        resolution = beam_diameter / 2
-        
+        original_polygon = Polygon(coordinates)
+        original_polygon = orient(original_polygon, sign=1.0)  # Ensure consistent orientation
+
+        # Initialize variables
+        distance = 0
+        offset_polygons = []
+
+        # Generate inward offsets until the polygon disappears
+        while True:
+            offset_polygon = original_polygon.buffer(-distance)
+            if offset_polygon.is_empty:
+                break
+            if offset_polygon.geom_type == 'MultiPolygon':
+                # Handle cases where the offset results in multiple polygons
+                offset_polygon = max(offset_polygon.geoms, key=lambda p: p.area)
+            offset_polygons.append(offset_polygon)
+            distance += MINIMUM_DISTANCE_BETWEEN_TWO_LIGHT_BEAMS
+
+        # Collect points from all offset polygons
         points = Coordinates()
-        for x in range(int(min_x / resolution) - 1, int(max_x / resolution)):
-            if x % 2 == 0:
-                range_y = range(int(min_y / resolution) - 1, int(max_y / resolution) + 1)
-            else:
-                range_y = range(int(max_y / resolution), int(min_y / resolution) - 2, -1)
-    
-            x = float(x) * resolution
-            for y in range_y:
-                y = float(y) * resolution
-                points.append(Coordinate(x, y))
-            
-        # Check which points are inside the shape
-        # ...
+        for poly in offset_polygons:
+            x, y = poly.exterior.coords.xy
+            for i, (xi, yi) in enumerate(zip(x, y)):
+                c = Coordinate(xi, yi)
+                c.lp = (i != 0)
+                points.append(c)
 
         return points
-        filled_shape = Coordinates()
-        for point in points:
-            if self.is_point_inside_shape(point):
-                filled_shape.append(point)
-
-        c_cpy[0].lp = False
-        for c in c_cpy:
-            filled_shape.append(c)
-
-        # filled_shape.plot()
-
-        return filled_shape
     
 
     @staticmethod

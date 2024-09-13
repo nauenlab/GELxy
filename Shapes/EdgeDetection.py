@@ -147,7 +147,7 @@ class EdgeDetection:
 
         while unvisited:
             nearest_point = min(unvisited, key=lambda x: Coordinates.distance(current_point, x))
-            path.append_if_far_enough(nearest_point, self.beam_diameter)
+            path.append_if_far_enough(nearest_point)
 
             dist = Coordinates.distance(current_point, nearest_point)
             if dist > self.beam_diameter:

@@ -62,9 +62,11 @@ class Shape:
         else:
             raise Exception("Shape does not have a line or radial coordinate function")
 
-        if self.filled and coordinates:
+        if self.filled:
+            coordinates = coordinates.fill()
+
+        if coordinates:
             configuration = CuringCalculations().get_configuration(self.stiffness, self.beam_diameter)
-            coordinates = coordinates.fill(self.beam_diameter)
             coordinates.normalize(center=self.center, rotation=self.rotation_angle, configuration=configuration)
         
         return coordinates
@@ -78,7 +80,7 @@ class Shape:
         """
         coordinates = Coordinates()
         resolution = 0.005
-        line_coordinates = self.__line_coordinates__(raw=True)
+        line_coordinates = self.__line_coordinates__()
 
         # Fill in the space between the coordinates linearly
         for i in tqdm(range(len(line_coordinates) - 1), desc="Getting Coordinates"):
@@ -91,17 +93,11 @@ class Shape:
                 y = start_point.y + t * (end_point.y - start_point.y)
                 new_coord = Coordinate(x, y)
                 if abs(new_coord.x - end_point.x) < resolution and abs(new_coord.y - end_point.y) < resolution:
-                    coordinates.append_if_no_duplicate(end_point, self.beam_diameter)
+                    coordinates.append_if_no_duplicate(end_point)
                     continue
 
-                coordinates.append_if_far_enough(new_coord, self.beam_diameter)
-        
-        if self.filled:
-            coordinates = coordinates.fill(self.beam_diameter)
+                coordinates.append_if_far_enough(new_coord)
 
-        configuration = CuringCalculations().get_configuration(self.stiffness, self.beam_diameter)
-
-        coordinates.normalize(center=self.center, rotation=self.rotation_angle, configuration=configuration)
         return coordinates
 
     @staticmethod

@@ -58,10 +58,8 @@ class SineWave(Shape):
             x_pos2 = x_pos / self.frequency
             y_pos2 = y_pos * self.amplitude 
             c = Coordinate(x_pos2, y_pos2)
-            coordinates.append_if_far_enough(c, self.beam_diameter)
+            coordinates.append_if_far_enough(c)
 
-        configuration = CuringCalculations().get_configuration(self.stiffness, self.beam_diameter)
-        coordinates.normalize(center=self.center, rotation=self.rotation_angle, configuration=configuration)
         return coordinates
 
 

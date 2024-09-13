@@ -55,15 +55,8 @@ class Oval(Shape):
             x_pos2 = (x_pos - x_pos1) * self.width/2
             y_pos2 = (y_pos - y_pos1) * self.height/2
             c = Coordinate(x_pos2, y_pos2)
-            coordinates.append_if_far_enough(c, self.beam_diameter)
+            coordinates.append_if_far_enough(c)
 
-        if self.filled:
-            coordinates = coordinates.fill(self.beam_diameter)
-        else:
-            coordinates.append_if_far_enough(Coordinate(coordinates[0].x, coordinates[0].y), self.beam_diameter)
-
-        configuration = CuringCalculations().get_configuration(self.stiffness, self.beam_diameter)
-        coordinates.normalize(center=self.center, rotation=self.rotation_angle, configuration=configuration)
         return coordinates
 
 

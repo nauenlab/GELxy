@@ -21,9 +21,6 @@ class Triangle(Shape):
         width (float): The width of the triangle in millimeters.
         height (float): The height of the triangle in millimeters.
 
-    Methods:
-        __line_coordinates__(raw=False): Returns the line coordinates of the triangle.
-
     """
 
     def __init__(self, width_mm, height_mm, stiffness, center=None, rotation_angle=None, beam_diameter=None, uses_step_coordinates=None, filled=False):
@@ -31,12 +28,9 @@ class Triangle(Shape):
         self.width = float(width_mm)
         self.height = float(height_mm)
 
-    def __line_coordinates__(self, raw=False):
+    def __line_coordinates__(self):
         """
         Returns the line coordinates of the triangle.
-
-        Args:
-            raw (bool, optional): Indicates whether to return the raw line coordinates. Defaults to False.
 
         Returns:
             Coordinates: The line coordinates of the triangle.
@@ -48,9 +42,6 @@ class Triangle(Shape):
         coordinates.append(Coordinate(self.width / 2, self.height))
         coordinates.append(Coordinate(0, 0))
 
-        if not raw:
-            configuration = CuringCalculations().get_configuration(self.stiffness, self.beam_diameter)
-            coordinates.normalize(center=self.center, rotation=self.rotation_angle, configuration=configuration)
         return coordinates
 
 

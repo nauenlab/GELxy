@@ -31,7 +31,7 @@ class Controller:
         center_coordinate = Coordinate(4.38134, 11.82782)
         
         # Rectangle
-        # shapes.append(Rectangle.Rectangle(width_mm=2, height_mm=3, stiffness=10, center=center_coordinate, rotation_angle=0, beam_diameter=BEAM_DIAMETER, uses_step_coordinates=True, filled=False))
+        shapes.append(Rectangle.Rectangle(width_mm=5, height_mm=3, stiffness=10000, center=center_coordinate, rotation_angle=0, beam_diameter=BEAM_DIAMETER, uses_step_coordinates=True, filled=True))
         
         # Square
         # shapes.append(Square.Square(side_length_mm=2, stiffness=10, center=center_coordinate, rotation_angle=0, beam_diameter=BEAM_DIAMETER, uses_step_coordinates=True, filled=False))
@@ -40,13 +40,13 @@ class Controller:
         # shapes.append(EquilateralTriangle.EquilateralTriangle(side_length_mm=2, stiffness=10, center=center_coordinate, rotation_angle=0, beam_diameter=BEAM_DIAMETER, uses_step_coordinates=True, filled=False))
         
         # Triangle
-        # shapes.append(Triangle.Triangle(width_mm=2, height_mm=2.5980762114, stiffness=10, center=center_coordinate, rotation_angle=0, beam_diameter=BEAM_DIAMETER, uses_step_coordinates=True, filled=False))
+        # shapes.append(Triangle.Triangle(width_mm=2, height_mm=2.5980762114, stiffness=10000, center=center_coordinate, rotation_angle=0, beam_diameter=BEAM_DIAMETER, uses_step_coordinates=True, filled=True))
         
         # Line
-        # shapes.append(Line.Line(length_mm=3, stiffness=10, center=center_coordinate, rotation_angle=0, beam_diameter=BEAM_DIAMETER, uses_step_coordinates=True))
+        # shapes.append(Line.Line(length_mm=5, stiffness=2000, center=center_coordinate, rotation_angle=0, beam_diameter=BEAM_DIAMETER, uses_step_coordinates=True))
         
         # Oval
-        # shapes.append(Oval.Oval(width_mm=2, height_mm=3, stiffness=10, center=center_coordinate, rotation_angle=0, beam_diameter=BEAM_DIAMETER, filled=False))
+        # shapes.append(Oval.Oval(width_mm=2, height_mm=3, stiffness=10000, center=center_coordinate, rotation_angle=0, beam_diameter=BEAM_DIAMETER, filled=True))
         
         # Circle
         # shapes.append(Circle.Circle(diameter_mm=2, stiffness=10, center=center_coordinate, beam_diameter=BEAM_DIAMETER, filled=False))
@@ -85,7 +85,6 @@ class Controller:
         else:
             from Hardware.Manager import Manager
             # Sets up the actual motors and LED
-            # !!! For the Lamp: In the USB number the serial number (M00...) needs to be changed to the one of the connected device.
             self.manager = Manager(serial_number_x=X_MOTOR_SERIAL_NUMBER, serial_number_y=Y_MOTOR_SERIAL_NUMBER, lamp_serial_number=LAMP_SERIAL_NUMBER, acceleration=ACCELERATION, max_velocity=MAXIMUM_VELOCITY)
         
         print("Moving Motors")
