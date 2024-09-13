@@ -15,14 +15,29 @@ def points_in_circle(center, radius, mm_to_pixel_ratio):
     Returns:
         list: A list of points within the circle, represented as tuples of (x, y) coordinates.
     """
-    resolution = 1.0 / mm_to_pixel_ratio
-    points = []
-    x0, y0 = center
-    for x in np.arange(-radius, radius + resolution, resolution):
-        for y in np.arange(-radius, radius + resolution, resolution):
-            if x**2 + y**2 <= radius**2:
-                points.append((int(round((x0 + x) * mm_to_pixel_ratio)), int(round((y0 + y) *  mm_to_pixel_ratio))))
-    
+    # Convert center and radius to pixel units
+    x0_pixel = int(round(center[0] * mm_to_pixel_ratio))
+    y0_pixel = int(round(center[1] * mm_to_pixel_ratio))
+    pixel_radius = int(round(radius * mm_to_pixel_ratio))
+
+    # Create a grid of pixel coordinates within the bounding square
+    x = np.arange(-pixel_radius, pixel_radius + 1)
+    y = np.arange(-pixel_radius, pixel_radius + 1)
+    X, Y = np.meshgrid(x, y)
+
+    # Compute squared distances from the circle center
+    distance_squared = X**2 + Y**2
+
+    # Create a boolean mask for points inside the circle
+    mask = distance_squared <= pixel_radius**2
+
+    # Extract the coordinates of points inside the circle
+    X_inside = X[mask] + x0_pixel
+    Y_inside = Y[mask] + y0_pixel
+
+    # Combine the coordinates into a list of tuples
+    points = list(zip(X_inside, Y_inside))
+
     return points
 
 
