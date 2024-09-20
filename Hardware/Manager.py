@@ -18,6 +18,7 @@ class Manager:
     """
 
     def __init__(self, serial_number_x, serial_number_y, lamp_serial_number, acceleration=None, max_velocity=None):
+        self.lamp = Lamp(lamp_serial_number)
         self.x = Motor(serial_no=serial_number_x, acceleration=acceleration, max_velocity=max_velocity)
         self.y = Motor(serial_no=serial_number_y, acceleration=acceleration, max_velocity=max_velocity)
         home_threads = []
@@ -28,8 +29,6 @@ class Manager:
         
         for t in home_threads:
             t.join()
-
-        self.lamp = Lamp(lamp_serial_number)
 
     def motors(self):
         """

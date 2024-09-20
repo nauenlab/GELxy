@@ -42,27 +42,31 @@ class Motor:
         DeviceManagerCLI.BuildDeviceList()
 
         self.device = KCubeDCServo.CreateKCubeDCServo(serial_no)
-        # Connect, begin polling, and enable KDC.
+        if self.device is None:
+            raise Exception(f"Device {serial_no} not found.")
+        
+        # Connect KDC.
         try:
             self.device.Connect(serial_no)
         except:
             time.sleep(1)
+            print(f"Failed to connect to motor {serial_no}. Retrying...")
             self.__init__(serial_no, acceleration, max_velocity)
             return
-    
-        self.device.WaitForSettingsInitialized(250)
-        self.device.StartPolling(1)
+
+        # Wait for the device settings to initialize, if they are not already initialized.
+        if not self.device.IsSettingsInitialized():
+            self.device.WaitForSettingsInitialized(10000)  # 10 second timeout
+            assert self.device.IsSettingsInitialized() is True
+
+        self.device.StartPolling(20)  # Poll at 2 ms intervals
         time.sleep(0.25)  # wait statements are important to allow settings to be sent to the device
         self.device.EnableDevice()
         time.sleep(0.25)  # Wait for device to enable
         print(f"Motor connected {serial_no}.")
 
-        if not self.device.IsSettingsInitialized():
-            self.device.WaitForSettingsInitialized(10000)  # 10 second timeout
-            assert self.device.IsSettingsInitialized() is True
-
         # Before homing or moving device, ensure the motor's configuration is loaded
-        m_config = self.device.LoadMotorConfiguration(serial_no, DeviceConfiguration.DeviceSettingsUseOptionType.UseFileSettings)
+        m_config = self.device.LoadMotorConfiguration(serial_no, DeviceConfiguration.DeviceSettingsUseOptionType.UseDeviceSettings)
         m_config.DeviceSettingsName = "Z825"  # Change to whatever stage you are using.
         m_config.UpdateCurrentConfiguration()
 
@@ -73,11 +77,6 @@ class Motor:
         self.device.SetSettings(settings, True, False)
         
         self.set_velocity_params(acceleration=acceleration, max_velocity=max_velocity)
-                
-        # self.home()
-
-        # self.acceleration = acceleration if acceleration else ACCELERATION # get max values from device.AdvanedMotorLimits
-        # self.max_velocity = max_velocity if max_velocity else MAXIMUM_VELOCITY
 
     def __del__(self):
         """
