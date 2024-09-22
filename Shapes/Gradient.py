@@ -26,15 +26,6 @@ class Gradient(Shape):
         self.width = width_mm
 
     def get_coordinates(self):
-        coordinates =  self.__line_coordinates__()
-
-        # if coordinates:
-        #     configuration = CuringCalculations().get_configuration(self.stiffness, self.beam_diameter)
-        #     coordinates.normalize(center=self.center, rotation=self.rotation_angle_degrees, configuration=configuration)
-        
-        return coordinates
-
-    def __line_coordinates__(self):
         """
         Generates the coordinates for the gradient shape.
 
@@ -62,8 +53,5 @@ class Gradient(Shape):
             i += normalized_beam_diameter
         
         coordinates.rotate_coordinates(self.center, self.rotation_angle_degrees)
-        
-        # if self.is_reversed:
-        #     coordinates.coordinates.reverse()
         
         return coordinates
