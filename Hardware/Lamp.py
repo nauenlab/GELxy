@@ -26,7 +26,10 @@ class Lamp:
         # DC2200.
         # !!! In the USB number the serial number (M00...) needs to be changed to the one of the connected device.
         self.dev_session = ctypes.c_int()
-        self.library.TLDC2200_init(serial_number, False, False, ctypes.byref(self.dev_session))
+        response = self.library.TLDC2200_init(serial_number, False, False, ctypes.byref(self.dev_session))
+        if response != 0:
+            raise Exception("Failed to connect to lamp.")
+        
         print("Lamp connected.")
 
         # Constant Current (CC) mode
