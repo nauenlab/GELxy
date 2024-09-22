@@ -361,17 +361,6 @@ class Coordinates:
 
             resolved_coordinates += copy_to_add
 
-        # Goes to the first coordinate that still has iterations left
-        # unresolved_coordinates = []
-        # for i in range(1, len(original_coordinates)):
-        #     if configuration[i].iterations > 0:
-        #         unresolved_coordinates.append(copy.deepcopy(original_coordinates[i]))
-        # if not resolved_coordinates[-1].same_location_as(unresolved_coordinates[0]):
-        #     unresolved_coordinates[0].lp = False
-        #     resolved_coordinates.append(unresolved_coordinates[0])
-
-        # print(original_coordinates)
-        # print("p[o]")
         # Resolve the remaining iterations
         last = copy.deepcopy(original_coordinates[0])
         for i in range(1, len(original_coordinates)):
@@ -391,15 +380,11 @@ class Coordinates:
                     prev.a = curr.a
                     prev.v = curr.v
                     configuration[i].iterations -= 2
-                
-                print(prev.lp)
-                print(curr.lp)
 
                 resolved_coordinates.append(prev)
                 resolved_coordinates.append(curr)
                 last = curr
         
-        print(resolved_coordinates.coordinates)
         self.clear()
         for c in resolved_coordinates:
             self.append(c)
@@ -431,7 +416,7 @@ class Coordinates:
         if len(self.coordinates) == 0:
             raise Exception("No coordinates to plot, check the shape dimensions and bounds.")
         
-        self.update_with_configuration(configuration)
+        self.add_velocity_and_current_to_coordinates(stiffness=stiffness, coordinates=self.coordinates, beam_diameter_mm=beam_diameter_mm)
         self.coordinates[0].lp = False
 
     def rotate_coordinates(self, center, rotation):
