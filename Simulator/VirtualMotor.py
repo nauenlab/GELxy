@@ -1,5 +1,5 @@
 import math
-from Constants import MAXIMUM_VELOCITY, ACCELERATION, TIME_STEP
+from Constants import MAXIMUM_VELOCITY, ACCELERATION
 
 
 class VirtualMotor:
@@ -20,7 +20,7 @@ class VirtualMotor:
         move_absolute(self, final_position): Moves the motor to an absolute position.
     """
 
-    def __init__(self, serial_no=None, acceleration=None, max_velocity=None):
+    def __init__(self, time_step, serial_no=None, acceleration=None, max_velocity=None):
         """
         Initializes the VirtualMotor object.
 
@@ -29,6 +29,7 @@ class VirtualMotor:
             acceleration (float, optional): The acceleration of the motor.
             max_velocity (float, optional): The maximum velocity of the motor.
         """
+        self.time_step = time_step
         self.serial_number = serial_no
         self.acceleration = acceleration if acceleration else ACCELERATION
         self.max_velocity = max_velocity if max_velocity else MAXIMUM_VELOCITY
@@ -64,11 +65,11 @@ class VirtualMotor:
         ti = 0
         distance = new_position - self.position
         tf = self.get_movement_time(math.fabs(distance), is_lamp_off)
-        while ti - TIME_STEP <= tf:
+        while ti - self.time_step <= tf:
             new_pos = self.get_position_change_at(ti, is_lamp_off)
             change = new_pos if distance > 0 else -new_pos
             movements.append(self.position + change)
-            ti += TIME_STEP
+            ti += self.time_step
         self.position = new_position
 
         return movements
@@ -131,7 +132,7 @@ class VirtualMotor:
         current_time = 0
 
         while math.fabs(self.position - original_position) < math.fabs(distance):
-            current_time += TIME_STEP
+            current_time += self.time_step
             if current_time > 15:
                 raise Exception("Virtual Motor will take too long to move")
 

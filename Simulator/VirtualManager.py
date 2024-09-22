@@ -4,6 +4,7 @@ sys.path.append(os.path.dirname(os.path.realpath(__file__)))
 from VirtualMotor import VirtualMotor
 from VirtualLamp import VirtualLamp
 from Simulator.Canvas import Canvas
+from Constants import CANVAS_QUALITY
 
 class VirtualManager:
     """
@@ -31,10 +32,11 @@ class VirtualManager:
             max_velocity (float, optional): The maximum velocity of the virtual motors. Defaults to None.
             beam_diameter (float, optional): The diameter of the curing beam. Defaults to None.
         """
+        time_step = 0.1 / (CANVAS_QUALITY**2)
         self.canvas = Canvas(dimensions_mm=canvas_dimensions_mm)
-        self.x = VirtualMotor(acceleration=acceleration, max_velocity=max_velocity)
-        self.y = VirtualMotor(acceleration=acceleration, max_velocity=max_velocity)
-        self.lamp = VirtualLamp(canvas=self.canvas)
+        self.x = VirtualMotor(time_step=time_step, acceleration=acceleration, max_velocity=max_velocity)
+        self.y = VirtualMotor(time_step=time_step, acceleration=acceleration, max_velocity=max_velocity)
+        self.lamp = VirtualLamp(time_step=time_step, canvas=self.canvas)
         self.beam_diameter = beam_diameter
 
     def motors(self):

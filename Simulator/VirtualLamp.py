@@ -1,4 +1,4 @@
-from Constants import MAXIMUM_CURRENT, TIME_STEP
+from Constants import MAXIMUM_CURRENT
 
 
 class VirtualLamp:
@@ -15,13 +15,14 @@ class VirtualLamp:
         turn_off(): Turns off the virtual lamp.
     """
 
-    def __init__(self, canvas):
+    def __init__(self, time_step, canvas):
         """
         Initializes a new instance of the VirtualLamp class.
 
         Args:
             canvas (object): The canvas object on which the curing is performed.
         """
+        self.time_step = time_step
         self.canvas = canvas
         self.is_on = False
 
@@ -48,7 +49,7 @@ class VirtualLamp:
             curing_rate (float): The rate of curing.
 
         """
-        curing_percentage = (curing_rate / MAXIMUM_CURRENT) * 1000 * TIME_STEP
+        curing_percentage = (curing_rate / MAXIMUM_CURRENT) * 1000 * self.time_step
         self.canvas.cure(x, y, beam_diameter, curing_percentage)
 
     def turn_off(self):

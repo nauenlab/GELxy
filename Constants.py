@@ -26,9 +26,8 @@ MAXIMUM_CURRENT = 8000 # mA
 DEFAULT_CURRENT = 100 # mA
 
 # This value represents the minimum distance that the centers of 2 light beams can be separated. 
-# See this desmos graph for more information on how this constant is calculated: https://www.desmos.com/calculator/wjl3yjiipn
+# See this desmos graph for more information on how this constant is calculated: https://www.desmos.com/calculator/1bskxyy722
 MINIMUM_DISTANCE_BETWEEN_TWO_LIGHT_BEAMS = (BEAM_DIAMETER / 2) * (0.416146836547 + 1) # mm
 
 # Change this value to increase the quality of the canvas drawings. Enter a value between 0.1 and 10. A higher quality will increase the time it takes to render the canvas.
 CANVAS_QUALITY = 1
-TIME_STEP = 0.1 / (CANVAS_QUALITY**2)
