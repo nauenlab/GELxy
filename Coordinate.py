@@ -332,12 +332,20 @@ class Coordinates:
                 resolved_coordinates.append(curr)
                 continue
             
-            min_distance = min([i for i in [abs(prev.x - curr.x), abs(prev.y - curr.y)] if i != 0])
-            step_time = min_distance / MINIMUM_VELOCITY
-            vx, vy = prev.get_vmax(to=curr, time=step_time)
-            assert (MAXIMUM_VELOCITY >= vx >= MINIMUM_VELOCITY or vx == 0.0) and (MAXIMUM_VELOCITY >= vy >= MINIMUM_VELOCITY or vy == 0.0), "Velocity is not within bounds"
+            vx, vy = -1, -1
+            while not ((MAXIMUM_VELOCITY >= vx >= MINIMUM_VELOCITY or vx == 0.0) and (MAXIMUM_VELOCITY >= vy >= MINIMUM_VELOCITY or vy == 0.0)):
+                min_distance = min([i for i in [abs(prev.x - curr.x), abs(prev.y - curr.y)] if i != 0])
+                if vy >= MAXIMUM_VELOCITY:
+                    curr.x = prev.x
+                elif vx >= MAXIMUM_VELOCITY:
+                    curr.y = prev.y
+
+                
+                step_time = min_distance / MINIMUM_VELOCITY
+                vx, vy = prev.get_vmax(to=curr, time=step_time)
 
             configuration.append(curing_calculations.get_resolved_configuration_from_velocities(vx, vy, stiffness, configuration, beam_diameter_mm))
+
             velocities.append((vx, vy))
             resolved_coordinates.append(curr)
             prev = copy.deepcopy(curr)
@@ -364,7 +372,6 @@ class Coordinates:
         # Resolve the remaining iterations
         last = copy.deepcopy(original_coordinates[0])
         for i in range(1, len(original_coordinates)):
-
             if configuration[i].iterations > 0 and not last.same_location_as(original_coordinates[i]):
                 resolved_coordinates.append(copy.deepcopy(original_coordinates[i]))
                 resolved_coordinates[-1].lp = False
