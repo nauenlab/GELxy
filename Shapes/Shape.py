@@ -1,7 +1,7 @@
 import math
 from Coordinate import Coordinate, Coordinates
 from tqdm import tqdm
-from CuringCalculations import CuringCalculations
+from CuringCalculations import curing_calculations
 
 
 class Shape:
@@ -10,27 +10,27 @@ class Shape:
 
     Attributes:
         center (Coordinate): The center coordinate of the shape.
-        rotation_angle (float): The rotation angle of the shape in degrees.
+        rotation_angle_degrees (float): The rotation angle of the shape in degrees.
         beam_diameter (float): The diameter of the beam used to draw the shape.
         uses_step_coordinates (bool): Indicates whether the shape uses step coordinates.
         filled (bool): Indicates whether the shape should be filled.
         stiffness (float): The stiffness of the shape.
     """
 
-    def __init__(self, center, rotation_angle, beam_diameter, uses_step_coordinates, filled, stiffness):
+    def __init__(self, center, rotation_angle_degrees, beam_diameter, uses_step_coordinates, filled, stiffness):
         """
         Initializes a new instance of the Shape class.
 
         Args:
             center (Coordinate): The center coordinate of the shape.
-            rotation_angle (float): The rotation angle of the shape in degrees.
+            rotation_angle_degrees (float): The rotation angle of the shape in degrees.
             beam_diameter (float): The diameter of the beam used to draw the shape.
             uses_step_coordinates (bool): Indicates whether the shape uses step coordinates.
             filled (bool): Indicates whether the shape should be filled.
             stiffness (float): The stiffness of the shape.
         """
         self.center = center if center else Coordinate(0, 0)
-        self.rotation_angle = rotation_angle if rotation_angle else 0
+        self.rotation_angle_degrees = rotation_angle_degrees if rotation_angle_degrees else 0
         self.beam_diameter = beam_diameter if beam_diameter else 0.1
         self.uses_step_coordinates = uses_step_coordinates if uses_step_coordinates else False
         self.filled = filled if filled else False
@@ -66,8 +66,7 @@ class Shape:
             coordinates = coordinates.fill()
 
         if coordinates:
-            configuration = CuringCalculations().get_configuration(self.stiffness, self.beam_diameter)
-            coordinates.normalize(center=self.center, rotation=self.rotation_angle, configuration=configuration)
+            coordinates.normalize(center=self.center, rotation=self.rotation_angle_degrees, stiffness=self.stiffness, beam_diameter_mm=self.beam_diameter)
         
         return coordinates
     

@@ -170,7 +170,7 @@ class App(Tk):
         if selected_shape == "Pick a Shape":
             return
         
-        required_defaults = {"x": 5, "y": 5, "rotation_angle": 0, "stiffness": 1, "beam_diameter": 0.1}
+        required_defaults = {"x": 5, "y": 5, "rotation_angle_degrees": 0, "stiffness": 1, "beam_diameter": 0.1}
         if selected_shape == "Line":
             draggable_object = DraggableObject(self.canvas, Shape.Line, **required_defaults)
         elif selected_shape == "Rectangle":

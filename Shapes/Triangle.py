@@ -1,6 +1,5 @@
 from Shapes.Shape import Shape
 from Coordinate import Coordinate, Coordinates
-from CuringCalculations import CuringCalculations
 
 
 class Triangle(Shape):
@@ -12,7 +11,7 @@ class Triangle(Shape):
         height_mm (float): The height of the triangle in millimeters.
         stiffness (float): The stiffness of the triangle.
         center (Coordinate, optional): The center coordinate of the triangle. Defaults to None.
-        rotation_angle (float, optional): The rotation angle of the triangle in degrees. Defaults to None.
+        rotation_angle_degrees (float, optional): The rotation angle of the triangle in degrees. Defaults to None.
         beam_diameter (float, optional): The beam diameter of the triangle. Defaults to None.
         uses_step_coordinates (bool, optional): Indicates whether the triangle uses step coordinates. Defaults to None.
         filled (bool, optional): Indicates whether the triangle is filled. Defaults to False.
@@ -23,8 +22,8 @@ class Triangle(Shape):
 
     """
 
-    def __init__(self, width_mm, height_mm, stiffness, center=None, rotation_angle=None, beam_diameter=None, uses_step_coordinates=None, filled=False):
-        super().__init__(center=center, rotation_angle=rotation_angle, beam_diameter=beam_diameter, uses_step_coordinates=uses_step_coordinates, filled=filled, stiffness=stiffness)
+    def __init__(self, width_mm, height_mm, stiffness, center=None, rotation_angle_degrees=None, beam_diameter=None, uses_step_coordinates=None, filled=False):
+        super().__init__(center=center, rotation_angle_degrees=rotation_angle_degrees, beam_diameter=beam_diameter, uses_step_coordinates=uses_step_coordinates, filled=filled, stiffness=stiffness)
         self.width = float(width_mm)
         self.height = float(height_mm)
 

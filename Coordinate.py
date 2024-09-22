@@ -339,6 +339,18 @@ class Coordinates:
             self.coordinates[i].x = self.x[i]
             self.coordinates[i].y = self.y[i]
 
+        self.rotate_coordinates(center, rotation)
+
+        self.coordinates = self.fix_coordinates_with_corrected_slope()
+        if len(self.coordinates) == 0:
+            raise Exception("No coordinates to plot, check the shape dimensions and bounds.")
+        
+        self.add_velocity_and_current_to_coordinates(stiffness=stiffness, coordinates=self.coordinates, beam_diameter_mm=beam_diameter_mm)
+        self.coordinates[0].lp = False
+
+        print(self)
+
+    def rotate_coordinates(self, center, rotation):
         centroid = self.get_centroid()
         for (i, v) in tqdm(enumerate(self), desc="Calculating Transformations"):
             r_transformation = self.rotation_transformation(v, rotation, centroid)
@@ -369,6 +381,7 @@ class Coordinates:
         """
         delta_x = c.x - centroid.x
         delta_y = c.y - centroid.y
+        rotation = math.radians(rotation)
         cos_theta = math.cos(rotation)
         sin_theta = math.sin(rotation)
 

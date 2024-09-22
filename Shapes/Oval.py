@@ -2,7 +2,6 @@ import math
 from Shapes.Shape import Shape
 from Coordinate import Coordinate, Coordinates
 from tqdm import tqdm
-from CuringCalculations import CuringCalculations
 
 class Oval(Shape):
     """
@@ -13,12 +12,12 @@ class Oval(Shape):
         height_mm (float): The height of the oval in millimeters.
         stiffness (float): The stiffness of the oval.
         center (Coordinate, optional): The center coordinate of the oval. Defaults to None.
-        rotation_angle (float, optional): The rotation angle of the oval in degrees. Defaults to None.
+        rotation_angle_degrees (float, optional): The rotation angle of the oval in degrees. Defaults to None.
         beam_diameter (float, optional): The beam diameter. Defaults to None.
         filled (bool, optional): Whether the oval is filled or not. Defaults to False.
     """
 
-    def __init__(self, width_mm, height_mm, stiffness, center=None, rotation_angle=None, beam_diameter=None, filled=False):
+    def __init__(self, width_mm, height_mm, stiffness, center=None, rotation_angle_degrees=None, beam_diameter=None, filled=False):
         """
         Initializes a new instance of the Oval class.
 
@@ -27,11 +26,11 @@ class Oval(Shape):
             height_mm (float): The height of the oval in millimeters.
             stiffness (float): The stiffness of the oval.
             center (Coordinate, optional): The center coordinate of the oval. Defaults to None.
-            rotation_angle (float, optional): The rotation angle of the oval in degrees. Defaults to None.
+            rotation_angle_degrees (float, optional): The rotation angle of the oval in degrees. Defaults to None.
             beam_diameter (float, optional): The beam diameter. Defaults to None.
             filled (bool, optional): Whether the oval is filled or not. Defaults to False.
         """
-        super().__init__(center=center, rotation_angle=rotation_angle, beam_diameter=beam_diameter, uses_step_coordinates=True, filled=filled, stiffness=stiffness)
+        super().__init__(center=center, rotation_angle_degrees=rotation_angle_degrees, beam_diameter=beam_diameter, uses_step_coordinates=True, filled=filled, stiffness=stiffness)
         self.width = float(width_mm)
         self.height = float(height_mm)
     

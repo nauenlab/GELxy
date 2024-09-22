@@ -12,7 +12,7 @@ class DraggableObject(Tk):
         self.handle_size = 4
         self.handles = []
         self.metadata = ObjectMetadata(shape, **kwargs)
-        self.rotation_angle = self.metadata.rotation_angle
+        self.rotation_angle_degrees = self.metadata.rotation_angle_degrees
         self.custom_shape_file_name = None
 
         self.create_object()
@@ -33,25 +33,25 @@ class DraggableObject(Tk):
         # Create the shape based on type and additional parameters
         sp = None
         if self.metadata.shape == Shape.Line:
-            sp = self.metadata.shape.value(length_mm=5, stiffness=self.metadata.stiffness, center=Coordinate(self.metadata.x, self.metadata.y), rotation_angle=self.metadata.rotation_angle, beam_diameter=self.metadata.beam_diameter, is_horizontal=False, uses_step_coordinates=True)
+            sp = self.metadata.shape.value(length_mm=5, stiffness=self.metadata.stiffness, center=Coordinate(self.metadata.x, self.metadata.y), rotation_angle_degrees=self.metadata.rotation_angle_degrees, beam_diameter=self.metadata.beam_diameter, is_horizontal=False, uses_step_coordinates=True)
         elif self.metadata.shape == Shape.Rectangle:
-            sp = self.metadata.shape.value(width_mm=5, height_mm=7, stiffness=self.metadata.stiffness, center=Coordinate(self.metadata.x, self.metadata.y), rotation_angle=self.metadata.rotation_angle, beam_diameter=self.metadata.beam_diameter, uses_step_coordinates=True, filled=False)
+            sp = self.metadata.shape.value(width_mm=5, height_mm=7, stiffness=self.metadata.stiffness, center=Coordinate(self.metadata.x, self.metadata.y), rotation_angle_degrees=self.metadata.rotation_angle_degrees, beam_diameter=self.metadata.beam_diameter, uses_step_coordinates=True, filled=False)
         elif self.metadata.shape == Shape.Square:
-            sp = self.metadata.shape.value(side_length_mm=5, stiffness=self.metadata.stiffness, center=Coordinate(self.metadata.x, self.metadata.y), rotation_angle=self.metadata.rotation_angle, beam_diameter=self.metadata.beam_diameter, uses_step_coordinates=True, filled=False)
+            sp = self.metadata.shape.value(side_length_mm=5, stiffness=self.metadata.stiffness, center=Coordinate(self.metadata.x, self.metadata.y), rotation_angle_degrees=self.metadata.rotation_angle_degrees, beam_diameter=self.metadata.beam_diameter, uses_step_coordinates=True, filled=False)
         elif self.metadata.shape == Shape.Triangle:
-            sp = self.metadata.shape.value(width_mm=5, height_mm=7, stiffness=self.metadata.stiffness, center=Coordinate(self.metadata.x, self.metadata.y), rotation_angle=self.metadata.rotation_angle, beam_diameter=self.metadata.beam_diameter, uses_step_coordinates=True, filled=False)
+            sp = self.metadata.shape.value(width_mm=5, height_mm=7, stiffness=self.metadata.stiffness, center=Coordinate(self.metadata.x, self.metadata.y), rotation_angle_degrees=self.metadata.rotation_angle_degrees, beam_diameter=self.metadata.beam_diameter, uses_step_coordinates=True, filled=False)
         elif self.metadata.shape == Shape.EquilateralTriangle:
-            sp = self.metadata.shape.value(side_length_mm=5, stiffness=self.metadata.stiffness, center=Coordinate(self.metadata.x, self.metadata.y), rotation_angle=self.metadata.rotation_angle, beam_diameter=self.metadata.beam_diameter, uses_step_coordinates=True, filled=False)
+            sp = self.metadata.shape.value(side_length_mm=5, stiffness=self.metadata.stiffness, center=Coordinate(self.metadata.x, self.metadata.y), rotation_angle_degrees=self.metadata.rotation_angle_degrees, beam_diameter=self.metadata.beam_diameter, uses_step_coordinates=True, filled=False)
         elif self.metadata.shape == Shape.Circle:
             sp = self.metadata.shape.value(diameter_mm=5, stiffness=self.metadata.stiffness, center=Coordinate(self.metadata.x, self.metadata.y), beam_diameter=self.metadata.beam_diameter, filled=False)
         elif self.metadata.shape == Shape.Oval:
-            sp = self.metadata.shape.value(width_mm=5, height_mm=10, stiffness=self.metadata.stiffness, center=Coordinate(self.metadata.x, self.metadata.y), rotation_angle=self.metadata.rotation_angle, beam_diameter=self.metadata.beam_diameter)
+            sp = self.metadata.shape.value(width_mm=5, height_mm=10, stiffness=self.metadata.stiffness, center=Coordinate(self.metadata.x, self.metadata.y), rotation_angle_degrees=self.metadata.rotation_angle_degrees, beam_diameter=self.metadata.beam_diameter)
         elif self.metadata.shape == Shape.SineWave:
-            sp = self.metadata.shape.value(amplitude_mm=self.metadata.amplitude, cycles=self.metadata.cycles, cycles_per_mm=self.metadata.cycles_per_mm, stiffness=self.metadata.stiffness, rotation_angle=self.metadata.rotation_angle, center=Coordinate(self.metadata.x, self.metadata.y), beam_diameter=self.metadata.beam_diameter)
+            sp = self.metadata.shape.value(amplitude_mm=self.metadata.amplitude, cycles=self.metadata.cycles, cycles_per_mm=self.metadata.cycles_per_mm, stiffness=self.metadata.stiffness, rotation_angle_degrees=self.metadata.rotation_angle_degrees, center=Coordinate(self.metadata.x, self.metadata.y), beam_diameter=self.metadata.beam_diameter)
         elif self.metadata.shape == Shape.Gradient:
-            sp = self.metadata.shape.value(min_velocity=0.1, max_velocity=1.5, stiffness=self.metadata.stiffness, rotation_angle=self.metadata.rotation_angle, beam_diameter=self.metadata.beam_diameter, is_horizontal=False, is_reversed=True)
+            sp = self.metadata.shape.value(min_velocity=0.1, max_velocity=1.5, stiffness=self.metadata.stiffness, rotation_angle_degrees=self.metadata.rotation_angle_degrees, beam_diameter=self.metadata.beam_diameter, is_horizontal=False, is_reversed=True)
         elif self.metadata.shape == Shape.CustomShape:
-            sp = self.metadata.shape.value(img_file=self.metadata.img_file, stiffness=self.metadata.stiffness, center=Coordinate(self.metadata.x, self.metadata.y), rotation_angle=self.metadata.rotation_angle, scale_factor=self.metadata.scale_factor, beam_diameter=self.metadata.beam_diameter)
+            sp = self.metadata.shape.value(img_file=self.metadata.img_file, stiffness=self.metadata.stiffness, center=Coordinate(self.metadata.x, self.metadata.y), rotation_angle_degrees=self.metadata.rotation_angle_degrees, scale_factor=self.metadata.scale_factor, beam_diameter=self.metadata.beam_diameter)
         elif self.metadata.shape == Shape.Texture:
             sp = self.metadata.shape.value(shape=self.metadata.texture_shape, spacing_mm=self.metadata.spacing, margins=self.metadata.margins)
         
@@ -70,7 +70,7 @@ class DraggableObject(Tk):
             self.current_handle = None
         self.canvas.focus_set()
         print("what")
-        self.rotation_angle = self.getangle(event)
+        self.rotation_angle_degrees = self.getangle(event)
 
     def delete_object(self, event):
         if self.selected:
@@ -246,7 +246,7 @@ class DraggableObject(Tk):
         # new_handle_coords = [new_handle_cx - self.handle_size, new_handle_cy - self.handle_size, new_handle_cx + self.handle_size, new_handle_cy - self.handle_size, new_handle_cx + self.handle_size, new_handle_cy + self.handle_size, new_handle_cx - self.handle_size, new_handle_cy + self.handle_size]
         # self.canvas.coords(self.current_handle, new_handle_coords)
 
-        angle = self.getangle(event) / self.rotation_angle
+        angle = self.getangle(event) / self.rotation_angle_degrees
         offset = complex(cx, cy)
 
         new_coords = []
@@ -270,8 +270,8 @@ class DraggableObject(Tk):
         corners_rotated = []
         for i in range(0, len(bbox), 2):
             x, y = bbox[i], bbox[i+1]
-            new_x = x * math.cos(self.rotation_angle) - y * math.sin(self.rotation_angle)
-            new_y = x * math.sin(self.rotation_angle) + y * math.cos(self.rotation_angle)
+            new_x = x * math.cos(self.rotation_angle_degrees) - y * math.sin(self.rotation_angle_degrees)
+            new_y = x * math.sin(self.rotation_angle_degrees) + y * math.cos(self.rotation_angle_degrees)
             corners_rotated.extend([new_x, new_y])
         
         cx, cy = (corners_rotated[0] + corners_rotated[2]) / 2, (corners_rotated[1] + corners_rotated[3]) / 2

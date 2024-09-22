@@ -2,7 +2,7 @@ import cv2
 from Coordinate import Coordinate, Coordinates
 import numpy as np
 from tqdm import tqdm
-from CuringCalculations import CuringCalculations
+from CuringCalculations import curing_calculations
 
 dimensions = 15  # 15 mm * 100 mm_to_pixel_ratio
 
@@ -15,7 +15,7 @@ class EdgeDetection:
         img_file (str): The path to the input image file.
         stiffness (float): The stiffness of the material.
         center (Coordinate, optional): The center coordinate of the image. Defaults to Coordinate(0, 0).
-        rotation_angle (float, optional): The rotation angle of the image in degrees. Defaults to 0.
+        rotation_angle_degrees (float, optional): The rotation angle of the image in degrees. Defaults to 0.
         scale_factor (float, optional): The scale factor of the image. Defaults to 1.
         beam_diameter (float, optional): The diameter of the beam. Defaults to 0.1.
 
@@ -30,7 +30,7 @@ class EdgeDetection:
         factor (float): The scaling factor based on the dimensions and maximum dimension of the image.
     """
 
-    def __init__(self, img_file, stiffness, center=Coordinate(0, 0), rotation_angle=0, scale_factor=1, beam_diameter=0.1):
+    def __init__(self, img_file, stiffness, center=Coordinate(0, 0), rotation_angle_degrees=0, scale_factor=1, beam_diameter=0.1):
         """
         Initialize the EdgeDetection object.
 
@@ -38,13 +38,13 @@ class EdgeDetection:
         - img_file (str): The path to the image file.
         - stiffness (float): The stiffness value.
         - center (Coordinate, optional): The center coordinate of the image. Defaults to (0, 0).
-        - rotation_angle (float, optional): The rotation angle of the image in degrees. Defaults to 0.
+        - rotation_angle_degrees (float, optional): The rotation angle of the image in degrees. Defaults to 0.
         - scale_factor (float, optional): The scale factor of the image. Defaults to 1.
         - beam_diameter (float, optional): The beam diameter. Defaults to 0.1.
         """
         self.img_file = img_file
         self.center = center
-        self.rotation = rotation_angle
+        self.rotation = rotation_angle_degrees
         self.scale_factor = scale_factor
         self.beam_diameter = beam_diameter
         self.stiffness = stiffness
@@ -123,9 +123,8 @@ class EdgeDetection:
                                 if self.edges[neighbor[1]][neighbor[0]] == 255 and neighbor not in visited:
                                     queue.append(neighbor)
 
-        configuration = CuringCalculations().get_configuration(self.stiffness, self.beam_diameter)
         coordinates = self.ordered_by_nearest_neighbor(coordinates)
-        coordinates.normalize(center=self.center, rotation=self.rotation, configuration=configuration)
+        coordinates.normalize(center=self.center, rotation=self.rotation, stiffness=self.stiffness, beam_diameter_mm=self.beam_diameter)
         return coordinates
     
     def ordered_by_nearest_neighbor(self, coordinates):

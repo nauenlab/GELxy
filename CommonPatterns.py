@@ -23,7 +23,7 @@ def deathly_hallows(size_mm=5, center=Coordinate(5, 5), stiffness=0.1):
     second_center = Coordinate(center.x, center.y + (size_mm * 1/6))
     shapes.append(Circle(diameter_mm=size_mm * (2 / 3), stiffness=stiffness, center=second_center))
     tri_len = math.sqrt((size_mm**2) * 4 / 3.0)
-    shapes.append(EquilateralTriangle(side_length_mm=tri_len, stiffness=stiffness, center=second_center, rotation_angle=math.pi, uses_step_coordinates=True))
+    shapes.append(EquilateralTriangle(side_length_mm=tri_len, stiffness=stiffness, center=second_center, rotation_angle_degrees=180, uses_step_coordinates=True))
 
     return shapes
 
@@ -41,7 +41,7 @@ def square_star(size_mm=5, center=Coordinate(5, 5), stiffness=0.1):
     """
     shapes = []
     shapes.append(Square(side_length_mm=size_mm, stiffness=stiffness, center=center))
-    shapes.append(Square(side_length_mm=size_mm, stiffness=stiffness, center=center, rotation_angle=math.pi/4))
+    shapes.append(Square(side_length_mm=size_mm, stiffness=stiffness, center=center, rotation_angle_degrees=90))
 
     return shapes
 
@@ -59,7 +59,7 @@ def star_of_david(size_mm=5, center=Coordinate(5, 5), stiffness=0.1):
     """
     shapes = []
     shapes.append(EquilateralTriangle(side_length_mm=size_mm, stiffness=stiffness, center=center))
-    shapes.append(EquilateralTriangle(side_length_mm=size_mm, stiffness=stiffness, center=center, rotation_angle=math.pi))
+    shapes.append(EquilateralTriangle(side_length_mm=size_mm, stiffness=stiffness, center=center, rotation_angle_degrees=180))
 
     return shapes
 
@@ -79,8 +79,8 @@ def ovals(width1_mm=5, height1_mm=3, width2_mm=3, height2_mm=2, center=Coordinat
         list: A list of shapes representing two ovals.
     """
     shapes = []
-    shapes.append(Oval(width_mm=width1_mm, height_mm=height1_mm, stiffness=stiffness, center=center, rotation_angle=math.pi))
-    shapes.append(Oval(width_mm=width2_mm, height_mm=height2_mm, stiffness=stiffness, center=center, rotation_angle=math.pi))
+    shapes.append(Oval(width_mm=width1_mm, height_mm=height1_mm, stiffness=stiffness, center=center, rotation_angle_degrees=180))
+    shapes.append(Oval(width_mm=width2_mm, height_mm=height2_mm, stiffness=stiffness, center=center, rotation_angle_degrees=180))
     
     return shapes
 
@@ -99,8 +99,8 @@ def atom(width_mm=5, height_mm=2, center=Coordinate(5, 5), stiffness=0.1):
     """
     shapes = []
     shapes.append(Oval(width_mm=width_mm, height_mm=height_mm, stiffness=stiffness, center=center))
-    shapes.append(Oval(width_mm=width_mm, height_mm=height_mm, stiffness=stiffness, center=center, rotation_angle=math.pi/3))
-    shapes.append(Oval(width_mm=width_mm, height_mm=height_mm, stiffness=stiffness, center=center, rotation_angle=math.pi/3 * 2))
+    shapes.append(Oval(width_mm=width_mm, height_mm=height_mm, stiffness=stiffness, center=center, rotation_angle_degrees=60))
+    shapes.append(Oval(width_mm=width_mm, height_mm=height_mm, stiffness=stiffness, center=center, rotation_angle_degrees=120))
 
     return shapes
 

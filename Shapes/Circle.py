@@ -24,4 +24,4 @@ class Circle(Oval):
             beam_diameter (float, optional): The beam diameter of the circle. Defaults to None.
             filled (bool, optional): Whether the circle is filled or not. Defaults to False.
         """
-        super().__init__(width_mm=diameter_mm, height_mm=diameter_mm, center=center, rotation_angle=None, beam_diameter=beam_diameter, filled=filled, stiffness=stiffness)
+        super().__init__(width_mm=diameter_mm, height_mm=diameter_mm, center=center, rotation_angle_degrees=None, beam_diameter=beam_diameter, filled=filled, stiffness=stiffness)
