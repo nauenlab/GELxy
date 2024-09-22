@@ -4,7 +4,8 @@ pillow
 pandas
 numpy
 opencv-python
-picamera2
+picamera2; sys_platform == 'linux'
 matplotlib
 clr
 shapely
+openpyxl
