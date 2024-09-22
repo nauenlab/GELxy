@@ -7,9 +7,19 @@ class Configuration:
     """
     Represents the configuration for curing calculations.
     """
-    current = None
-    velocity = None
-    iterations = 1
+
+    def __init__(self, current=None, velocity=None, iterations=1, beam_diameter=None):
+        """
+        Initializes a new instance of the Configuration class.
+
+        Args:
+            current (float, optional): The current value in A. Defaults to None.
+            velocity (float, optional): The velocity value in mm/s. Defaults to None.
+            iterations (int, optional): The number of iterations. Defaults to 1.
+        """
+        self.current = current
+        self.velocity = velocity
+        self.iterations = iterations
 
     def __repr__(self) -> str:
         return f"Configuration(current={self.current}, velocity={self.velocity}, iterations={self.iterations})"
@@ -121,7 +131,7 @@ class CuringCalculations:
         Raises:
             Exception: If unable to achieve the target stiffness with the current configuration.
         """
-        configuration = Configuration()
+        configuration = Configuration(beam_diameter=beam_diameter_mm)
         target_exposure = self.calculate_stiffness_to_photon_ratio(target_stiffness, self.average_ratio)
 
         while True:
@@ -142,7 +152,25 @@ class CuringCalculations:
 
         return configuration
     
+    def get_resolved_configuration_from_velocities(self, vx, vy, stiffness, configuration, beam_diameter_mm):
+        configuration = Configuration(beam_diameter=beam_diameter_mm)
+        target_exposure = self.calculate_stiffness_to_photon_ratio(stiffness, self.average_ratio)
+        velocity = math.sqrt(vx**2 + vy**2)
 
-# curing_calculations = CuringCalculations()
+        while True:
+            current = self.get_current_based_on_target_photon_exposure(beam_diameter_mm, velocity, target_exposure / configuration.iterations)
+            if current < MINIMUM_CURRENT:
+                raise Exception("Configuration not achievable with current parameters.")
+            
+            if current > MAXIMUM_CURRENT:
+                configuration.iterations += 1
+                continue
+            
+            configuration.current = float(current) / 1000.0 # conversion from mA to A
+            break
+
+        return configuration
+
+curing_calculations = CuringCalculations()
 # configuration1 = curing_calculations.get_configuration(target_stiffness=10619.1, beam_diameter_mm=4.2)
 # print(configuration1)

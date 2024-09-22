@@ -5,6 +5,7 @@ import copy
 from shapely.geometry import Polygon
 from shapely.geometry.polygon import orient
 from Constants import MOTOR_MAX_TRAVEL, MINIMUM_VELOCITY, MAXIMUM_VELOCITY, MINIMUM_DISTANCE_BETWEEN_TWO_LIGHT_BEAMS
+from CuringCalculations import curing_calculations, Configuration
 
 
 class Coordinate:
@@ -41,22 +42,6 @@ class Coordinate:
         xf, yf = to.x, to.y
         return self.__calculate_vmax__(xi, xf, time), self.__calculate_vmax__(yi, yf, time)
 
-    def movement_time(self, to):
-        """
-        Calculates the time required to move from this coordinate to another coordinate with a given velocity.
-
-        Args:
-            to (Coordinate): The destination coordinate.
-            velocity (float): The velocity value.
-
-        Returns:
-            float: The time duration for the movement.
-        """
-        x_velocity, y_velocity = self.v if self.v else (MAXIMUM_VELOCITY, MAXIMUM_VELOCITY)
-        xi, yi = self.x, self.y
-        xf, yf = to.x, to.y
-        return max(abs(xf - xi) / x_velocity, abs(yf - yi) / y_velocity)
-
     @staticmethod
     def __calculate_vmax__(i, f, t):
         """
@@ -76,8 +61,8 @@ class Coordinate:
             pvf = a * t - a * (math.sqrt(t ** 2 - ((2 * d) / a)))
         except ValueError:
             pvf = MAXIMUM_VELOCITY
-
-        return max(pvf, MINIMUM_VELOCITY)
+        
+        return pvf
 
     def __str__(self):
         """
@@ -86,7 +71,7 @@ class Coordinate:
         Returns:
             str: The string representation of the Coordinate object.
         """
-        return f"\nx: {self.x}\ny: {self.y}\nv: {self.v}\nl: {self.lp}\na: {self.a}\n\n"
+        return f"\nx: {self.x}\ny: {self.y}\nv: {self.v}\nl: {self.lp}\na: {self.a}\n"
 
     def __repr__(self):
         """
@@ -123,6 +108,24 @@ class Coordinates:
         self.y = []
         self.coordinates = []
         self.v = []
+
+    def __str__(self):
+        """
+        Returns a string representation of the Coordinates object.
+
+        Returns:
+            str: The string representation of the Coordinates object.
+        """
+        return '\n'.join([str(coord) for coord in self.coordinates])
+
+    def __repr__(self):
+        """
+        Returns a string representation of the Coordinates object.
+
+        Returns:
+            str: The string representation of the Coordinates object.
+        """
+        return self.__str__()
     
     def __iter__(self):
         """
@@ -188,6 +191,27 @@ class Coordinates:
         new_coords.coordinates += rhs.coordinates
         return new_coords
     
+    def remove(self, index):
+        """
+        Removes the Coordinate object at the specified index.
+
+        Args:
+            index (int): The index of the Coordinate object to remove.
+        """
+        self.x.pop(index)
+        self.y.pop(index)
+        self.coordinates.pop(index)
+        self.v.pop(index)
+    
+    def clear(self):
+        """
+        Clears the Coordinates object.
+        """
+        self.x = []
+        self.y = []
+        self.coordinates = []
+        self.v = []
+    
     def plot(self, plot_lines=True, plot_points=False, show=True):
         """
         Plots the coordinates on a 2D graph.
@@ -220,6 +244,7 @@ class Coordinates:
         """
         self.x.append(coordinate.x)
         self.y.append(coordinate.y)
+        self.v.append(coordinate.v)
         self.coordinates.append(coordinate)
 
     def append_if_far_enough(self, coord):
@@ -228,7 +253,6 @@ class Coordinates:
 
         Args:
             coord (Coordinate): The Coordinate object to append.
-            beam_diameter (float): The minimum distance required between the coordinates.
         """
         if len(self) != 0:
             prev = self[-1]
@@ -243,7 +267,6 @@ class Coordinates:
 
         Args:
             coord (Coordinate): The Coordinate object to append.
-            beam_diameter (float): The minimum distance required between the coordinates.
         """
         if len(self) != 0:
             for i in self:
@@ -259,7 +282,6 @@ class Coordinates:
 
         Args:
             coord (Coordinate): The Coordinate object to append.
-            beam_diameter (float): The maximum distance allowed between the coordinates.
         """
         if len(self) != 0:
             prev = self[-1]
@@ -288,48 +310,112 @@ class Coordinates:
             list: A list of y-coordinates.
         """
         return self.y
-
-    def update_with_configuration(self, configuration):
+    
+    def add_velocity_and_current_to_coordinates(self, stiffness, coordinates, beam_diameter_mm):
         """
-        Updates the Coordinate objects with a given configuration.
+        Adds velocity and current values to the Coordinate objects.
 
         Args:
-            configuration (Configuration): The configuration object containing velocity and current values.
+            stiffness (float): The stiffness in Pascals of the shape.
+            coordinates (Coordinates): The Coordinate objects to add velocity and current values to.
+            beam_diameter_mm (float): The diameter of the beam.
         """
+        resolved_coordinates = Coordinates()
+        
+        # get the resolved configuration for each coordinate
+        configuration = [Configuration(beam_diameter=beam_diameter_mm)]
+        velocities = [None]
         prev = None
-        for (i, v) in tqdm(enumerate(self), desc="Updating Coordinates with configuration"):
+        for curr in coordinates:
             if not prev:
-                prev = self.coordinates[i]
+                prev = copy.deepcopy(curr)
+                resolved_coordinates.append(curr)
                 continue
             
-            distance = self.distance(prev, self.coordinates[i])
-            step_time = distance / configuration.velocity
-            vmax = prev.get_vmax(to=self.coordinates[i], time=step_time)
-            self.v.append(vmax)
-            prev = self.coordinates[i]
-            prev.v = vmax
-            prev.a = configuration.current
+            min_distance = min([i for i in [abs(prev.x - curr.x), abs(prev.y - curr.y)] if i != 0])
+            step_time = min_distance / MINIMUM_VELOCITY
+            vx, vy = prev.get_vmax(to=curr, time=step_time)
+            assert (MAXIMUM_VELOCITY >= vx >= MINIMUM_VELOCITY or vx == 0.0) and (MAXIMUM_VELOCITY >= vy >= MINIMUM_VELOCITY or vy == 0.0), "Velocity is not within bounds"
 
+            configuration.append(curing_calculations.get_resolved_configuration_from_velocities(vx, vy, stiffness, configuration, beam_diameter_mm))
+            velocities.append((vx, vy))
+            resolved_coordinates.append(curr)
+            prev = copy.deepcopy(curr)
 
-    def normalize(self, center, rotation, configuration):
+        # The value of iterations that all configurations have in common
+        base_iterations = min([i.iterations for i in configuration[1:]])
+
+        # Add velocity and current values to the coordinates and resolve the iterations
+        for i in range(len(resolved_coordinates)):
+            resolved_coordinates[i].v = velocities[i]
+            resolved_coordinates[i].a = configuration[i].current
+            configuration[i].iterations -= base_iterations
+
+        # Copy the coordinates based on the base_iterations
+        original_coordinates = copy.deepcopy(resolved_coordinates)
+        for i in range(base_iterations - 1):
+            copy_to_add = copy.deepcopy(original_coordinates)
+            copy_to_add[0].lp = False
+            if copy_to_add[0].same_location_as(resolved_coordinates[-1]):
+                copy_to_add.remove(0)
+
+            resolved_coordinates += copy_to_add
+
+        # Goes to the first coordinate that still has iterations left
+        # unresolved_coordinates = []
+        # for i in range(1, len(original_coordinates)):
+        #     if configuration[i].iterations > 0:
+        #         unresolved_coordinates.append(copy.deepcopy(original_coordinates[i]))
+        # if not resolved_coordinates[-1].same_location_as(unresolved_coordinates[0]):
+        #     unresolved_coordinates[0].lp = False
+        #     resolved_coordinates.append(unresolved_coordinates[0])
+
+        # print(original_coordinates)
+        # print("p[o]")
+        # Resolve the remaining iterations
+        last = copy.deepcopy(original_coordinates[0])
+        for i in range(1, len(original_coordinates)):
+
+            if configuration[i].iterations > 0 and not last.same_location_as(original_coordinates[i]):
+                resolved_coordinates.append(copy.deepcopy(original_coordinates[i]))
+                resolved_coordinates[-1].lp = False
+
+            while configuration[i].iterations > 0:
+                prev = copy.deepcopy(original_coordinates[i - 1])
+                curr = copy.deepcopy(original_coordinates[i])
+
+                if configuration[i].iterations == 1:
+                    prev.lp = False
+                    configuration[i].iterations -= 1
+                else:
+                    prev.a = curr.a
+                    prev.v = curr.v
+                    configuration[i].iterations -= 2
+                
+                print(prev.lp)
+                print(curr.lp)
+
+                resolved_coordinates.append(prev)
+                resolved_coordinates.append(curr)
+                last = curr
+        
+        print(resolved_coordinates.coordinates)
+        self.clear()
+        for c in resolved_coordinates:
+            self.append(c)
+
+    def normalize(self, center, rotation, stiffness, beam_diameter_mm):
         """
         Normalizes the Coordinate objects by translating and rotating them.
 
         Args:
             center (Coordinate): The center coordinate for normalization.
             rotation (float): The rotation angle in radians.
-            configuration (Configuration): The configuration object containing iteration count and velocity values.
+            stiffness (float): The stiffness in Pascals of the shape.
         """
-        print(configuration)
-        original_coordinates = copy.deepcopy(self)
-        while configuration.iterations > 1:
-            copy_to_add = copy.deepcopy(original_coordinates)
-            self += copy_to_add
-            configuration.iterations -= 1
 
         min_x = min(self.get_x_coordinates())
         min_y = min(self.get_y_coordinates())
-        
         factor_x = 0 if min_x > 0 else abs(min_x)
         factor_y = 0 if min_y > 0 else abs(min_y)
 
@@ -338,17 +424,15 @@ class Coordinates:
             self.y[i] = v.y + factor_y
             self.coordinates[i].x = self.x[i]
             self.coordinates[i].y = self.y[i]
-
+        
         self.rotate_coordinates(center, rotation)
 
         self.coordinates = self.fix_coordinates_with_corrected_slope()
         if len(self.coordinates) == 0:
             raise Exception("No coordinates to plot, check the shape dimensions and bounds.")
         
-        self.add_velocity_and_current_to_coordinates(stiffness=stiffness, coordinates=self.coordinates, beam_diameter_mm=beam_diameter_mm)
+        self.update_with_configuration(configuration)
         self.coordinates[0].lp = False
-
-        print(self)
 
     def rotate_coordinates(self, center, rotation):
         centroid = self.get_centroid()
@@ -358,13 +442,6 @@ class Coordinates:
             self.y[i] = v.y + (center.y - centroid.y) + r_transformation.y
             self.coordinates[i].x = self.x[i]
             self.coordinates[i].y = self.y[i]
-
-        self.coordinates = self.fix_coordinates_with_corrected_slope()
-        if len(self.coordinates) == 0:
-            raise Exception("No coordinates to plot, check the shape dimensions and bounds.")
-        
-        self.update_with_configuration(configuration)
-        self.coordinates[0].lp = False
 
     @staticmethod
     def rotation_transformation(c, rotation, centroid):
@@ -498,9 +575,6 @@ class Coordinates:
     def fill(self):
         """
         Fills the shape defined by the Coordinate objects with points.
-
-        Args:
-            beam_diameter (float): The diameter of the beam used to fill the shape.
 
         Returns:
             Coordinates: An array of Coordinate objects representing the filled shape.

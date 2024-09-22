@@ -1,9 +1,11 @@
+from Shapes.Shape import Shape
+from Shapes.Line import Line
 from Coordinate import Coordinate, Coordinates
 from tqdm import tqdm
-from CuringCalculations import CuringCalculations
-import copy
+import math
+from Constants import MINIMUM_DISTANCE_BETWEEN_TWO_LIGHT_BEAMS
 
-class Gradient:
+class Gradient(Shape):
     """
     Represents a gradient shape.
 
@@ -15,14 +17,24 @@ class Gradient:
         is_reversed (bool, optional): Whether the gradient is reversed. Defaults to True.
     """
 
-    def __init__(self, min_stiffness, max_stiffness, beam_diameter, is_horizontal=True, is_reversed=True):
-        self.is_horizontal = is_horizontal
+    def __init__(self, min_stiffness, max_stiffness, height_mm, width_mm, center, beam_diameter, rotation_angle_degrees=None, is_reversed=False):
+        super().__init__(center=center, rotation_angle_degrees=rotation_angle_degrees, beam_diameter=beam_diameter, uses_step_coordinates=False, filled=False, stiffness=0)
         self.min_stiffness = min_stiffness
         self.max_stiffness = max_stiffness
         self.is_reversed = is_reversed
-        self.beam_diameter = beam_diameter
+        self.height = height_mm
+        self.width = width_mm
 
     def get_coordinates(self):
+        coordinates =  self.__line_coordinates__()
+
+        # if coordinates:
+        #     configuration = CuringCalculations().get_configuration(self.stiffness, self.beam_diameter)
+        #     coordinates.normalize(center=self.center, rotation=self.rotation_angle_degrees, configuration=configuration)
+        
+        return coordinates
+
+    def __line_coordinates__(self):
         """
         Generates the coordinates for the gradient shape.
 
@@ -30,37 +42,26 @@ class Gradient:
             Coordinates: The generated coordinates.
         """
         coordinates = Coordinates()
-        le = -5
-        r = 15
-        u = -5
-        d = 15
-        curing_calculations = CuringCalculations()
-        iter_range = range(0, int(d * (1 / self.beam_diameter)) + 1, int(self.beam_diameter * (1 / self.beam_diameter)))
-        stiffness_step = float(self.max_stiffness - self.min_stiffness)/(len(iter_range)*2)
+        x_bounds = (self.center.x - (self.width / 2) + (self.beam_diameter / 2), self.center.x + (self.width / 2) + (self.beam_diameter / 2))
+        normalized_beam_diameter = self.beam_diameter - (self.beam_diameter - MINIMUM_DISTANCE_BETWEEN_TWO_LIGHT_BEAMS)
+        num_lines = math.floor((x_bounds[1] - x_bounds[0]) / normalized_beam_diameter)
+        stiffness_step = float(self.max_stiffness - self.min_stiffness)/float(num_lines - 1)
         cur_s = self.min_stiffness
-        for i in tqdm(iter_range, desc="Getting Coordinates"):
-            i = float(i) / (1 / self.beam_diameter)
-            temp_coords = Coordinates()
-            if self.is_horizontal:
-                temp_coords.append(Coordinate(i, u))
-                temp_coords.append(Coordinate(i, d))
-            else:
-                temp_coords.append(Coordinate(le, i))
-                temp_coords.append(Coordinate(r, i))
-            
-            configuration = curing_calculations.get_configuration(cur_s, self.beam_diameter)
-            temp_coords.update_with_configuration(configuration)
-            for i in temp_coords:
-                print(i)
-            original_coordinates = copy.deepcopy(temp_coords)
-            while configuration.iterations > 1:
-                temp_coords += original_coordinates
-                configuration.iterations -= 1
-            
+
+        if self.is_reversed:
+            stiffness_step *= -1
+            cur_s = self.max_stiffness
+        
+        i = x_bounds[0] + (self.beam_diameter / 2)
+        for _ in tqdm(range(num_lines), desc="Getting Coordinates"):
+            temp_coords = Line(self.height, cur_s, center=Coordinate(i, self.center.y), rotation_angle_degrees=0, beam_diameter=self.beam_diameter).get_coordinates()
             temp_coords[0].lp = False
             coordinates += temp_coords
             cur_s += stiffness_step
 
+            i += normalized_beam_diameter
+        
+        coordinates.rotate_coordinates(self.center, self.rotation_angle_degrees)
         
         # if self.is_reversed:
         #     coordinates.coordinates.reverse()
