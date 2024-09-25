@@ -1,5 +1,4 @@
 from PIL import Image, ImageDraw
-import numpy as np
 from tqdm import tqdm
 
 
@@ -134,4 +133,21 @@ class Canvas:
                 draw.point((x, y), fill=(red, 0, 0, int(pixel_color.alpha)))
 
         new.show()
+
+    def draw_binarized(self):
+        """
+        Binarizes the pixels on the canvas.
+        """
+        new = Image.new(mode="RGBA", size=(len(self.pixels), len(self.pixels)), color=(0, 0, 0, 0))
+        draw = ImageDraw.Draw(new)
+        for x in tqdm(range(len(self.pixels) - 1), desc="Drawing on Canvas"):
+            for y in range(len(self.pixels) - 1):
+                pixel_color = self.pixels[x][y]
+                red = 0
+                if pixel_color.alpha > 0:
+                    red = 256
+                draw.point((x, y), fill=(red, 0, 0, 256))
+
+        new.show()
+        
 
