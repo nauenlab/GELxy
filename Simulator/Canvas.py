@@ -130,7 +130,7 @@ class Canvas:
                 red = 0
                 if pixel_color.alpha > 0:
                     red = 256
-                draw.point((x, y), fill=(red, 0, 0, int(pixel_color.alpha)))
+                draw.point((x, len(self.pixels)-y), fill=(red, 0, 0, int(pixel_color.alpha)))
 
         new.show()
 
@@ -146,7 +146,7 @@ class Canvas:
                 red = 0
                 if pixel_color.alpha > 0:
                     red = 256
-                draw.point((x, y), fill=(red, 0, 0, 256))
+                draw.point((x, len(self.pixels)-y), fill=(red, 0, 0, 256))
 
         new.show()
         
