@@ -1,22 +1,30 @@
 import multiprocessing
 import time
+import uuid
 
 MAXIMUM_PARALLEL_PROCESSES = 10
 
 class Multiprocessor:
     def get_coordinate_sets(self, shapes):
-        coordinate_sets = multiprocessing.Manager().list()
+        coordinate_sets = multiprocessing.Manager().dict()
         processes = []
+        shape_ids = []
         for shape in shapes:
-            processes.append(multiprocessing.Process(target=self.append_coordinates, args=(shape, coordinate_sets)))
+            shape_id = uuid.uuid4()
+            shape_ids.append(shape_id)
+            processes.append(multiprocessing.Process(target=self.append_coordinates, args=(shape, shape_id, coordinate_sets)))
 
         self.handle_processes(processes)
+
+        coordinate_sets_in_order = []
+        for shape_id in shape_ids:
+            coordinate_sets_in_order.append(coordinate_sets[shape_id])
         
-        return coordinate_sets
+        return coordinate_sets_in_order
     
     @staticmethod
-    def append_coordinates(shape, coordinates):
-        coordinates.append(shape.get_coordinates())
+    def append_coordinates(shape, shape_id, coordinates):
+        coordinates[shape_id] = shape.get_coordinates()
 
     
     def handle_processes(self, processes):
