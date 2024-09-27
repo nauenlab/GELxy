@@ -42,6 +42,6 @@ class EstimatedCompletionTime:
             prev = i
         
         # offset for downtime between movements
-        seconds += len(self.coordinates) * 0.2
+        seconds += len(self.coordinates) * 0.205
 
         return seconds

@@ -2,7 +2,7 @@
 ACCELERATION = 4.0 # mm/s^2
 
 # This is a changable constant based on the beam diameter
-BEAM_DIAMETER = 0.5 # mm
+BEAM_DIAMETER = 0.45 # mm
 
 # This is the physical bounds that the motor actuators can travel
 MOTOR_MAX_TRAVEL = 25 # mm
