@@ -107,7 +107,8 @@ class VirtualMotor:
         Returns:
             float: The change in position at the given time.
         """
-        v = MAXIMUM_VELOCITY * 1000 if is_lamp_off else self.max_velocity # MAXIMUM_VELOCITY * 1000 is a hack to make the virtual motor move faster becauase is wastes computation otherwise!
+        # MAXIMUM_VELOCITY * 1000 is a hack to make the virtual motor move faster becauase is wastes computation otherwise!
+        v = MAXIMUM_VELOCITY * 1000 if is_lamp_off else self.max_velocity
         a = ACCELERATION if is_lamp_off else self.acceleration
 
         max_time = v / a

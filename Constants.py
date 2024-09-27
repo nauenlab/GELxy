@@ -14,7 +14,7 @@ LIGHT_WAVELENGTH = 445 # nm
 MINIMUM_VELOCITY = 0.05 # mm/s
 
 # Using Thorlabs documentation, this is the maximum valocity of the motors before the speed becomes unpredictable
-MAXIMUM_VELOCITY = 2.3 # mm/s
+MAXIMUM_VELOCITY = 0.5 # mm/s
 
 # This is the physical lower bound of the lamp
 MINIMUM_CURRENT = 0.1 # mA
@@ -27,7 +27,8 @@ DEFAULT_CURRENT = 100 # mA
 
 # This value represents the minimum distance that the centers of 2 light beams can be separated. 
 # See this desmos graph for more information on how this constant is calculated: https://www.desmos.com/calculator/1bskxyy722
-MINIMUM_DISTANCE_BETWEEN_TWO_LIGHT_BEAMS = (BEAM_DIAMETER / 2) * (0.416146836547 + 1) # mm
+import math
+MINIMUM_DISTANCE_BETWEEN_TWO_LIGHT_BEAMS = (BEAM_DIAMETER / 2) * (1 - math.cos(2)) # mm
 
 # Change this value to increase the quality of the canvas drawings. Enter a value between 0.1 and 10. A higher quality will increase the time it takes to render the canvas.
-CANVAS_QUALITY = 1
+CANVAS_QUALITY = 2

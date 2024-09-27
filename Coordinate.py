@@ -339,7 +339,6 @@ class Coordinates:
                     curr.x = prev.x
                 elif vx >= MAXIMUM_VELOCITY:
                     curr.y = prev.y
-
                 
                 step_time = min_distance / MINIMUM_VELOCITY
                 vx, vy = prev.get_vmax(to=curr, time=step_time)

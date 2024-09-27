@@ -7,7 +7,7 @@ from Coordinate import Coordinate, Coordinates
 from Constants import *
 from tqdm import tqdm
 from Multiprocessor import Multiprocessor
-from Simulator.EstimatedCompletionTime import EstimatedCompletionTime
+from EstimatedCompletionTime import EstimatedCompletionTime
 
 ### INSTRUCTIONS
 ### STEP 1: Connect the motors and LED to the computer using USB cables.
