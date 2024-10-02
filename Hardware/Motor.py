@@ -99,14 +99,14 @@ class Motor:
         self.device.SetHomingVelocity(Decimal(2.6))
         self.device.Home(50000)
 
-    def set_params(self, vmax):
+    def set_params(self, velocity):
         """
         Sets the velocity parameters of the motor.
 
         Args:
-            vmax (float): The maximum velocity value in mm/s.
+            velocity (float): The maximum velocity value in mm/s.
         """
-        self.set_velocity_params(max_velocity=vmax)
+        self.set_velocity_params(max_velocity=velocity)
 
     def set_velocity_params(self, acceleration=None, max_velocity=None):
         """

@@ -13,7 +13,7 @@ class VirtualMotor:
         position (float): The current position of the motor.
 
     Methods:
-        set_params(self, vmax): Sets the maximum velocity of the motor.
+        set_params(self, velocity): Sets the maximum velocity of the motor.
         get_movements(self, new_position, is_lamp_off): Calculates the movements required to reach a new position.
         get_movement_time(self, d, is_lamp_off): Calculates the time required to move a certain distance.
         get_position_change_at(self, t, is_lamp_off): Calculates the change in position at a given time.
@@ -41,14 +41,14 @@ class VirtualMotor:
         """
         pass
 
-    def set_params(self, vmax):
+    def set_params(self, velocity):
         """
         Sets the maximum velocity of the motor.
 
         Args:
-            vmax (float): The maximum velocity of the motor.
+            velocity (float): The maximum velocity of the motor.
         """
-        self.max_velocity = vmax
+        self.max_velocity = velocity
 
     def get_movements(self, new_position, is_lamp_off):
         """

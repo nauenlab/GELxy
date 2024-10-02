@@ -4,7 +4,7 @@ from tqdm import tqdm
 import copy
 from shapely.geometry import Polygon
 from shapely.geometry.polygon import orient
-from Constants import MOTOR_MAX_TRAVEL, MINIMUM_VELOCITY, MAXIMUM_VELOCITY, MINIMUM_DISTANCE_BETWEEN_TWO_LIGHT_BEAMS
+from Constants import MOTOR_MAX_TRAVEL, MINIMUM_VELOCITY, MAXIMUM_VELOCITY, ACCELERATION, MINIMUM_DISTANCE_BETWEEN_TWO_LIGHT_BEAMS
 from CuringCalculations import curing_calculations, Configuration
 
 
@@ -27,7 +27,7 @@ class Coordinate:
         self.a = None
         self.lp = True
 
-    def get_vmax(self, to, time):
+    def get_velocity(self, to, time):
         """
         Calculates the maximum velocity for a movement from this coordinate to another coordinate within a given time.
 
@@ -40,10 +40,39 @@ class Coordinate:
         """
         xi, yi = self.x, self.y
         xf, yf = to.x, to.y
-        return self.__calculate_vmax__(xi, xf, time), self.__calculate_vmax__(yi, yf, time)
+        return self.__calculate_velocity__(xi, xf, time), self.__calculate_velocity__(yi, yf, time)
+    
+    def movement_time(self, to):
+        """
+        Calculates the time required to move from this coordinate to another coordinate with a given velocity.
+
+        Args:
+            _from (Coordinate): The starting coordinate.
+            to (Coordinate): The destination coordinate.
+
+        Returns:
+            float: The time duration for the movement.
+        """
+        x_velocity, y_velocity = to.v if to.v else (MAXIMUM_VELOCITY, MAXIMUM_VELOCITY)
+        xi, yi = self.x, self.y
+        xf, yf = to.x, to.y
+        
+        v = 0
+        if x_velocity != 0:
+            d = math.fabs(xf - xi)
+            v = x_velocity
+        if y_velocity != 0:
+            d = math.fabs(yf - yi) 
+            v = y_velocity
+            
+        return self.__calculate_movement_time__(v, d)
+    
+    @staticmethod
+    def __calculate_movement_time__(v, d):
+        return (v**2 + 2 * ACCELERATION * d) / (2 * ACCELERATION * v)
 
     @staticmethod
-    def __calculate_vmax__(i, f, t):
+    def __calculate_velocity__(i, f, t):
         """
         Calculates the maximum velocity for a movement from a starting position to a final position within a given time.
 
@@ -340,8 +369,9 @@ class Coordinates:
                 elif vx >= MAXIMUM_VELOCITY:
                     curr.y = prev.y
                 
-                step_time = min_distance / MINIMUM_VELOCITY
-                vx, vy = prev.get_vmax(to=curr, time=step_time)
+                # step_time = min_distance / MINIMUM_VELOCITY
+                step_time = Coordinate.__calculate_movement_time__(MINIMUM_VELOCITY, min_distance)
+                vx, vy = prev.get_velocity(to=curr, time=step_time)
 
             configuration.append(curing_calculations.get_resolved_configuration_from_velocities(vx, vy, stiffness, configuration, beam_diameter_mm))
 
