@@ -92,7 +92,7 @@ class Controller:
             self.manager.move(coordinates[0])
             print("First coordinate reached. Please adjust stage as needed.")
             lamp_on = input("Would you like to turn the lamp on to 1 mA for calibration? (y/n):")
-            if lamp_on:
+            if lamp_on == "y":
                 self.manager.lamp.turn_on(0.001)
             
             input("Press any key to continue.")
