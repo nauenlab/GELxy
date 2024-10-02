@@ -1,5 +1,6 @@
 import math
 from Constants import MAXIMUM_VELOCITY, ACCELERATION
+from decimal import Decimal
 
 
 class VirtualMotor:
@@ -10,7 +11,7 @@ class VirtualMotor:
         serial_number (str): The serial number of the motor.
         acceleration (float): The acceleration of the motor.
         max_velocity (float): The maximum velocity of the motor.
-        position (float): The current position of the motor.
+        position (Decimal): The current position of the motor.
 
     Methods:
         set_params(self, velocity): Sets the maximum velocity of the motor.
@@ -29,11 +30,11 @@ class VirtualMotor:
             acceleration (float, optional): The acceleration of the motor.
             max_velocity (float, optional): The maximum velocity of the motor.
         """
-        self.time_step = time_step
+        self.time_step = Decimal(time_step)
         self.serial_number = serial_no
         self.acceleration = acceleration if acceleration else ACCELERATION
         self.max_velocity = max_velocity if max_velocity else MAXIMUM_VELOCITY
-        self.position = 0.0
+        self.position = Decimal(0.0)
         
     def __del__(self):
         """
@@ -62,7 +63,7 @@ class VirtualMotor:
             list: A list of positions representing the movements required to reach the new position.
         """
         movements = []
-        ti = 0
+        ti = Decimal(0.0)
         distance = new_position - self.position
         tf = self.get_movement_time(math.fabs(distance), is_lamp_off)
         while ti - self.time_step <= tf:
@@ -101,15 +102,15 @@ class VirtualMotor:
         Calculates the change in position at a given time.
 
         Args:
-            t (float): The time.
+            t (Decimal): The time.
             is_lamp_off (bool): Indicates if the lamp is off.
 
         Returns:
-            float: The change in position at the given time.
+            Decimal: The change in position at the given time.
         """
         # MAXIMUM_VELOCITY * 1000 is a hack to make the virtual motor move faster becauase is wastes computation otherwise!
-        v = MAXIMUM_VELOCITY * 1000 if is_lamp_off else self.max_velocity
-        a = ACCELERATION if is_lamp_off else self.acceleration
+        v = Decimal(MAXIMUM_VELOCITY * 1000 if is_lamp_off else self.max_velocity)
+        a = Decimal(ACCELERATION if is_lamp_off else self.acceleration)
 
         max_time = v / a
         if t < max_time:
@@ -130,7 +131,7 @@ class VirtualMotor:
         """
         original_position = self.position
         distance = final_position - self.position
-        current_time = 0
+        current_time = Decimal(0.0)
 
         while math.fabs(self.position - original_position) < math.fabs(distance):
             current_time += self.time_step

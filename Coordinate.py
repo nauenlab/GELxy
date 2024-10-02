@@ -6,7 +6,9 @@ from shapely.geometry import Polygon
 from shapely.geometry.polygon import orient
 from Constants import MOTOR_MAX_TRAVEL, MINIMUM_VELOCITY, MAXIMUM_VELOCITY, ACCELERATION, MINIMUM_DISTANCE_BETWEEN_TWO_LIGHT_BEAMS
 from CuringCalculations import curing_calculations, Configuration
+from decimal import Decimal, getcontext
 
+getcontext().prec = 10
 
 class Coordinate:
     """
@@ -21,8 +23,8 @@ class Coordinate:
             x (float): The x-coordinate value.
             y (float): The y-coordinate value.
         """
-        self.x = x
-        self.y = y
+        self.x = Decimal(x)
+        self.y = Decimal(y)
         self.v = None
         self.a = None
         self.lp = True
@@ -33,14 +35,14 @@ class Coordinate:
 
         Args:
             to (Coordinate): The destination coordinate.
-            time (float): The time duration for the movement.
+            time (Decimal): The time duration for the movement.
 
         Returns:
             tuple: A tuple containing the maximum velocity in the x-direction and y-direction.
         """
         xi, yi = self.x, self.y
         xf, yf = to.x, to.y
-        return self.__calculate_velocity__(xi, xf, time), self.__calculate_velocity__(yi, yf, time)
+        return float(self.__calculate_velocity__(xi, xf, time)), float(self.__calculate_velocity__(yi, yf, time))
     
     def movement_time(self, to):
         """
@@ -65,11 +67,24 @@ class Coordinate:
             d = math.fabs(yf - yi) 
             v = y_velocity
             
-        return self.__calculate_movement_time__(v, d)
+        return float(self.__calculate_movement_time__(Decimal(v), Decimal(d)))
     
     @staticmethod
     def __calculate_movement_time__(v, d):
-        return (v**2 + 2 * ACCELERATION * d) / (2 * ACCELERATION * v)
+        """
+        Calculates the time required to move a distance with a given velocity.
+        
+        Args:
+            v (Decimal): The velocity.
+            d (Decimal): The distance to move.
+            
+        Returns:
+            Decimal: The time required to move the distance.
+        """
+        if d <= v**2/(2*v):
+            return (2*d/Decimal(ACCELERATION)).sqrt()
+        else:
+            return (d/v) + (v/(2*Decimal(ACCELERATION)))
 
     @staticmethod
     def __calculate_velocity__(i, f, t):
@@ -77,19 +92,19 @@ class Coordinate:
         Calculates the maximum velocity for a movement from a starting position to a final position within a given time.
 
         Args:
-            i (float): The initial position.
-            f (float): The final position.
-            t (float): The time duration for the movement.
+            i (Decimal): The initial position.
+            f (Decimal): The final position.
+            t (Decimal): The time duration for the movement.
 
         Returns:
             float: The maximum velocity.
         """
-        d = math.fabs(f - i)
-        a = 4.0
+        d = (f - i).__abs__()
+        a = Decimal(ACCELERATION)
         try:
-            pvf = a * t - a * (math.sqrt(t ** 2 - ((2 * d) / a)))
+            pvf = a * t - a * (t ** 2 - ((2 * d) / a)).sqrt()
         except ValueError:
-            pvf = MAXIMUM_VELOCITY
+            pvf = Decimal(MAXIMUM_VELOCITY)
         
         return pvf
 
@@ -362,15 +377,18 @@ class Coordinates:
                 continue
             
             vx, vy = -1, -1
-            while not ((MAXIMUM_VELOCITY >= vx >= MINIMUM_VELOCITY or vx == 0.0) and (MAXIMUM_VELOCITY >= vy >= MINIMUM_VELOCITY or vy == 0.0)):
-                min_distance = min([i for i in [abs(prev.x - curr.x), abs(prev.y - curr.y)] if i != 0])
+            while not ((MINIMUM_VELOCITY <= vx <= MAXIMUM_VELOCITY or vx == 0.0) and (MINIMUM_VELOCITY <= vy <= MAXIMUM_VELOCITY or vy == 0.0)):
+                diff_x = (prev.x - curr.x).__abs__()
+                diff_y = (prev.y - curr.y).__abs__()
+                distances = [i for i in [diff_x, diff_y] if i != 0]
+                min_distance = min(distances)
+                
                 if vy >= MAXIMUM_VELOCITY:
                     curr.x = prev.x
                 elif vx >= MAXIMUM_VELOCITY:
                     curr.y = prev.y
                 
-                # step_time = min_distance / MINIMUM_VELOCITY
-                step_time = Coordinate.__calculate_movement_time__(MINIMUM_VELOCITY, min_distance)
+                step_time = Coordinate.__calculate_movement_time__(Decimal(MINIMUM_VELOCITY), min_distance)
                 vx, vy = prev.get_velocity(to=curr, time=step_time)
 
             configuration.append(curing_calculations.get_resolved_configuration_from_velocities(vx, vy, stiffness, configuration, beam_diameter_mm))
@@ -480,8 +498,8 @@ class Coordinates:
         delta_x = c.x - centroid.x
         delta_y = c.y - centroid.y
         rotation = math.radians(rotation)
-        cos_theta = math.cos(rotation)
-        sin_theta = math.sin(rotation)
+        cos_theta = Decimal(math.cos(rotation))
+        sin_theta = Decimal(math.sin(rotation))
 
         new_x = delta_x * cos_theta - delta_y * sin_theta + centroid.x
         new_y = delta_x * sin_theta + delta_y * cos_theta + centroid.y
@@ -527,7 +545,7 @@ class Coordinates:
         delta_x = c2.x - c1.x
         delta_y = c2.y - c1.y
 
-        return math.sqrt(delta_x ** 2 + delta_y ** 2)
+        return (delta_x ** 2 + delta_y ** 2).sqrt()
     
     def is_inside_polygon(self, point):
         """
