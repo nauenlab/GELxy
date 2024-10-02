@@ -31,37 +31,37 @@ class Controller:
         center_coordinate = Coordinate(4.38134, 11.82782)
         
         # Rectangle
-        shapes.append(Rectangle.Rectangle(width_mm=5, height_mm=3, stiffness=10000, center=center_coordinate, rotation_angle=0, beam_diameter=BEAM_DIAMETER, uses_step_coordinates=True, filled=True))
+        shapes.append(Rectangle.Rectangle(width_mm=5, height_mm=3, stiffness=10000, center=center_coordinate, rotation_angle_degrees=0, beam_diameter=BEAM_DIAMETER, uses_step_coordinates=True, filled=True))
         
         # Square
-        # shapes.append(Square.Square(side_length_mm=2, stiffness=10, center=center_coordinate, rotation_angle=0, beam_diameter=BEAM_DIAMETER, uses_step_coordinates=True, filled=False))
+        # shapes.append(Square.Square(side_length_mm=2, stiffness=10, center=center_coordinate, rotation_angle_degrees=0, beam_diameter=BEAM_DIAMETER, uses_step_coordinates=True, filled=False))
         
         # Equilateral Triangle
-        # shapes.append(EquilateralTriangle.EquilateralTriangle(side_length_mm=2, stiffness=10, center=center_coordinate, rotation_angle=0, beam_diameter=BEAM_DIAMETER, uses_step_coordinates=True, filled=False))
+        # shapes.append(EquilateralTriangle.EquilateralTriangle(side_length_mm=2, stiffness=10, center=center_coordinate, rotation_angle_degrees=0, beam_diameter=BEAM_DIAMETER, uses_step_coordinates=True, filled=False))
         
         # Triangle
-        # shapes.append(Triangle.Triangle(width_mm=2, height_mm=2.5980762114, stiffness=10000, center=center_coordinate, rotation_angle=0, beam_diameter=BEAM_DIAMETER, uses_step_coordinates=True, filled=True))
+        # shapes.append(Triangle.Triangle(width_mm=2, height_mm=2.5980762114, stiffness=10000, center=center_coordinate, rotation_angle_degrees=0, beam_diameter=BEAM_DIAMETER, uses_step_coordinates=True, filled=True))
         
         # Line
-        # shapes.append(Line.Line(length_mm=5, stiffness=2000, center=center_coordinate, rotation_angle=0, beam_diameter=BEAM_DIAMETER, uses_step_coordinates=True))
+        # shapes.append(Line.Line(length_mm=5, stiffness=2000, center=center_coordinate, rotation_angle_degrees=0, beam_diameter=BEAM_DIAMETER, uses_step_coordinates=True))
         
         # Oval
-        # shapes.append(Oval.Oval(width_mm=2, height_mm=3, stiffness=10000, center=center_coordinate, rotation_angle=0, beam_diameter=BEAM_DIAMETER, filled=True))
+        # shapes.append(Oval.Oval(width_mm=2, height_mm=3, stiffness=10000, center=center_coordinate, rotation_angle_degrees=0, beam_diameter=BEAM_DIAMETER, filled=True))
         
         # Circle
         # shapes.append(Circle.Circle(diameter_mm=2, stiffness=10, center=center_coordinate, beam_diameter=BEAM_DIAMETER, filled=False))
         
         # Sine Wave
-        # shapes.append(SineWave.SineWave(amplitude_mm=1, cycles=5, cycles_per_mm=0.5, stiffness=10, cycle_offset=0, center=center_coordinate, rotation_angle=0, beam_diameter=BEAM_DIAMETER))
+        # shapes.append(SineWave.SineWave(amplitude_mm=1, cycles=5, cycles_per_mm=0.5, stiffness=10, cycle_offset=0, center=center_coordinate, rotation_angle_degrees=0, beam_diameter=BEAM_DIAMETER))
         
         # Gradient
         # shapes.append(Gradient.Gradient(min_stiffness=5, max_stiffness=10, beam_diameter=BEAM_DIAMETER, is_horizontal=False, is_reversed=True))
         
         # Custom Pattern
-        # shapes.append(EdgeDetection.EdgeDetection(img_file="test_images/2.jpg", stiffness=10, center=center_coordinate, rotation_angle=0, scale_factor=0.4, beam_diameter=BEAM_DIAMETER))
+        # shapes.append(EdgeDetection.EdgeDetection(img_file="test_images/2.jpg", stiffness=10, center=center_coordinate, rotation_angle_degrees=0, scale_factor=0.4, beam_diameter=BEAM_DIAMETER))
         
         # Texture
-        # texture_shape = EquilateralTriangle.EquilateralTriangle(side_length_mm=1, stiffness=1, center=None, rotation_angle=0, beam_diameter=BEAM_DIAMETER, uses_step_coordinates=False, filled=False)
+        # texture_shape = EquilateralTriangle.EquilateralTriangle(side_length_mm=1, stiffness=1, center=None, rotation_angle_degrees=0, beam_diameter=BEAM_DIAMETER, uses_step_coordinates=False, filled=False)
         # shapes.append(Texture.Texture(shape=texture_shape, center=center_coordinate, rows=None, columns=None, spacing_mm=1.5, margins=11))
 
         # Common Patterns
