@@ -4,6 +4,7 @@ from Coordinate import Coordinate, Coordinates
 from tqdm import tqdm
 import math
 from Constants import MINIMUM_DISTANCE_BETWEEN_TWO_LIGHT_BEAMS
+from decimal import Decimal
 
 class Gradient(Shape):
     """
@@ -33,8 +34,11 @@ class Gradient(Shape):
             Coordinates: The generated coordinates.
         """
         coordinates = Coordinates()
-        x_bounds = (self.center.x - (self.width / 2) + (self.beam_diameter / 2), self.center.x + (self.width / 2) + (self.beam_diameter / 2))
-        normalized_beam_diameter = self.beam_diameter - (self.beam_diameter - MINIMUM_DISTANCE_BETWEEN_TWO_LIGHT_BEAMS)
+        w = Decimal(self.width)
+        h = Decimal(self.height)
+        b = Decimal(self.beam_diameter)
+        x_bounds = (self.center.x - (w / 2) + (b / 2), self.center.x + (w / 2) + (b / 2))
+        normalized_beam_diameter = b - (b - Decimal(MINIMUM_DISTANCE_BETWEEN_TWO_LIGHT_BEAMS))
         num_lines = math.floor((x_bounds[1] - x_bounds[0]) / normalized_beam_diameter)
         stiffness_step = float(self.max_stiffness - self.min_stiffness)/float(num_lines - 1)
         cur_s = self.min_stiffness
@@ -43,9 +47,9 @@ class Gradient(Shape):
             stiffness_step *= -1
             cur_s = self.max_stiffness
         
-        i = x_bounds[0] + (self.beam_diameter / 2)
+        i = x_bounds[0] + (b / 2)
         for _ in tqdm(range(num_lines), desc="Getting Coordinates"):
-            temp_coords = Line(self.height, cur_s, center=Coordinate(i, self.center.y), rotation_angle_degrees=0, beam_diameter=self.beam_diameter).get_coordinates()
+            temp_coords = Line(h, cur_s, center=Coordinate(i, self.center.y), rotation_angle_degrees=0, beam_diameter=self.beam_diameter).get_coordinates()
             temp_coords[0].lp = False
             coordinates += temp_coords
             cur_s += stiffness_step

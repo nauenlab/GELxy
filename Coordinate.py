@@ -6,7 +6,7 @@ from shapely.geometry import Polygon
 from shapely.geometry.polygon import orient
 from Constants import MOTOR_MAX_TRAVEL, MINIMUM_VELOCITY, MAXIMUM_VELOCITY, ACCELERATION, MINIMUM_DISTANCE_BETWEEN_TWO_LIGHT_BEAMS
 from CuringCalculations import curing_calculations, Configuration
-from decimal import Decimal, getcontext
+from decimal import Decimal, getcontext, InvalidOperation
 
 getcontext().prec = 10
 
@@ -103,7 +103,7 @@ class Coordinate:
         a = Decimal(ACCELERATION)
         try:
             pvf = a * t - a * (t ** 2 - ((2 * d) / a)).sqrt()
-        except ValueError:
+        except InvalidOperation:
             pvf = Decimal(MAXIMUM_VELOCITY)
         
         return pvf
