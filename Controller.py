@@ -87,7 +87,16 @@ class Controller:
             # Sets up the actual motors and LED
             self.manager = Manager(serial_number_x=X_MOTOR_SERIAL_NUMBER, serial_number_y=Y_MOTOR_SERIAL_NUMBER, lamp_serial_number=LAMP_SERIAL_NUMBER, acceleration=ACCELERATION, max_velocity=MAXIMUM_VELOCITY)
         
-        print("Moving Motors")
+        if not IS_VIRTUAL:
+            print("Going to first Coordinate")
+            self.manager.move(coordinates[0])
+            print("First coordinate reached. Please adjust stage as needed.")
+            lamp_on = input("Would you like to turn the lamp on to 1 mA for calibration? (y/n):")
+            if lamp_on:
+                self.manager.lamp.turn_on(0.001)
+            
+            input("Press any key to continue.")
+
         for coordinate in tqdm(coordinates, desc="Moving Motors", unit="coordinate"):
             self.manager.move(coordinate)
 
