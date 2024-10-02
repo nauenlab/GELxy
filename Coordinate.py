@@ -378,11 +378,7 @@ class Coordinates:
             
             vx, vy = -1, -1
             while not ((MINIMUM_VELOCITY <= vx <= MAXIMUM_VELOCITY or vx == 0.0) and (MINIMUM_VELOCITY <= vy <= MAXIMUM_VELOCITY or vy == 0.0)):
-                diff_x = (prev.x - curr.x).__abs__()
-                diff_y = (prev.y - curr.y).__abs__()
-                distances = [i for i in [diff_x, diff_y] if i != 0]
-                min_distance = min(distances)
-                
+                min_distance = min([i for i in [(prev.x - curr.x).__abs__(), (prev.y - curr.y).__abs__()] if i != 0])
                 if vy >= MAXIMUM_VELOCITY:
                     curr.x = prev.x
                 elif vx >= MAXIMUM_VELOCITY:
