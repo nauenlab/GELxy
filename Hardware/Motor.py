@@ -134,7 +134,7 @@ class Motor:
         # To make more accurate, reduce the polling frequency in the initializer
 
         motor_position = self.device.Position
-        relative_movement = Decimal(absolute_position) - motor_position
+        relative_movement = Decimal(float(absolute_position)) - motor_position
 
         zero = Decimal(0)
         movement_expected = True
@@ -167,10 +167,10 @@ class Motor:
         Moves the motor to the specified absolute position.
 
         Args:
-            absolute_position (float): The absolute position to move the motor to in mm.
+            absolute_position (Decimal): The absolute position to move the motor to in mm.
         """
         self.set_velocity_params(acceleration=ACCELERATION, max_velocity=MAXIMUM_VELOCITY)
-        self.device.MoveTo(Decimal(absolute_position), 30000)
+        self.device.MoveTo(Decimal(float(absolute_position)), 30000)
         self.set_velocity_params(acceleration=self.acceleration, max_velocity=self.max_velocity)
 
 
