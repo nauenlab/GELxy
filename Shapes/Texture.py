@@ -76,9 +76,13 @@ class Texture:
                 args.append(shape_copy)
                 x += 1
 
-            with Pool() as pool:
+            pool = Pool()
+            try:
                 for result in pool.map(self.append_coordinates, args):
                     coordinates += result
+            finally:
+                pool.close()
+                pool.join()
         else:
             x_dist = (bound / self.rows) / 2
             y_dist = (bound / self.rows) / 2
@@ -91,11 +95,15 @@ class Texture:
                     self.shape.center = Coordinate(x, y)
                     shape_copy = copy(self.shape)
                     args.append(shape_copy)
-
-            with Pool() as pool:
+                    
+            pool = Pool()
+            try:
                 for result in pool.map(self.append_coordinates, args):
                     result[0].lp = False
                     coordinates += result
+            finally:
+                pool.close()
+                pool.join()
 
         if self.center:
             centroid = coordinates.get_centroid()

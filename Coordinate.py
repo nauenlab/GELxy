@@ -8,7 +8,7 @@ from Constants import MOTOR_MAX_TRAVEL, MINIMUM_VELOCITY, MAXIMUM_VELOCITY, ACCE
 from CuringCalculations import curing_calculations, Configuration
 from decimal import Decimal, getcontext, InvalidOperation
 
-getcontext().prec = 10
+getcontext().prec = 15
 
 class Coordinate:
     """
@@ -42,7 +42,29 @@ class Coordinate:
         """
         xi, yi = self.x, self.y
         xf, yf = to.x, to.y
-        return float(self.__calculate_velocity__(xi, xf, time)), float(self.__calculate_velocity__(yi, yf, time))
+        return float(self.__calculate_velocity__(xi, xf, time).__round__(10)), float(self.__calculate_velocity__(yi, yf, time).__round__(10))
+    
+    @staticmethod
+    def __calculate_velocity__(i, f, t):
+        """
+        Calculates the maximum velocity for a movement from a starting position to a final position within a given time.
+
+        Args:
+            i (Decimal): The initial position.
+            f (Decimal): The final position.
+            t (Decimal): The time duration for the movement.
+
+        Returns:
+            float: The maximum velocity.
+        """
+        d = (f - i).__abs__()
+        a = Decimal(ACCELERATION)
+        try:
+            pvf = a * t - a * (t ** 2 - ((2 * d) / a)).sqrt()
+        except InvalidOperation:
+            pvf = Decimal(MAXIMUM_VELOCITY)
+        
+        return pvf
     
     def movement_time(self, to):
         """
@@ -85,28 +107,6 @@ class Coordinate:
             return (2*d/Decimal(ACCELERATION)).sqrt()
         else:
             return (d/v) + (v/(2*Decimal(ACCELERATION)))
-
-    @staticmethod
-    def __calculate_velocity__(i, f, t):
-        """
-        Calculates the maximum velocity for a movement from a starting position to a final position within a given time.
-
-        Args:
-            i (Decimal): The initial position.
-            f (Decimal): The final position.
-            t (Decimal): The time duration for the movement.
-
-        Returns:
-            float: The maximum velocity.
-        """
-        d = (f - i).__abs__()
-        a = Decimal(ACCELERATION)
-        try:
-            pvf = a * t - a * (t ** 2 - ((2 * d) / a)).sqrt()
-        except InvalidOperation:
-            pvf = Decimal(MAXIMUM_VELOCITY)
-        
-        return pvf
 
     def __str__(self):
         """
@@ -378,16 +378,16 @@ class Coordinates:
             
             vx, vy = -1, -1
             while not ((MINIMUM_VELOCITY <= vx <= MAXIMUM_VELOCITY or vx == 0.0) and (MINIMUM_VELOCITY <= vy <= MAXIMUM_VELOCITY or vy == 0.0)):
-                min_distance = min([i for i in [(prev.x - curr.x).__abs__(), (prev.y - curr.y).__abs__()] if i != 0])
                 if vy >= MAXIMUM_VELOCITY:
                     curr.x = prev.x
                 elif vx >= MAXIMUM_VELOCITY:
                     curr.y = prev.y
-                
+
+                min_distance = min([i for i in [(prev.x - curr.x).__abs__(), (prev.y - curr.y).__abs__()] if i != 0])
                 step_time = Coordinate.__calculate_movement_time__(Decimal(MINIMUM_VELOCITY), min_distance)
                 vx, vy = prev.get_velocity(to=curr, time=step_time)
 
-            configuration.append(curing_calculations.get_resolved_configuration_from_velocities(vx, vy, stiffness, configuration, beam_diameter_mm))
+            configuration.append(curing_calculations.get_resolved_configuration_from_velocities(vx, vy, stiffness, beam_diameter_mm))
 
             velocities.append((vx, vy))
             resolved_coordinates.append(curr)
@@ -518,7 +518,7 @@ class Coordinates:
 
         l_coords = len(self)
         for (i, c) in enumerate(self):
-            if i + 1 == l_coords and closed:
+            if not c.lp or (i + 1 == l_coords and closed):
                 l_coords -= 1
                 continue
             sum_x += c.x
@@ -607,7 +607,7 @@ class Coordinates:
 
         return inside
 
-    def fill(self):
+    def fill(self, uses_step_coordinates=False):
         """
         Fills the shape defined by the Coordinate objects with points.
 
@@ -643,9 +643,39 @@ class Coordinates:
                 c = Coordinate(xi, yi)
                 c.lp = (i != 0)
                 points.append(c)
+        
+        if uses_step_coordinates:
+            points = points.fill_line_segments()
 
         return points
     
+    def fill_line_segments(self):
+        """
+        Fills the shape defined by the Coordinate objects with points using step coordinates.
+
+        Returns:
+            Coordinates: An array of Coordinate objects representing the filled line segments.
+        """
+        filled_coords = Coordinates()
+        resolution = 0.005
+
+        for i in range(len(self) - 1):
+            start_point = self[i]
+            end_point = self[i + 1]
+            num_points = int(self.distance(start_point, end_point) * Decimal(1 / resolution)) + 1
+            for j in range(1, num_points):
+                t = Decimal(j / (num_points - 1))
+                x = start_point.x + t * (end_point.x - start_point.x)
+                y = start_point.y + t * (end_point.y - start_point.y)
+                new_coord = Coordinate(x, y)
+                new_coord.lp = end_point.lp
+                if abs(new_coord.x - end_point.x) < resolution and abs(new_coord.y - end_point.y) < resolution:
+                    filled_coords.append_if_no_duplicate(end_point)
+                    continue
+
+                filled_coords.append_if_far_enough(new_coord)
+        
+        return filled_coords
 
     @staticmethod
     def calculate_intersection_with_slope(p1, p2, border):

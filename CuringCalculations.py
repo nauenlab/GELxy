@@ -152,7 +152,7 @@ class CuringCalculations:
 
         return configuration
     
-    def get_resolved_configuration_from_velocities(self, vx, vy, stiffness, configuration, beam_diameter_mm):
+    def get_resolved_configuration_from_velocities(self, vx, vy, stiffness, beam_diameter_mm):
         configuration = Configuration(beam_diameter=beam_diameter_mm)
         target_exposure = self.calculate_stiffness_to_photon_ratio(stiffness, self.average_ratio)
         velocity = math.sqrt(vx**2 + vy**2)

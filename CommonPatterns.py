@@ -1,9 +1,5 @@
 import math
-from Shapes.Circle import Circle
-from Shapes.Line import Line
-from Shapes.EquilateralTriangle import EquilateralTriangle
-from Shapes.Square import Square
-from Shapes.Oval import Oval
+from Shapes import *
 from Coordinate import Coordinate
 
 
