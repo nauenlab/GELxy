@@ -377,7 +377,7 @@ class Coordinates:
                 continue
             
             vx, vy = -1, -1
-            while not ((MINIMUM_VELOCITY <= vx < MAXIMUM_VELOCITY or vx == 0.0) and (MINIMUM_VELOCITY <= vy < MAXIMUM_VELOCITY or vy == 0.0)):
+            while not ((MINIMUM_VELOCITY <= vx <= MAXIMUM_VELOCITY or vx == 0.0) and (MINIMUM_VELOCITY <= vy <= MAXIMUM_VELOCITY or vy == 0.0)):
                 if vy >= MAXIMUM_VELOCITY:
                     curr.x = prev.x
                 elif vx >= MAXIMUM_VELOCITY:
@@ -607,7 +607,7 @@ class Coordinates:
 
         return inside
 
-    def fill(self):
+    def fill(self, uses_step_coordinates=False):
         """
         Fills the shape defined by the Coordinate objects with points.
 
@@ -643,9 +643,39 @@ class Coordinates:
                 c = Coordinate(xi, yi)
                 c.lp = (i != 0)
                 points.append(c)
+        
+        if uses_step_coordinates:
+            points = points.fill_line_segments()
 
         return points
     
+    def fill_line_segments(self):
+        """
+        Fills the shape defined by the Coordinate objects with points using step coordinates.
+
+        Returns:
+            Coordinates: An array of Coordinate objects representing the filled line segments.
+        """
+        filled_coords = Coordinates()
+        resolution = 0.005
+
+        for i in range(len(self) - 1):
+            start_point = self[i]
+            end_point = self[i + 1]
+            num_points = int(self.distance(start_point, end_point) * Decimal(1 / resolution)) + 1
+            for j in range(1, num_points):
+                t = Decimal(j / (num_points - 1))
+                x = start_point.x + t * (end_point.x - start_point.x)
+                y = start_point.y + t * (end_point.y - start_point.y)
+                new_coord = Coordinate(x, y)
+                new_coord.lp = end_point.lp
+                if abs(new_coord.x - end_point.x) < resolution and abs(new_coord.y - end_point.y) < resolution:
+                    filled_coords.append_if_no_duplicate(end_point)
+                    continue
+
+                filled_coords.append_if_far_enough(new_coord)
+        
+        return filled_coords
 
     @staticmethod
     def calculate_intersection_with_slope(p1, p2, border):
