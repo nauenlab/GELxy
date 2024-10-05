@@ -365,17 +365,13 @@ class Coordinates:
             beam_diameter_mm (float): The diameter of the beam.
         """
         resolved_coordinates = Coordinates()
+        resolved_coordinates.append(coordinates[0])
         
         # get the resolved configuration for each coordinate
         configuration = [Configuration(beam_diameter=beam_diameter_mm)]
         velocities = [None]
-        prev = None
-        for curr in coordinates:
-            if not prev:
-                prev = copy.deepcopy(curr)
-                resolved_coordinates.append(curr)
-                continue
-            
+        prev = coordinates[0]
+        for curr in coordinates[1:]:
             vx, vy = -1, -1
             while not ((MINIMUM_VELOCITY <= vx <= MAXIMUM_VELOCITY or vx == 0.0) and (MINIMUM_VELOCITY <= vy <= MAXIMUM_VELOCITY or vy == 0.0)):
                 if vy >= MAXIMUM_VELOCITY:
@@ -429,10 +425,12 @@ class Coordinates:
                 else:
                     prev.a = curr.a
                     prev.v = curr.v
+                    prev.lp = curr.lp
                     configuration[i].iterations -= 2
 
                 resolved_coordinates.append(prev)
                 resolved_coordinates.append(curr)
+                
                 last = curr
         
         self.clear()

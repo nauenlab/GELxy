@@ -103,6 +103,8 @@ class EdgeDetection:
             Coordinates: The extracted coordinates.
 
         """
+        import image_processing
+        return image_processing.process(self.img_file)
         coordinates = Coordinates()
         visited = []
 
