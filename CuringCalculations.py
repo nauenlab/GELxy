@@ -168,7 +168,6 @@ class CuringCalculations:
             
             configuration.current = float(current) / 1000.0 # conversion from mA to A
             break
-
         return configuration
 
 curing_calculations = CuringCalculations()
