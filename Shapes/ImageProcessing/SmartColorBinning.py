@@ -74,7 +74,7 @@ def detect_bins_from_histogram(pixels):
     - sigma: Smoothing factor for Gaussian filtering
     - gradient_threshold: The threshold for detecting rapid changes in the gradient of the histogram
     """
-
+    
     # Create the histogram
     hist, bin_edges = np.histogram(pixels, bins=256)
     
@@ -131,10 +131,10 @@ def detect_bins_from_histogram(pixels):
         custom_bins.append(bin_edges[end])
     custom_bins = np.array(custom_bins).astype(int)
     custom_bins = [0] + maximize_distances(custom_bins) + [255]
-    custom_bins = list(sorted(custom_bins))
+    custom_bins = list(sorted(set(custom_bins)))
 
-    print(custom_bins)
-    plot_histogram(bin_edges, hist_sma, smooth_hist, valleys, custom_bins, gradient)
+    print("Bins:", custom_bins)
+    # plot_histogram(bin_edges, hist_sma, smooth_hist, valleys, custom_bins, gradient)
 
     return np.array(custom_bins)
 
@@ -186,11 +186,15 @@ def segment_images(img):
     # assert len(img.shape) == 2 or img.shape[2] == 1, "Image must be grayscale"
     images = {}
     grayscale = True
+    
     if grayscale:
+        max_val = np.max(img)
+        scale = 255 / max_val
         if len(img.shape) == 3:
             gray_img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
-
-        pixels = ((gray_img.flatten() * 256) * 100).astype(int) / 100
+            pixels = ((gray_img.flatten() * scale) * 100).astype(int) / 100
+        else:
+            pixels = ((img.flatten() * scale) * 100).astype(int) / 100
         bin_ranges = detect_bins_from_histogram(pixels)
         
         pixel_colors = []
@@ -208,7 +212,10 @@ def segment_images(img):
             # plt.show()
     else:
         image = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
-        pixels = image.reshape(-1, 3) * 256
+        max_val = np.max(img)
+        scale = 255 / max_val
+        pixels = image.reshape(-1, 3) * scale
+        
         rgb = [img[:, :, 0], img[:, :, 1], img[:, :, 2]]
         pixel_colors = [[], [], []]
         for (i, pixel_array) in enumerate(rgb):

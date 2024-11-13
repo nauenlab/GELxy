@@ -2,8 +2,9 @@ import cv2
 from Coordinate import Coordinate, Coordinates
 import numpy as np
 from tqdm import tqdm
-from CuringCalculations import curing_calculations
 from .ImageProcessing import *
+from scipy.spatial import cKDTree
+from Constants import MINIMUM_DISTANCE_BETWEEN_TWO_LIGHT_BEAMS, MOTOR_MAX_TRAVEL
 
 dimensions = 15  # 15 mm * 100 mm_to_pixel_ratio
 
@@ -44,16 +45,15 @@ class EdgeDetection:
         - beam_diameter (float, optional): The beam diameter. Defaults to 0.1.
         """
         self.img_file = img_file
+        self.img = plt.imread(self.img_file)
         self.center = center
         self.rotation = rotation_angle_degrees
         self.scale_factor = scale_factor
         self.beam_diameter = beam_diameter
         self.stiffness = stiffness
-        self.edges = []
-        self.canny_edge_detection()
 
-        max_dimension = max(self.height, self.width)
-        self.factor = (dimensions / max_dimension) * self.scale_factor
+        max_dimension_of_image = max(self.img.shape)
+        self.factor = (dimensions / max_dimension_of_image) * self.scale_factor
 
     @property
     def height(self):
@@ -79,67 +79,15 @@ class EdgeDetection:
         """
         return len(self.edges)
 
-    def canny_edge_detection(self):
-        """
-        Performs Canny edge detection on the input image.
-
-        """
-        img = cv2.imread(self.img_file)
-
-        # Convert to grayscale
-        img_gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
-        # Blur the image for better edge detection
-        img_blur = cv2.GaussianBlur(img_gray, (3, 3), 0)
-
-        # Canny Edge Detection
-        edge_detection = cv2.Canny(image=img_blur, threshold1=100, threshold2=200)  # Canny Edge Detection
-
-        self.edges = [np.flip(row, 0) for row in edge_detection]
-
     def get_coordinates(self):
-        """
-        Extracts the coordinates of the detected edges.
-
-        Returns:
-            Coordinates: The extracted coordinates.
-
-        """
-        return self.temporary_redirect()
-        coordinates = Coordinates()
-        visited = []
-
-        for i in tqdm(range(self.height), desc="Getting Coordinates"):
-            for j in range(self.width):
-                if self.edges[j][i] == 255 and (i, j) not in visited:
-                    queue = [(i, j)]
-                    while queue:
-                        x, y = queue.pop(0)
-                        if (x, y) not in visited:
-                            c = Coordinate(x * self.factor, y * self.factor)
-
-                            visited.append((x, y))
-
-                            coordinates.append(c)
-                            neighbors = self.get_neighbors((x, y))
-                            for neighbor in neighbors:
-                                if self.edges[neighbor[1]][neighbor[0]] == 255 and neighbor not in visited:
-                                    queue.append(neighbor)
-
-        coordinates = self.ordered_by_nearest_neighbor(coordinates)
-        coordinates.normalize(center=self.center, rotation=self.rotation, stiffness=self.stiffness, beam_diameter_mm=self.beam_diameter)
-        return coordinates
-    
-    def temporary_redirect(self):
-        file_img = plt.imread(self.img_file)
-        og_img = downsample(file_img)
+        og_img = downsample(self.img)
         segmented_images = segment_images(og_img)
 
-        stiffness = [5000, 10000, 150000, 20000, 25000, 30000]
+        stiffness = [30000, 25000, 20000, 10000, 10000, 50000]
         coordinates = Coordinates()
         colors = [(0, 255, 0), (255, 0, 0), (0, 0, 255), (255, 255, 0), (0, 255, 255), (255, 0, 255), (255, 255, 255), (0, 0, 0), (128, 128, 128), (128, 0, 0), (0, 128, 0), (0, 0, 128), (128, 128, 0), (128, 0, 128), (0, 128, 128)]
 
         layers = []
-        combined_image = np.zeros_like(og_img)
         for (i, (_, image)) in enumerate(segmented_images.items()):
             gray_img = image
             if len(image.shape) == 3:
@@ -179,89 +127,129 @@ class EdgeDetection:
             # visualize_results(edge_detection_img, labeled_image, cleaned_image, num_islands, thicknesses)
             
             opened_edges_colored = np.zeros_like(og_img)
-            opened_edges_colored[cleaned_image > 0] = colors[i]
-
-            gray_edges = cv2.cvtColor(opened_edges_colored, cv2.COLOR_BGR2GRAY)
-            binary_img3 = (gray_edges > 0.6).astype(np.float32) * 255
-            edges = [np.flip(row, 0) for row in binary_img3]
-            # coordinates_layer = get_coordinates(edges, stiffness[i])
-
-            # if len(coordinates_layer) == 0:
-            #     coordinates_layer.normalize(center=Coordinate(0, 0), rotation=0, stiffness=stiffness[i], beam_diameter_mm=0.5)
-            # coordinates += coordinates_layer
-            
+            opened_edges_colored[cleaned_image > 0] = colors[0]
             
             # get the associated color from the og_img
             colored_img = np.zeros_like(og_img)
             colored_img[image > 0] = og_img[image > 0]
+            
+            colored_img = blur(colored_img, 21)
+            opened_edges_colored_overlayed = combine_images(opened_edges_colored, colored_img)
 
-            # opened_edges_colored = cv2.addWeighted(opened_edges_colored, 1, colored_img, 1, 0)
+            filled_shape = fill_shape(opened_edges_colored_overlayed, colors[i])
 
-            combined_image += opened_edges_colored
-            layers.append(opened_edges_colored)
+            layers.append(filled_shape)
+
+            filled_shape_gray = cv2.cvtColor(filled_shape, cv2.COLOR_BGR2GRAY)
+            binary_img3 = (filled_shape_gray > 0.6).astype(np.float32) * 255
+            filled_shape_flip = [np.flip(row, 0) for row in binary_img3]
+            coordinates_layer = self.convert_pixels_to_coordinates(filled_shape_flip, stiffness[i])
+            coordinates += coordinates_layer
         
         view_layers(layers)
-        plt.imshow(combined_image)
+        combined_image = merge_layers(layers)
+        plt.imshow(combined_image, cmap='gray')
         plt.show()
             
-
         return coordinates
     
-    def ordered_by_nearest_neighbor(self, coordinates):
+    def convert_pixels_to_coordinates(self, pixels, stiffness):
         """
-        Orders the coordinates by nearest neighbor.
-
-        Args:
-            coordinates (Coordinates): The input coordinates.
+        Extracts the coordinates of the detected edges.
 
         Returns:
-            Coordinates: The ordered coordinates.
+            Coordinates: The extracted coordinates.
 
         """
-        # Start at the first point
-        current_point = coordinates[0]
+        coordinates = Coordinates()
+        visited = np.zeros((len(pixels), len(pixels[0])))
+        dimensions = self.img.shape[1] * self.factor, self.img.shape[0] * self.factor
+        canvas_width = dimensions[0]
+        canvas_height = dimensions[1]
+        width = len(pixels)
+        height = 0 if len(pixels) == 0 else len(pixels[0])
+
+        for i in tqdm(range(height), desc="Getting Coordinates"):
+            for j in range(width):
+                if pixels[j][i] == 255 and visited[j][i] == 0:
+                    queue = [(j, i)]
+                    while queue:
+                        x, y = queue.pop(0)
+                        if visited[x][y] == 0:
+                            visited[x][y] = 1
+                            # Scale x and y to fit inside width and height
+                            scaled_x = (canvas_width * x) / width
+                            scaled_y = (canvas_height * y) / height
+                            coordinates.append(Coordinate(scaled_x, scaled_y))
+
+                            # Define the possible offsets for neighboring pixels
+                            offsets = [(-1, -1), (-1, 0), (-1, 1),
+                                        (0, -1),           (0, 1),
+                                        (1, -1),  (1, 0),  (1, 1)]
+                            
+                            neighbors = []
+                            for dx, dy in offsets:
+                                nx, ny = x + dx, y + dy
+
+                                # Check if the neighbor is within bounds
+                                if 0 <= nx < width - 1 and 0 <= ny < height - 1 and visited[nx][ny] == 0:
+                                    neighbors.append((nx, ny))
+
+                            for neighbor in neighbors:
+                                if pixels[neighbor[0]][neighbor[1]] == 255:
+                                    queue.append(neighbor)
+
+        # center = Coordinate(12.5, 12.5)
+        # rotation = 0
+        # beam_diameter = BEAM_DIAMETER
+        coordinates = self.ordered_by_nearest_neighbor(coordinates, self.beam_diameter)
+        if len(coordinates) != 0:
+            coordinates.normalize(center=self.center, rotation=self.rotation, stiffness=stiffness, beam_diameter_mm=self.beam_diameter)
+
+        # import matplotlib.pyplot as plt
+        # plt.plot([coord.x for coord in coordinates], [coord.y for coord in coordinates])
+        # plt.show()
+
+        return coordinates
+
+    def ordered_by_nearest_neighbor(self, coordinates, beam_diameter):
+        min_distance = float(MINIMUM_DISTANCE_BETWEEN_TWO_LIGHT_BEAMS)
+        
+        # Convert the Coordinates object into a list of tuples for easier calculation
+        points = [(coord.x, coord.y) for coord in coordinates]
+        
+        # Initialize the path with the first point
         path = Coordinates()
-        path.append(current_point)
-        unvisited = set(coordinates[1:])
+        path.append(coordinates[0])
+        blacklist = set()
+        blacklist.add(0)
+        
+        # Build a k-d tree for efficient nearest neighbor search
+        tree = cKDTree(points)
 
-        while unvisited:
-            nearest_point = min(unvisited, key=lambda x: Coordinates.distance(current_point, x))
-            path.append_if_far_enough(nearest_point)
+        while True:
+            current_coord = path[-1]
+            current_point = (current_coord.x, current_coord.y)
 
-            dist = Coordinates.distance(current_point, nearest_point)
-            if dist > self.beam_diameter:
-                nearest_point.lp = False
-            
-            unvisited.remove(nearest_point)
-            current_point = nearest_point
+            distances, indices = tree.query(current_point, k=len(points), distance_upper_bound=np.inf)        
+            next_point_found = False
+            for dist, idx in zip(distances, indices):
+                # idx == tree.n when there are no more neighbors
+                if idx != tree.n and dist >= min_distance and idx not in blacklist:
+                    # Add the next valid coordinate to the path
+                    if dist > beam_diameter:
+                        coordinates[idx].lp = False
+                    path.append(coordinates[idx])
+                    
+                    # Blacklist all points within distance `m` of the new point
+                    nearby_indices = tree.query_ball_point(points[idx], min_distance)
+                    blacklist.update(nearby_indices)
+
+                    next_point_found = True
+                    break
+
+            # If no valid next point is found, break the loop
+            if not next_point_found:
+                break
 
         return path
-
-    def get_neighbors(self, coord):
-        """
-        Gets the neighboring coordinates of a given coordinate.
-
-        Args:
-            coord (tuple): The input coordinate.
-
-        Returns:
-            list: The neighboring coordinates.
-
-        """
-        x, y = coord
-        neighbors = []
-
-        # Define the possible offsets for neighboring pixels
-        offsets = [(-1, -1), (-1, 0), (-1, 1),
-                   (0, -1),           (0, 1),
-                   (1, -1),  (1, 0),  (1, 1)]
-
-        for dx, dy in offsets:
-            nx, ny = x + dx, y + dy
-
-            # Check if the neighbor is within bounds
-            if 0 <= nx < self.height - 1 and 0 <= ny < self.width - 1:
-                neighbors.append((nx, ny))
-
-        return neighbors
-
