@@ -133,7 +133,7 @@ def detect_bins_from_histogram(pixels):
     custom_bins = [0] + maximize_distances(custom_bins) + [255]
     custom_bins = list(sorted(set(custom_bins)))
 
-    print("Bins:", custom_bins)
+    # print("Bins:", custom_bins)
     # plot_histogram(bin_edges, hist_sma, smooth_hist, valleys, custom_bins, gradient)
 
     return np.array(custom_bins)

@@ -5,8 +5,7 @@ from tqdm import tqdm
 from .ImageProcessing import *
 from scipy.spatial import cKDTree
 from Constants import MINIMUM_DISTANCE_BETWEEN_TWO_LIGHT_BEAMS, MOTOR_MAX_TRAVEL
-
-dimensions = 15  # 15 mm * 100 mm_to_pixel_ratio
+import matplotlib.pyplot as plt
 
 
 class EdgeDetection:
@@ -52,39 +51,20 @@ class EdgeDetection:
         self.beam_diameter = beam_diameter
         self.stiffness = stiffness
 
-        max_dimension_of_image = max(self.img.shape)
-        self.factor = (dimensions / max_dimension_of_image) * self.scale_factor
+        major_length = MOTOR_MAX_TRAVEL * scale_factor
+        image_shape = self.img.shape[:2]
+        minor_length = ((MOTOR_MAX_TRAVEL / max(image_shape)) * min(image_shape)) * scale_factor
+        self.dimensions = (minor_length, major_length) if image_shape[0] > image_shape[1] else (major_length, minor_length)
 
-    @property
-    def height(self):
-        """
-        The height of the image.
-
-        Returns:
-            int: The height of the image.
-
-        """
-        if len(self.edges) == 0:
-            return 0
-        return len(self.edges[0])
-
-    @property
-    def width(self):
-        """
-        The width of the image.
-
-        Returns:
-            int: The width of the image.
-
-        """
-        return len(self.edges)
 
     def get_coordinates(self):
         og_img = downsample(self.img)
         segmented_images = segment_images(og_img)
 
-        stiffness = [30000, 25000, 20000, 10000, 10000, 50000]
+        stiffness = [50000, 30000, 25000, 20000, 15000, 10000]
+        stiffness = [30000, 30000, 30000, 30000, 30000, 30000]
         coordinates = Coordinates()
+        coordinate_layers = []
         colors = [(0, 255, 0), (255, 0, 0), (0, 0, 255), (255, 255, 0), (0, 255, 255), (255, 0, 255), (255, 255, 255), (0, 0, 0), (128, 128, 128), (128, 0, 0), (0, 128, 0), (0, 0, 128), (128, 128, 0), (128, 0, 128), (0, 128, 128)]
 
         layers = []
@@ -144,12 +124,20 @@ class EdgeDetection:
             binary_img3 = (filled_shape_gray > 0.6).astype(np.float32) * 255
             filled_shape_flip = [np.flip(row, 0) for row in binary_img3]
             coordinates_layer = self.convert_pixels_to_coordinates(filled_shape_flip, stiffness[i])
+            coordinate_layers.append(coordinates_layer)
             coordinates += coordinates_layer
         
-        view_layers(layers)
+        # view_layers(layers)
         combined_image = merge_layers(layers)
-        plt.imshow(combined_image, cmap='gray')
+        # plt.imshow(combined_image, cmap='gray')
+        # plt.show()
+
+        cs = ["green", "red", "blue", "yellow", "cyan", "magenta", "white", "black", "gray", "maroon", "green", "navy", "olive", "purple", "teal"]
+        for i, layer in enumerate(coordinates_layer):
+            plt.plot(layer.x, layer.y, 'ro', color=cs[i])
         plt.show()
+        
+
             
         return coordinates
     
@@ -162,24 +150,26 @@ class EdgeDetection:
 
         """
         coordinates = Coordinates()
+        pixels = np.flip(pixels, axis=1)
         visited = np.zeros((len(pixels), len(pixels[0])))
-        dimensions = self.img.shape[1] * self.factor, self.img.shape[0] * self.factor
-        canvas_width = dimensions[0]
-        canvas_height = dimensions[1]
-        width = len(pixels)
-        height = 0 if len(pixels) == 0 else len(pixels[0])
+        
+        canvas_width = self.dimensions[0]
+        canvas_height = self.dimensions[1]
 
-        for i in tqdm(range(height), desc="Getting Coordinates"):
-            for j in range(width):
-                if pixels[j][i] == 255 and visited[j][i] == 0:
-                    queue = [(j, i)]
+        width = 0 if len(pixels) == 0 else len(pixels[0])
+        height = len(pixels)
+
+        for row in tqdm(range(height), desc="Getting Coordinates"):
+            for col in range(width):
+                if pixels[row][col] == 255 and visited[row][col] == 0:
+                    queue = [(row, col)]
                     while queue:
-                        x, y = queue.pop(0)
-                        if visited[x][y] == 0:
-                            visited[x][y] = 1
+                        y, x = queue.pop(0)
+                        if visited[y][x] == 0:
+                            visited[y][x] = 1
                             # Scale x and y to fit inside width and height
                             scaled_x = (canvas_width * x) / width
-                            scaled_y = (canvas_height * y) / height
+                            scaled_y = (canvas_height * (height - y)) / height
                             coordinates.append(Coordinate(scaled_x, scaled_y))
 
                             # Define the possible offsets for neighboring pixels
@@ -192,23 +182,18 @@ class EdgeDetection:
                                 nx, ny = x + dx, y + dy
 
                                 # Check if the neighbor is within bounds
-                                if 0 <= nx < width - 1 and 0 <= ny < height - 1 and visited[nx][ny] == 0:
-                                    neighbors.append((nx, ny))
+                                if 0 <= nx < width - 1 and 0 <= ny < height - 1 and visited[ny][nx] == 0:
+                                    neighbors.append((ny, nx))
 
                             for neighbor in neighbors:
                                 if pixels[neighbor[0]][neighbor[1]] == 255:
                                     queue.append(neighbor)
 
-        # center = Coordinate(12.5, 12.5)
-        # rotation = 0
-        # beam_diameter = BEAM_DIAMETER
         coordinates = self.ordered_by_nearest_neighbor(coordinates, self.beam_diameter)
         if len(coordinates) != 0:
             coordinates.normalize(center=self.center, rotation=self.rotation, stiffness=stiffness, beam_diameter_mm=self.beam_diameter)
 
-        # import matplotlib.pyplot as plt
-        # plt.plot([coord.x for coord in coordinates], [coord.y for coord in coordinates])
-        # plt.show()
+        # coordinates.plot(plot_lines=False, plot_points=True)
 
         return coordinates
 
