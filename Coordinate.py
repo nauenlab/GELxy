@@ -437,7 +437,7 @@ class Coordinates:
         for c in resolved_coordinates:
             self.append(c)
 
-    def normalize(self, center, rotation, stiffness, beam_diameter_mm):
+    def normalize(self, center, rotation, stiffness, beam_diameter_mm, is_layer=True, is_multiple_layers=True):
         """
         Normalizes the Coordinate objects by translating and rotating them.
 
@@ -447,25 +447,27 @@ class Coordinates:
             stiffness (float): The stiffness in Pascals of the shape.
         """
 
-        min_x = min(self.get_x_coordinates())
-        min_y = min(self.get_y_coordinates())
-        factor_x = 0 if min_x > 0 else abs(min_x)
-        factor_y = 0 if min_y > 0 else abs(min_y)
+        if is_multiple_layers:
+            min_x = min(self.get_x_coordinates())
+            min_y = min(self.get_y_coordinates())
+            factor_x = 0 if min_x > 0 else abs(min_x)
+            factor_y = 0 if min_y > 0 else abs(min_y)
 
-        for (i, v) in tqdm(enumerate(self), desc="Normalizing"):
-            self.x[i] = v.x + factor_x
-            self.y[i] = v.y + factor_y
-            self.coordinates[i].x = self.x[i]
-            self.coordinates[i].y = self.y[i]
+            for (i, v) in tqdm(enumerate(self), desc="Normalizing"):
+                self.x[i] = v.x + factor_x
+                self.y[i] = v.y + factor_y
+                self.coordinates[i].x = self.x[i]
+                self.coordinates[i].y = self.y[i]
         
-        self.rotate_coordinates(center, rotation)
+            self.rotate_coordinates(center, rotation)
 
-        self.coordinates = self.fix_coordinates_with_corrected_slope()
-        if len(self.coordinates) == 0:
-            raise Exception("No coordinates to plot, check the shape dimensions and bounds.")
+            self.coordinates = self.fix_coordinates_with_corrected_slope()
+            if len(self.coordinates) == 0:
+                raise Exception("No coordinates to plot, check the shape dimensions and bounds.")
         
-        self.add_velocity_and_current_to_coordinates(stiffness=stiffness, coordinates=self.coordinates, beam_diameter_mm=beam_diameter_mm)
-        self.coordinates[0].lp = False
+        if is_layer:
+            self.add_velocity_and_current_to_coordinates(stiffness=stiffness, coordinates=self.coordinates, beam_diameter_mm=beam_diameter_mm)
+            self.coordinates[0].lp = False
 
     def rotate_coordinates(self, center, rotation):
         centroid = self.get_centroid()

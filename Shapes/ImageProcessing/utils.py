@@ -16,20 +16,6 @@ def show(img, cmap=None):
     plt.axis('off')
     plt.show()
 
-def view_layers(layers):
-    # get width and height of subplot grid using number of layers
-    n_layers = len(layers)
-    n_cols = 3
-    n_rows = (n_layers + n_cols - 1) // n_cols
-    fig, axes = plt.subplots(nrows=n_rows, ncols=n_cols, figsize=(18, 12))
-    fig.tight_layout()
-    axes = axes.flatten()
-    for i, layer in enumerate(layers):
-        ax = axes[i]
-        ax.imshow(layer)
-        ax.axis('off')
-    plt.show()
-
 def binarize(img):
     gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
     binary_img = (gray > 0.6).astype(np.float32)

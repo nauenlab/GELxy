@@ -126,20 +126,40 @@ class EdgeDetection:
             coordinates_layer = self.convert_pixels_to_coordinates(filled_shape_flip, stiffness[i])
             coordinate_layers.append(coordinates_layer)
             coordinates += coordinates_layer
-        
-        # view_layers(layers)
-        combined_image = merge_layers(layers)
-        # plt.imshow(combined_image, cmap='gray')
-        # plt.show()
 
+        if len(coordinates) != 0:
+            coordinates.normalize(center=self.center, rotation=self.rotation, stiffness=0, beam_diameter_mm=self.beam_diameter, is_layer=False, is_multiple_layers=True)
+        
+        # self.view_layers(layers)
+        # self.plot_merged_layers(layers)
+        # self.plot_spatial_layers(coordinate_layers)
+
+        return coordinates
+    
+    def plot_spatial_layers(self, layers):
         cs = ["green", "red", "blue", "yellow", "cyan", "magenta", "white", "black", "gray", "maroon", "green", "navy", "olive", "purple", "teal"]
-        for i, layer in enumerate(coordinates_layer):
+        for i, layer in enumerate(layers):
             plt.plot(layer.x, layer.y, 'ro', color=cs[i])
         plt.show()
-        
 
-            
-        return coordinates
+    def plot_merged_layers(self, layers):
+        combined_image = merge_layers(layers)
+        plt.imshow(combined_image, cmap='gray')
+        plt.show()
+
+    def view_layers(self, layers):
+        # get width and height of subplot grid using number of layers
+        n_layers = len(layers)
+        n_cols = 3
+        n_rows = (n_layers + n_cols - 1) // n_cols
+        fig, axes = plt.subplots(nrows=n_rows, ncols=n_cols, figsize=(18, 12))
+        fig.tight_layout()
+        axes = axes.flatten()
+        for i, layer in enumerate(layers):
+            ax = axes[i]
+            ax.imshow(layer)
+            ax.axis('off')
+        plt.show()
     
     def convert_pixels_to_coordinates(self, pixels, stiffness):
         """
@@ -190,8 +210,9 @@ class EdgeDetection:
                                     queue.append(neighbor)
 
         coordinates = self.ordered_by_nearest_neighbor(coordinates, self.beam_diameter)
+
         if len(coordinates) != 0:
-            coordinates.normalize(center=self.center, rotation=self.rotation, stiffness=stiffness, beam_diameter_mm=self.beam_diameter)
+            coordinates.normalize(center=self.center, rotation=self.rotation, stiffness=stiffness, beam_diameter_mm=self.beam_diameter, is_layer=True, is_multiple_layers=False)
 
         # coordinates.plot(plot_lines=False, plot_points=True)
 
