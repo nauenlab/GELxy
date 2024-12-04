@@ -49,6 +49,10 @@ class EdgeDetection:
         - scale_factor (float, optional): The scale factor of the image. Defaults to 1.
         - beam_diameter (float, optional): The beam diameter. Defaults to 0.1.
         """
+        if img_file.lower().endswith('.jpg'):
+            img_file = convert_jpg_to_png(img_file)
+
+        print(img_file)
         if not img_file.lower().endswith('.png'):
             raise ValueError("The image file must be a PNG file.")
         
@@ -123,10 +127,10 @@ class EdgeDetection:
         if len(coordinates) != 0:
             coordinates.normalize(center=self.center, rotation=self.rotation, stiffness=0, beam_diameter_mm=self.beam_diameter, is_layer=False, is_multiple_layers=True)
         
-        # if len(layers) != 0:
-        #     self.view_layers(layers)
-        #     self.plot_merged_layers(layers)
-        #     self.plot_spatial_layers(coordinate_layers, scatter=True)
+        if len(layers) != 0:
+            self.view_layers(layers)
+            self.plot_merged_layers(layers)
+            self.plot_spatial_layers(coordinate_layers, scatter=False)
 
         return coordinates
     

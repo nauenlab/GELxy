@@ -2,6 +2,10 @@ from matplotlib import pyplot as plt
 import cv2
 import numpy as np
 from sklearn.cluster import KMeans
+from PIL import Image
+import tempfile
+import atexit
+import os
 
 
 def show(img, cmap=None):
@@ -377,3 +381,29 @@ def merge_layers(layers):
         # merged_image = cv2.bitwise_or(merged_image, layer)
 
     return merged_image
+
+def convert_jpg_to_png(file_name):
+    """
+        Converts a JPG image to PNG format.
+
+        Parameters:
+        - file_name: Name of the JPG file to convert.
+
+        Returns:
+        - png_file_path: Path to the converted PNG file.
+    """
+    if file_name.lower().endswith(".jpg") or file_name.lower().endswith(".jpeg"):
+        jpg_file_path = file_name
+    else:
+        raise ValueError("File must be a .jpg or .jpeg")
+    
+    with tempfile.NamedTemporaryFile(suffix=".png") as temp_file:
+        temp_file_path = temp_file.name
+
+    atexit.register(os.remove, temp_file_path)
+
+    # Open the JPG file and save it as PNG to the temporary location
+    with Image.open(jpg_file_path) as img:
+        img.save(temp_file_path, "PNG")
+
+    return temp_file_path
