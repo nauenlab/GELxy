@@ -1,11 +1,17 @@
 import cv2
 from Coordinate import Coordinate, Coordinates
 import numpy as np
+import time
 from tqdm import tqdm
 from .ImageProcessing import *
 from scipy.spatial import cKDTree
 from Constants import MINIMUM_DISTANCE_BETWEEN_TWO_LIGHT_BEAMS, MOTOR_MAX_TRAVEL
+import tkinter as tk
+from tkinter import simpledialog
+from PIL import Image, ImageTk
 import matplotlib.pyplot as plt
+import matplotlib
+matplotlib.use('TkAgg')
 
 
 class EdgeDetection:
@@ -31,7 +37,7 @@ class EdgeDetection:
         factor (float): The scaling factor based on the dimensions and maximum dimension of the image.
     """
 
-    def __init__(self, img_file, stiffness, center=Coordinate(0, 0), rotation_angle_degrees=0, scale_factor=1, beam_diameter=0.1):
+    def __init__(self, img_file, center=Coordinate(0, 0), rotation_angle_degrees=0, scale_factor=1, beam_diameter=0.1):
         """
         Initialize the EdgeDetection object.
 
@@ -43,71 +49,56 @@ class EdgeDetection:
         - scale_factor (float, optional): The scale factor of the image. Defaults to 1.
         - beam_diameter (float, optional): The beam diameter. Defaults to 0.1.
         """
+        if not img_file.lower().endswith('.png'):
+            raise ValueError("The image file must be a PNG file.")
+        
         self.img_file = img_file
         self.img = plt.imread(self.img_file)
         self.center = center
         self.rotation = rotation_angle_degrees
         self.scale_factor = scale_factor
         self.beam_diameter = beam_diameter
-        self.stiffness = stiffness
+
+        self.selected_layers = []
 
         major_length = MOTOR_MAX_TRAVEL * scale_factor
         image_shape = self.img.shape[:2]
         minor_length = ((MOTOR_MAX_TRAVEL / max(image_shape)) * min(image_shape)) * scale_factor
         self.dimensions = (minor_length, major_length) if image_shape[0] > image_shape[1] else (major_length, minor_length)
 
-
     def get_coordinates(self):
         og_img = downsample(self.img)
         segmented_images = segment_images(og_img)
 
-        stiffness = [50000, 30000, 25000, 20000, 15000, 10000]
-        stiffness = [30000, 30000, 30000, 30000, 30000, 30000]
         coordinates = Coordinates()
         coordinate_layers = []
         colors = [(0, 255, 0), (255, 0, 0), (0, 0, 255), (255, 255, 0), (0, 255, 255), (255, 0, 255), (255, 255, 255), (0, 0, 0), (128, 128, 128), (128, 0, 0), (0, 128, 0), (0, 0, 128), (128, 128, 0), (128, 0, 128), (0, 128, 128)]
 
         layers = []
-        for (i, (_, image)) in enumerate(segmented_images.items()):
+        target_values = list(segmented_images.values())
+        self.select_layers(target_values)
+        selected_images = [target_values[i] for i, _ in self.selected_layers]
+        stiffness = [i[1] for i in self.selected_layers]
+        for (i, image) in enumerate(selected_images):
             gray_img = image
             if len(image.shape) == 3:
                 gray_img = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
-            # plt.imshow(gray_img, cmap='gray')
-            # plt.show()
+
             medianBlurred = cv2.medianBlur(gray_img, 3)
-            
-            # whitelist = [0, 1, 2, 3, 5]
-            # if i not in whitelist:
-            #     continue
             
             binary_img = (medianBlurred > 0.6).astype(np.float32)
             blurred = blur(binary_img, 5)
             reduced_noise_img = dilate_and_erode(blurred)
             binary_img2 = (reduced_noise_img < 0.05).astype(np.float32)
-        
-            # plt.imshow(binary_img2, cmap='gray')
-            # plt.show()
-            # filled_img = test_fill(binary_img2)
-            # plt.imshow(filled_img, cmap='gray')
-            # plt.show()
-            
-            # blurred_heavy = blur(filled_img, 5)
-            # plt.imshow(blurred_heavy, cmap='gray')
-            # plt.show()
             
             edge_detection_img = canny_edge_detection(binary_img2)
-            # plt.imshow(edge_detection_img, cmap='gray')
-            # plt.show()
 
             labeled_image, num_islands, island_sizes, thicknesses, island_mask = detect_islands(edge_detection_img)
 
             cleaned_image = remove_islands(edge_detection_img, island_mask)
     
-            # Visualize results
-            # visualize_results(edge_detection_img, labeled_image, cleaned_image, num_islands, thicknesses)
-            
             opened_edges_colored = np.zeros_like(og_img)
-            opened_edges_colored[cleaned_image > 0] = colors[0]
+            opened_edges_colored[cleaned_image > 0] = (0, 255, 0)
             
             # get the associated color from the og_img
             colored_img = np.zeros_like(og_img)
@@ -116,7 +107,9 @@ class EdgeDetection:
             colored_img = blur(colored_img, 21)
             opened_edges_colored_overlayed = combine_images(opened_edges_colored, colored_img)
 
-            filled_shape = fill_shape(opened_edges_colored_overlayed, colors[i])
+            layer_color = colors.pop(0)
+            colors.append(layer_color)
+            filled_shape = fill_shape(opened_edges_colored_overlayed, layer_color)
 
             layers.append(filled_shape)
 
@@ -130,16 +123,22 @@ class EdgeDetection:
         if len(coordinates) != 0:
             coordinates.normalize(center=self.center, rotation=self.rotation, stiffness=0, beam_diameter_mm=self.beam_diameter, is_layer=False, is_multiple_layers=True)
         
-        # self.view_layers(layers)
-        # self.plot_merged_layers(layers)
-        # self.plot_spatial_layers(coordinate_layers)
+        # if len(layers) != 0:
+        #     self.view_layers(layers)
+        #     self.plot_merged_layers(layers)
+        #     self.plot_spatial_layers(coordinate_layers, scatter=True)
 
         return coordinates
     
-    def plot_spatial_layers(self, layers):
-        cs = ["green", "red", "blue", "yellow", "cyan", "magenta", "white", "black", "gray", "maroon", "green", "navy", "olive", "purple", "teal"]
+    def plot_spatial_layers(self, layers, scatter=False):
+        cs = ["green", "red", "blue", "yellow", "cyan", "magenta", "white", "black", "gray", "maroon", "navy", "olive", "purple", "teal"]
         for i, layer in enumerate(layers):
-            plt.plot(layer.x, layer.y, 'ro', color=cs[i])
+            layer_color = cs.pop(0)
+            cs.append(layer_color)
+            if scatter:
+                plt.scatter(layer.x, layer.y, color=layer_color)
+            else:
+                plt.plot(layer.x, layer.y, color=layer_color)
         plt.show()
 
     def plot_merged_layers(self, layers):
@@ -160,6 +159,65 @@ class EdgeDetection:
             ax.imshow(layer)
             ax.axis('off')
         plt.show()
+    
+    def select_layers(self, layers):
+        """
+            use tkinter to create a GUI so the user can select the layer to use.
+            display all the layers to the user with the ability for the image to be full screen. 
+            The user should select each layer using a radio button if a layer is selected, a text box should appear for the user to enter the stiffness value
+        """
+        def on_select():
+            selected_layers = []
+            for i, var in enumerate(layer_vars):
+                if var.get():
+                    stiffness_value = simpledialog.askfloat("Input", f"Enter stiffness value for layer {i+1} (Pa):")
+                    if stiffness_value is not None:
+                        selected_layers.append((i, stiffness_value))
+            root.destroy()
+            self.selected_layers = selected_layers
+
+        root = tk.Tk()
+        root.title("Select Layers")
+
+        canvas = tk.Canvas(root)
+        canvas.pack(fill=tk.BOTH, expand=True)
+
+        scrollbar = tk.Scrollbar(canvas, orient=tk.VERTICAL, command=canvas.yview)
+        scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
+        canvas.configure(yscrollcommand=scrollbar.set)
+
+        frame = tk.Frame(canvas)
+        canvas.create_window((0, 0), window=frame, anchor='nw')
+        root.geometry(f"{root.winfo_screenwidth()}x{root.winfo_screenheight()}")
+        root.focus_force() 
+
+        layer_vars = []
+        for i, layer in enumerate(layers):
+            layer_array = (layer > 0.2).astype(np.float32)
+            layer_array = (layer_array * 255).astype(np.uint8)
+            
+            img = Image.fromarray(layer_array)
+            
+            img = img.resize((300, 300), Image.LANCZOS)
+            img_tk = ImageTk.PhotoImage(img)
+
+            label = tk.Label(frame, image=img_tk)
+            label.image = img_tk
+            label.grid(row=i // 3, column=i % 3)
+
+            var = tk.BooleanVar()
+            checkbox = tk.Checkbutton(frame, text=f"Layer {i+1}", variable=var)
+            checkbox.grid(row=i // 3, column=i % 3, sticky='s')
+            layer_vars.append(var)
+
+        button = tk.Button(frame, text="Select", command=on_select)
+        button.grid(row=(len(layers) + 2) // 3, column=1)
+
+        frame.update_idletasks()
+        canvas.config(scrollregion=canvas.bbox("all"))
+
+        root.mainloop()
+
     
     def convert_pixels_to_coordinates(self, pixels, stiffness):
         """

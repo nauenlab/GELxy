@@ -113,7 +113,6 @@ def merge_similar_edges(layers, threshold=0.5, dilation_iter=2):
         
         # Compute structural similarity (SSIM) to measure edge similarity
         score, _ = ssim(dilated_morphed, dilated_layer, full=True)
-        print(score)
         if score >= threshold:
             # Combine layers based on detected similarity
             morphed_edges = cv2.bitwise_or(morphed_edges, layers[i])
@@ -213,7 +212,6 @@ def find_similar_textures(image, selected_region, radius=1, n_points=8, threshol
 
             # Compare histograms using a similarity metric (e.g., Chi-square distance)
             distance = 0.5 * np.sum(((selected_hist - window_hist) ** 2) / (selected_hist + window_hist + 1e-10))
-            print(distance)
             if distance < threshold:
                 # Mark this region as similar in the similarity map
                 similarity_map[i:i + window_size[0], j:j + window_size[1]] = 255
@@ -375,9 +373,7 @@ def merge_layers(layers):
     """
     merged_image = np.zeros(layers[0].shape, dtype=np.uint8)
     for layer in layers:
-        print(layer)
         merged_image = cv2.addWeighted(merged_image, 1, layer, 1, 0)
         # merged_image = cv2.bitwise_or(merged_image, layer)
 
-    print(merged_image)
     return merged_image
