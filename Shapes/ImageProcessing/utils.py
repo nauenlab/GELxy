@@ -6,6 +6,10 @@ from PIL import Image
 import tempfile
 import atexit
 import os
+from skimage.metrics import structural_similarity as ssim
+from scipy.ndimage import binary_dilation
+from skimage.feature import local_binary_pattern
+from scipy.spatial.distance import cdist
 
 
 def show(img, cmap=None):
@@ -21,12 +25,31 @@ def show(img, cmap=None):
     plt.show()
 
 def binarize(img):
+    """
+    Convert an image to binary format.
+
+    Parameters:
+    img (numpy.ndarray): Image to convert
+
+    Returns:
+    numpy.ndarray: Binary image
+    """
     gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
     binary_img = (gray > 0.6).astype(np.float32)
 
     return binary_img
 
 def dilate_and_erode(img):
+    """
+    Apply binary dilation and erosion to an image.
+
+    Parameters:
+    img (numpy.ndarray): Binary image to process
+
+    Returns:
+    numpy.ndarray: Processed image
+    """
+
     kernel = np.ones((4, 4), np.uint8)
 
     # plt.imshow(img, cmap='gray')
@@ -48,16 +71,44 @@ def dilate_and_erode(img):
     return img_dilation
 
 def downsample(img):
+    """
+    Downsample an image to a maximum size of 500 pixels in either dimension.
+
+    Parameters:
+    img (numpy.ndarray): Image to downsample
+
+    Returns:
+    numpy.ndarray: Downsampled image
+    """
     scale_factor = 500 / max(img.shape[0], img.shape[1])
     scale_factor = scale_factor if scale_factor < 1 else 1
     return cv2.resize(img, (0, 0), fx=scale_factor, fy=scale_factor)
 
 
 def blur(img, kernel_size):
+    """
+    Apply Gaussian blur to an image.
+
+    Parameters:
+    img (numpy.ndarray): Image to process
+    kernel_size (int): Size of the Gaussian kernel
+
+    Returns:
+    numpy.ndarray: Blurred image
+    """
+
     return cv2.GaussianBlur(img, (kernel_size, kernel_size), 0)
 
 def canny_edge_detection(img):
-    # img = (img * 255).astype(np.uint8)
+    """
+    Apply Canny edge detection to an image. Uses Otsu's thresholding to determine high and low thresholds.
+
+    Parameters:
+    img (numpy.ndarray): Image to process
+
+    Returns:
+    numpy.ndarray: Edge-detected image
+    """
     img = img.astype(np.uint8)
     
     # Otsu's thresholding: https://en.wikipedia.org/wiki/Otsu%27s_method
@@ -67,29 +118,18 @@ def canny_edge_detection(img):
     edges = cv2.Canny(img, low_thresh, high_thresh)
     return edges
 
-    # kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (3, 3))
-    # curvy_edges = cv2.morphologyEx(edges, cv2.MORPH_CLOSE, kernel)
-
-    # contours, _ = cv2.findContours(curvy_edges, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
-    # curvy_output_image = np.zeros_like(img, dtype=np.uint8)
-    # curvy_output_image = cv2.cvtColor(curvy_output_image, cv2.COLOR_GRAY2BGR)
-    # cv2.drawContours(curvy_output_image, contours, -1, (0, 255, 0), 2) # Draw contours in green
-
-    
-    # plt.imshow(edges, cmap='gray')
-    # plt.show()
-    # gray_img = cv2.cvtColor(edges, cv2.COLOR_BGR2GRAY)
-
-    return gray_img
-
 def remove_noise(img):
+    """
+    Remove noise from an image using non-local means denoising.
+
+    Parameters:
+    img (numpy.ndarray): Image to process
+
+    Returns:
+    numpy.ndarray: Denoised image
+    """
+
     return cv2.fastNlMeansDenoisingColored(img, None, 10, 10, 7, 21)
-
-
-import numpy as np
-import cv2
-from skimage.metrics import structural_similarity as ssim
-from scipy.ndimage import binary_dilation
 
 def merge_similar_edges(layers, threshold=0.5, dilation_iter=2):
     """
@@ -125,6 +165,17 @@ def merge_similar_edges(layers, threshold=0.5, dilation_iter=2):
 
 
 def texture_segmentation(img, num_clusters):
+    """
+    Segment an image based on texture using Gabor filters and K-means clustering.
+
+    Parameters:
+    - img: Input image (color or grayscale).
+    - num_clusters: Number of clusters for K-means clustering.
+
+    Returns:
+    - color_segmented_image: Segmented image with a colormap.
+    """
+    
     img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
     
     # Define Gabor filter parameters
@@ -163,10 +214,6 @@ def texture_segmentation(img, num_clusters):
     color_segmented_image = cv2.normalize(segmented_image, None, 0, 255, cv2.NORM_MINMAX)
     
     return color_segmented_image
-
-
-from skimage.feature import local_binary_pattern
-from scipy.spatial.distance import cdist
 
 def find_similar_textures(image, selected_region, radius=1, n_points=8, threshold=0.1):
     """
@@ -224,7 +271,16 @@ def find_similar_textures(image, selected_region, radius=1, n_points=8, threshol
 
 
 def manual_segmentation(image, radius=1, n_points=8, threshold=0.1):
-    """Allows the user to select a region and automatically highlights similar textures in the image."""
+    """
+    Manually segment similar textures in an image using Local Binary Patterns (LBP).
+
+    Parameters:
+    - image: Input image (color or grayscale).
+    - radius: Radius for LBP extraction (default 1).
+    - n_points: Number of points for LBP extraction (default 8).
+    - threshold: Similarity threshold (default 0.5), where lower is more restrictive
+    """
+
     roi = []
     is_drawing = False
 
@@ -304,6 +360,17 @@ def manual_segmentation(image, radius=1, n_points=8, threshold=0.1):
 
 
 def fill_shape(image, color):
+    """
+    Fill the background shape of an image with a specified color.
+
+    Parameters:
+    - image: Input image (color or grayscale).
+    - color: Fill color in BGR format.
+
+    Returns:
+    - colored_background: Image with the background shape filled with the specified color.
+    """
+
     # Convert to RGB if needed
     if len(image.shape) == 2 or image.shape[2] == 1:
         image = cv2.cvtColor(image, cv2.COLOR_GRAY2BGR)
@@ -346,6 +413,17 @@ def fill_shape(image, color):
 
 
 def combine_images(primary, secondary):
+    """
+    Combine two images by overlaying the secondary image on top of the primary image.
+
+    Parameters:
+    - primary: Primary image (background).
+    - secondary: Secondary image to overlay.
+
+    Returns:
+    - combined: Combined image with the secondary image overlaid on the primary image.
+    """
+    
     if len(primary.shape) == 2:
         primary = cv2.cvtColor(primary, cv2.COLOR_GRAY2BGR)
     if len(secondary.shape) == 2:

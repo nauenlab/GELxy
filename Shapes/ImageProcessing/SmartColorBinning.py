@@ -5,6 +5,15 @@ from scipy.ndimage import gaussian_filter1d
 import matplotlib.pyplot as plt
 
 def top_colors(img):
+    """
+        retrieves top 5 colors in the image
+
+        Args:
+        - img: image
+
+        Returns:
+        - colors: top 5 colors
+    """
     image = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
     pixels = image.reshape(-1, 3) * 256
 
