@@ -31,4 +31,4 @@ import math
 MINIMUM_DISTANCE_BETWEEN_TWO_LIGHT_BEAMS = (BEAM_DIAMETER / 2) * (1 - math.cos(2)) # mm
 
 # Change this value to increase the quality of the canvas drawings. Enter a value between 0.1 and 10. A higher quality will increase the time it takes to render the canvas.
-CANVAS_QUALITY = 2
+CANVAS_QUALITY = 1
