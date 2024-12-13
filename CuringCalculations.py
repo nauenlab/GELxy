@@ -1,6 +1,6 @@
 import math
 import pandas as pd
-from Constants import MAXIMUM_VELOCITY, MINIMUM_VELOCITY, DEFAULT_CURRENT, MAXIMUM_CURRENT, MINIMUM_CURRENT
+from Constants import MAXIMUM_CURRENT, MINIMUM_CURRENT
 
 
 class Configuration:
@@ -8,7 +8,7 @@ class Configuration:
     Represents the configuration for curing calculations.
     """
 
-    def __init__(self, current=None, velocity=None, iterations=1, beam_diameter=None):
+    def __init__(self, current=None, velocity=None, iterations=1):
         """
         Initializes a new instance of the Configuration class.
 
@@ -118,7 +118,7 @@ class CuringCalculations:
         return target_current
     
     def get_resolved_configuration_from_velocities(self, vx, vy, stiffness, beam_diameter_mm):
-        configuration = Configuration(beam_diameter=beam_diameter_mm)
+        configuration = Configuration()
         target_exposure = self.calculate_stiffness_to_photon_ratio(stiffness, self.average_ratio)
         velocity = math.sqrt(vx**2 + vy**2)
 

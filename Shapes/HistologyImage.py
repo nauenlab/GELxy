@@ -36,38 +36,43 @@ class HistologyImage:
         factor (float): The scaling factor based on the dimensions and maximum dimension of the image.
     """
 
-    def __init__(self, img_file, height_mm, width_mm, center=Coordinate(0, 0), rotation_angle_degrees=0, beam_diameter=0.1):
+    def __init__(self, img_file, height_mm=None, width_mm=None, center=Coordinate(0, 0), rotation_angle_degrees=0, beam_diameter=0.1):
         """
         Initialize the HistologyImage object.
 
         Parameters:
         - img_file (str): The path to the image file.
-        - stiffness (float): The stiffness value.
+        - height_mm (float, optional): The height of the image in mm. Defaults to None. 
+            If height_mm is not provided, it will be calculated based on the width_mm and the aspect ratio of the image.
+        - width_mm (float, optional): The width of the image in mm. Defaults to None. 
+            If width_mm is not provided, it will be calculated based on the height_mm and the aspect ratio of the image.
         - center (Coordinate, optional): The center coordinate of the image. Defaults to (0, 0).
         - rotation_angle_degrees (float, optional): The rotation angle of the image in degrees. Defaults to 0.
-        - scale_factor (float, optional): The scale factor of the image. Defaults to 1.
         - beam_diameter (float, optional): The beam diameter. Defaults to 0.1.
         """
         if img_file.lower().endswith('.jpg'):
             img_file = convert_jpg_to_png(img_file)
 
-        print(img_file)
         if not img_file.lower().endswith('.png'):
             raise ValueError("The image file must be a PNG file.")
+        
+        if height_mm is None and width_mm is None:
+            raise ValueError("The height or width of the image in mm must be provided.")
         
         self.img_file = img_file
         self.img = plt.imread(self.img_file)
         self.center = center
         self.rotation = rotation_angle_degrees
-        # self.scale_factor = scale_factor
         self.beam_diameter = beam_diameter
 
         self.selected_layers = []
 
-        # major_length = MOTOR_MAX_TRAVEL * scale_factor
-        # image_shape = self.img.shape[:2]
-        # minor_length = ((MOTOR_MAX_TRAVEL / max(image_shape)) * min(image_shape)) * scale_factor
-        # self.dimensions = (minor_length, major_length) if image_shape[0] > image_shape[1] else (major_length, minor_length)
+        if height_mm and width_mm is None:
+            width_mm = (height_mm / self.img.shape[0]) * self.img.shape[1]
+        
+        if width_mm and height_mm is None:
+            height_mm = (width_mm / self.img.shape[1]) * self.img.shape[0]
+
         self.dimensions = (width_mm, height_mm)
 
     def get_coordinates(self):
@@ -172,11 +177,31 @@ class HistologyImage:
         """
         def on_select():
             selected_layers = []
+            button.config(state=tk.DISABLED)
             for i, var in enumerate(layer_vars):
                 if var.get():
-                    stiffness_value = simpledialog.askfloat("Input", f"Enter stiffness value for layer {i+1} (Pa):")
-                    if stiffness_value is not None:
-                        selected_layers.append((i, stiffness_value))
+                    img_window = tk.Toplevel(root)
+                    img_window.title(f"Layer {i+1}")
+                    img = ImageTk.PhotoImage(Image.fromarray((layers[i]).astype(np.uint8)))
+                    img_label = tk.Label(img_window, image=img)
+                    img_label.image = img  # Keep a reference to avoid garbage collection
+                    img_label.pack()
+                    
+                    tk.Label(img_window, text=f"Enter stiffness value for layer {i+1} (Pa):").pack()
+                    stiffness_value_entry = tk.Entry(img_window)
+                    stiffness_value_entry.pack()
+                    def validate_entry(char):
+                        return char.isdigit()
+                    vcmd = (root.register(validate_entry), '%S')
+                    stiffness_value_entry.config(validate="key", validatecommand=vcmd)
+                    def on_confirm(entry=stiffness_value_entry, index=i, window=img_window):
+                        stiffness_value = float(entry.get())
+                        window.destroy()
+                        if stiffness_value is not None:
+                            selected_layers.append((index, stiffness_value))
+                    confirm_button = tk.Button(img_window, text="Confirm", command=on_confirm)
+                    confirm_button.pack()
+                    img_window.wait_window()
             root.destroy()
             self.selected_layers = selected_layers
 

@@ -30,7 +30,7 @@ class Oval(Shape):
             beam_diameter (float, optional): The beam diameter. Defaults to None.
             filled (bool, optional): Whether the oval is filled or not. Defaults to False.
         """
-        super().__init__(center=center, rotation_angle_degrees=rotation_angle_degrees, beam_diameter=beam_diameter, uses_step_coordinates=True, filled=filled, stiffness=stiffness)
+        super().__init__(center=center, rotation_angle_degrees=rotation_angle_degrees, beam_diameter=beam_diameter, uses_step_coordinates=False, filled=filled, stiffness=stiffness)
         self.width = float(width_mm)
         self.height = float(height_mm)
     

@@ -1,23 +1,24 @@
-import CommonPatterns
-from Shapes import *
 import signal
 import sys
 import os
+from tqdm import tqdm
+
+import CommonPatterns
+from Shapes import *
 from Coordinate import Coordinate, Coordinates
 from Constants import *
-from tqdm import tqdm
 from Multiprocessor import Multiprocessor
 from EstimatedCompletionTime import EstimatedCompletionTime
 
 ### INSTRUCTIONS
 ### STEP 1: Connect the motors and LED to the computer using USB cables.
-### STEP 2: Change the IS_VIRTUAL value to True if you want to run the motors in a virtual simulation. Change the IS_VIRTUAL value to False if you want to run the motors in real life.
+### STEP 2: Change the IS_SIMULATOR value to True if you want to run the motors in a virtual simulation. Change the IS_SIMULATOR value to False if you want to run the motors in real life.
 ###         It is recommended to run the motors in a virtual simulation first to see how the motors will move before running the motors in real life.
 ### STEP 3: Change the center_coordinate value in the main function. The center coordinate will be used to determine the center of each shape, texture, or pattern.
 ### STEP 4: Choose which shapes, textures, or patterns to draw and uncomment the desired shape, texture, or pattern from the list in the main function.
 ### STEP 5: Run the program. The motors will move to draw the shapes, textures, or patterns.
 
-IS_VIRTUAL = True
+IS_SIMULATOR = True
 
 X_MOTOR_SERIAL_NUMBER = "27602218"
 Y_MOTOR_SERIAL_NUMBER = "27264864"
@@ -30,10 +31,10 @@ class Controller:
         center_coordinate = Coordinate(12.5, 12.5)
         
         # Rectangle
-        # shapes.append(Rectangle(width_mm=5, height_mm=3, stiffness=10000, center=center_coordinate, rotation_angle_degrees=0, beam_diameter=BEAM_DIAMETER, uses_step_coordinates=False, filled=False))
+        # shapes.append(Rectangle(width_mm=5, height_mm=3, stiffness=20000, center=center_coordinate, rotation_angle_degrees=0, beam_diameter=BEAM_DIAMETER, uses_step_coordinates=True, filled=True))
         
         # Square
-        # shapes.append(Square(side_length_mm=2, stiffness=10000, center=center_coordinate, rotation_angle_degrees=0, beam_diameter=BEAM_DIAMETER, uses_step_coordinates=True, filled=False))
+        # shapes.append(Square(side_length_mm=2, stiffness=0, center=center_coordinate, rotation_angle_degrees=0, beam_diameter=BEAM_DIAMETER, uses_step_coordinates=True, filled=False))
         
         # Equilateral Triangle
         # shapes.append(EquilateralTriangle(side_length_mm=2, stiffness=10000, center=center_coordinate, rotation_angle_degrees=0, beam_diameter=BEAM_DIAMETER, uses_step_coordinates=True, filled=False))
@@ -48,7 +49,7 @@ class Controller:
         # shapes.append(Oval(width_mm=2, height_mm=3, stiffness=10000, center=center_coordinate, rotation_angle_degrees=0, beam_diameter=BEAM_DIAMETER, filled=True))
         
         # Circle
-        # shapes.append(Circle(diameter_mm=2, stiffness=10000, center=center_coordinate, beam_diameter=BEAM_DIAMETER, filled=False))
+        # shapes.append(Circle(diameter_mm=2, stiffness=20000, center=center_coordinate, beam_diameter=BEAM_DIAMETER, filled=True))
         
         # Sine Wave
         # shapes.append(SineWave(amplitude_mm=1, cycles=5, cycles_per_mm=0.5, stiffness=10000, cycle_offset=0, center=center_coordinate, rotation_angle_degrees=0, beam_diameter=BEAM_DIAMETER))
@@ -57,8 +58,8 @@ class Controller:
         # shapes.append(Gradient(min_stiffness=5000, max_stiffness=50000, width_mm=3, height_mm=4, center=center_coordinate, beam_diameter=BEAM_DIAMETER, rotation_angle_degrees=0, is_reversed=True))
         
         # Custom Pattern
-        shapes.append(EdgeDetection(img_file="test_images/8.png", center=center_coordinate, rotation_angle_degrees=0, scale_factor=0.4, beam_diameter=BEAM_DIAMETER))
-        # shapes.append(EdgeDetection(img_file="test_images/examplehistology_adultvisualctx20x.png", stiffness=10000, center=center_coordinate, rotation_angle_degrees=0, scale_factor=1, beam_diameter=BEAM_DIAMETER))
+        shapes.append(HistologyImage(img_file="test_images/examplehistology_adultcerebellumadditional40x.jpg", center=center_coordinate, height_mm=3, rotation_angle_degrees=0, beam_diameter=BEAM_DIAMETER))
+        # shapes.append(HistologyImage(img_file="test_images/examplehistology_adultvisualctx20x.png", stiffness=10000, center=center_coordinate, height_mm=3, rotation_angle_degrees=0, beam_diameter=BEAM_DIAMETER))
         
         # Texture
         # texture_shape = EquilateralTriangle(side_length_mm=1, stiffness=10000, center=None, rotation_angle_degrees=0, beam_diameter=BEAM_DIAMETER, uses_step_coordinates=False, filled=False)
@@ -67,7 +68,7 @@ class Controller:
         # Common Patterns
         # shapes.extend(CommonPatterns.atom(width_mm=5, height_mm=2, center=center_coordinate, stiffness=10000))
         # shapes.extend(CommonPatterns.deathly_hallows(size_mm=5, center=center_coordinate, stiffness=10000))
-        # shapes.extend(CommonPatterns.orientation(length_mm=5, center=center_coordinate, stiffness=50000))
+        # shapes.extend(CommonPatterns.rounded_square(length_mm=5, center=center_coordinate, stiffness=50000))
 
         coordinate_sets = Multiprocessor().get_coordinate_sets(shapes)
 
@@ -79,7 +80,7 @@ class Controller:
         completion_time = EstimatedCompletionTime(coordinates).get_completion_time()
         print(f"Estimated Completion Time: {int(completion_time // 3600)} hours {int((completion_time % 3600) // 60)} minutes {int(completion_time % 60)} seconds")
 
-        if IS_VIRTUAL:
+        if IS_SIMULATOR:
             from Simulator.VirtualManager import VirtualManager
             # Sets up a virtual simulation of the motors and LED
             self.manager = VirtualManager(canvas_dimensions_mm=MOTOR_MAX_TRAVEL, acceleration=ACCELERATION, max_velocity=MAXIMUM_VELOCITY, beam_diameter=BEAM_DIAMETER)
@@ -88,6 +89,13 @@ class Controller:
             # Sets up the actual motors and LED
             self.manager = Manager(serial_number_x=X_MOTOR_SERIAL_NUMBER, serial_number_y=Y_MOTOR_SERIAL_NUMBER, lamp_serial_number=LAMP_SERIAL_NUMBER, acceleration=ACCELERATION, max_velocity=MAXIMUM_VELOCITY)
         
+        if not IS_SIMULATOR:
+            print("Going to Centroid of aggregated shapes.")
+            center_of_shapes = coordinates.get_centroid()
+            print("Centroid of aggregated shapes:", center_of_shapes)
+            self.manager.move(center_of_shapes)
+            print("First coordinate reached. Please adjust stage and gel as needed.")
+            lamp_on = input("Would you like to turn the lamp on to 1 mA for calibration? (y/n):")
         if not IS_VIRTUAL:
             print("Going to first Coordinate")
             self.manager.move(coordinates[0])
@@ -97,11 +105,12 @@ class Controller:
                 self.manager.lamp.turn_on(0.001)
             
             input("Press any key to continue.")
+            self.manager.lamp.turn_off()
 
         for coordinate in tqdm(coordinates, desc="Moving Motors", unit="coordinate"):
             self.manager.move(coordinate)
 
-        if IS_VIRTUAL:
+        if IS_SIMULATOR:
             self.manager.lamp.canvas.draw()
     
     def __del__(self):

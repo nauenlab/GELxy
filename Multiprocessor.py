@@ -20,7 +20,8 @@ class Multiprocessor:
 
         coordinate_sets_in_order = []
         for shape_id in shape_ids:
-            coordinate_sets_in_order.append(coordinate_sets[shape_id])
+            if shape_id in coordinate_sets:
+                coordinate_sets_in_order.append(coordinate_sets[shape_id])
         
         return coordinate_sets_in_order
     
