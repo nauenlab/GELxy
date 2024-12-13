@@ -1,10 +1,17 @@
 import cv2
 from Coordinate import Coordinate, Coordinates
 import numpy as np
+import time
 from tqdm import tqdm
-from CuringCalculations import curing_calculations
-
-dimensions = 15  # 15 mm * 100 mm_to_pixel_ratio
+from .ImageProcessing import *
+from scipy.spatial import cKDTree
+from Constants import MINIMUM_DISTANCE_BETWEEN_TWO_LIGHT_BEAMS, MOTOR_MAX_TRAVEL
+import tkinter as tk
+from tkinter import simpledialog
+from PIL import Image, ImageTk
+import matplotlib.pyplot as plt
+import matplotlib
+matplotlib.use('TkAgg')
 
 
 class EdgeDetection:
@@ -30,7 +37,7 @@ class EdgeDetection:
         factor (float): The scaling factor based on the dimensions and maximum dimension of the image.
     """
 
-    def __init__(self, img_file, stiffness, center=Coordinate(0, 0), rotation_angle_degrees=0, scale_factor=1, beam_diameter=0.1):
+    def __init__(self, img_file, center=Coordinate(0, 0), rotation_angle_degrees=0, scale_factor=1, beam_diameter=0.1):
         """
         Initialize the EdgeDetection object.
 
@@ -42,60 +49,181 @@ class EdgeDetection:
         - scale_factor (float, optional): The scale factor of the image. Defaults to 1.
         - beam_diameter (float, optional): The beam diameter. Defaults to 0.1.
         """
+        if img_file.lower().endswith('.jpg'):
+            img_file = convert_jpg_to_png(img_file)
+
+        print(img_file)
+        if not img_file.lower().endswith('.png'):
+            raise ValueError("The image file must be a PNG file.")
+        
         self.img_file = img_file
+        self.img = plt.imread(self.img_file)
         self.center = center
         self.rotation = rotation_angle_degrees
         self.scale_factor = scale_factor
         self.beam_diameter = beam_diameter
-        self.stiffness = stiffness
-        self.edges = []
-        self.canny_edge_detection()
 
-        max_dimension = max(self.height, self.width)
-        self.factor = (dimensions / max_dimension) * self.scale_factor
+        self.selected_layers = []
 
-    @property
-    def height(self):
-        """
-        The height of the image.
-
-        Returns:
-            int: The height of the image.
-
-        """
-        if len(self.edges) == 0:
-            return 0
-        return len(self.edges[0])
-
-    @property
-    def width(self):
-        """
-        The width of the image.
-
-        Returns:
-            int: The width of the image.
-
-        """
-        return len(self.edges)
-
-    def canny_edge_detection(self):
-        """
-        Performs Canny edge detection on the input image.
-
-        """
-        img = cv2.imread(self.img_file)
-
-        # Convert to grayscale
-        img_gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
-        # Blur the image for better edge detection
-        img_blur = cv2.GaussianBlur(img_gray, (3, 3), 0)
-
-        # Canny Edge Detection
-        edge_detection = cv2.Canny(image=img_blur, threshold1=100, threshold2=200)  # Canny Edge Detection
-
-        self.edges = [np.flip(row, 0) for row in edge_detection]
+        major_length = MOTOR_MAX_TRAVEL * scale_factor
+        image_shape = self.img.shape[:2]
+        minor_length = ((MOTOR_MAX_TRAVEL / max(image_shape)) * min(image_shape)) * scale_factor
+        self.dimensions = (minor_length, major_length) if image_shape[0] > image_shape[1] else (major_length, minor_length)
 
     def get_coordinates(self):
+        og_img = downsample(self.img)
+        segmented_images = segment_images(og_img)
+
+        coordinates = Coordinates()
+        coordinate_layers = []
+        colors = [(0, 255, 0), (255, 0, 0), (0, 0, 255), (255, 255, 0), (0, 255, 255), (255, 0, 255), (255, 255, 255), (0, 0, 0), (128, 128, 128), (128, 0, 0), (0, 128, 0), (0, 0, 128), (128, 128, 0), (128, 0, 128), (0, 128, 128)]
+
+        layers = []
+        target_values = list(segmented_images.values())
+        self.select_layers(target_values)
+        selected_images = [target_values[i] for i, _ in self.selected_layers]
+        stiffness = [i[1] for i in self.selected_layers]
+        for (i, image) in enumerate(selected_images):
+            gray_img = image
+            if len(image.shape) == 3:
+                gray_img = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+
+            medianBlurred = cv2.medianBlur(gray_img, 3)
+            
+            binary_img = (medianBlurred > 0.6).astype(np.float32)
+            blurred = blur(binary_img, 5)
+            reduced_noise_img = dilate_and_erode(blurred)
+            binary_img2 = (reduced_noise_img < 0.05).astype(np.float32)
+            
+            edge_detection_img = canny_edge_detection(binary_img2)
+
+            labeled_image, num_islands, island_sizes, thicknesses, island_mask = detect_islands(edge_detection_img)
+
+            cleaned_image = remove_islands(edge_detection_img, island_mask)
+    
+            opened_edges_colored = np.zeros_like(og_img)
+            opened_edges_colored[cleaned_image > 0] = (0, 255, 0)
+            
+            # get the associated color from the og_img
+            colored_img = np.zeros_like(og_img)
+            colored_img[image > 0] = og_img[image > 0]
+            
+            colored_img = blur(colored_img, 21)
+            opened_edges_colored_overlayed = combine_images(opened_edges_colored, colored_img)
+
+            layer_color = colors.pop(0)
+            colors.append(layer_color)
+            filled_shape = fill_shape(opened_edges_colored_overlayed, layer_color)
+
+            layers.append(filled_shape)
+
+            filled_shape_gray = cv2.cvtColor(filled_shape, cv2.COLOR_BGR2GRAY)
+            binary_img3 = (filled_shape_gray > 0.6).astype(np.float32) * 255
+            filled_shape_flip = [np.flip(row, 0) for row in binary_img3]
+            coordinates_layer = self.convert_pixels_to_coordinates(filled_shape_flip, stiffness[i])
+            coordinate_layers.append(coordinates_layer)
+            coordinates += coordinates_layer
+
+        if len(coordinates) != 0:
+            coordinates.normalize(center=self.center, rotation=self.rotation, stiffness=0, beam_diameter_mm=self.beam_diameter, is_layer=False, is_multiple_layers=True)
+        
+        if len(layers) != 0:
+            self.view_layers(layers)
+            self.plot_merged_layers(layers)
+            self.plot_spatial_layers(coordinate_layers, scatter=False)
+
+        return coordinates
+    
+    def plot_spatial_layers(self, layers, scatter=False):
+        cs = ["green", "red", "blue", "yellow", "cyan", "magenta", "white", "black", "gray", "maroon", "navy", "olive", "purple", "teal"]
+        for i, layer in enumerate(layers):
+            layer_color = cs.pop(0)
+            cs.append(layer_color)
+            if scatter:
+                plt.scatter(layer.x, layer.y, color=layer_color)
+            else:
+                plt.plot(layer.x, layer.y, color=layer_color)
+        plt.show()
+
+    def plot_merged_layers(self, layers):
+        combined_image = merge_layers(layers)
+        plt.imshow(combined_image, cmap='gray')
+        plt.show()
+
+    def view_layers(self, layers):
+        # get width and height of subplot grid using number of layers
+        n_layers = len(layers)
+        n_cols = 3
+        n_rows = (n_layers + n_cols - 1) // n_cols
+        fig, axes = plt.subplots(nrows=n_rows, ncols=n_cols, figsize=(18, 12))
+        fig.tight_layout()
+        axes = axes.flatten()
+        for i, layer in enumerate(layers):
+            ax = axes[i]
+            ax.imshow(layer)
+            ax.axis('off')
+        plt.show()
+    
+    def select_layers(self, layers):
+        """
+            use tkinter to create a GUI so the user can select the layer to use.
+            display all the layers to the user with the ability for the image to be full screen. 
+            The user should select each layer using a radio button if a layer is selected, a text box should appear for the user to enter the stiffness value
+        """
+        def on_select():
+            selected_layers = []
+            for i, var in enumerate(layer_vars):
+                if var.get():
+                    stiffness_value = simpledialog.askfloat("Input", f"Enter stiffness value for layer {i+1} (Pa):")
+                    if stiffness_value is not None:
+                        selected_layers.append((i, stiffness_value))
+            root.destroy()
+            self.selected_layers = selected_layers
+
+        root = tk.Tk()
+        root.title("Select Layers")
+
+        canvas = tk.Canvas(root)
+        canvas.pack(fill=tk.BOTH, expand=True)
+
+        scrollbar = tk.Scrollbar(canvas, orient=tk.VERTICAL, command=canvas.yview)
+        scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
+        canvas.configure(yscrollcommand=scrollbar.set)
+
+        frame = tk.Frame(canvas)
+        canvas.create_window((0, 0), window=frame, anchor='nw')
+        root.geometry(f"{root.winfo_screenwidth()}x{root.winfo_screenheight()}")
+        root.focus_force() 
+
+        layer_vars = []
+        for i, layer in enumerate(layers):
+            layer_array = (layer > 0.2).astype(np.float32)
+            layer_array = (layer_array * 255).astype(np.uint8)
+            
+            img = Image.fromarray(layer_array)
+            
+            img = img.resize((300, 300), Image.LANCZOS)
+            img_tk = ImageTk.PhotoImage(img)
+
+            label = tk.Label(frame, image=img_tk)
+            label.image = img_tk
+            label.grid(row=i // 3, column=i % 3)
+
+            var = tk.BooleanVar()
+            checkbox = tk.Checkbutton(frame, text=f"Layer {i+1}", variable=var)
+            checkbox.grid(row=i // 3, column=i % 3, sticky='s')
+            layer_vars.append(var)
+
+        button = tk.Button(frame, text="Select", command=on_select)
+        button.grid(row=(len(layers) + 2) // 3, column=1)
+
+        frame.update_idletasks()
+        canvas.config(scrollregion=canvas.bbox("all"))
+
+        root.mainloop()
+
+    
+    def convert_pixels_to_coordinates(self, pixels, stiffness):
         """
         Extracts the coordinates of the detected edges.
 
@@ -104,84 +232,92 @@ class EdgeDetection:
 
         """
         coordinates = Coordinates()
-        visited = []
+        pixels = np.flip(pixels, axis=1)
+        visited = np.zeros((len(pixels), len(pixels[0])))
+        
+        canvas_width = self.dimensions[0]
+        canvas_height = self.dimensions[1]
 
-        for i in tqdm(range(self.height), desc="Getting Coordinates"):
-            for j in range(self.width):
-                if self.edges[j][i] == 255 and (i, j) not in visited:
-                    queue = [(i, j)]
+        width = 0 if len(pixels) == 0 else len(pixels[0])
+        height = len(pixels)
+
+        for row in tqdm(range(height), desc="Getting Coordinates"):
+            for col in range(width):
+                if pixels[row][col] == 255 and visited[row][col] == 0:
+                    queue = [(row, col)]
                     while queue:
-                        x, y = queue.pop(0)
-                        if (x, y) not in visited:
-                            c = Coordinate(x * self.factor, y * self.factor)
+                        y, x = queue.pop(0)
+                        if visited[y][x] == 0:
+                            visited[y][x] = 1
+                            # Scale x and y to fit inside width and height
+                            scaled_x = (canvas_width * x) / width
+                            scaled_y = (canvas_height * (height - y)) / height
+                            coordinates.append(Coordinate(scaled_x, scaled_y))
 
-                            visited.append((x, y))
+                            # Define the possible offsets for neighboring pixels
+                            offsets = [(-1, -1), (-1, 0), (-1, 1),
+                                        (0, -1),           (0, 1),
+                                        (1, -1),  (1, 0),  (1, 1)]
+                            
+                            neighbors = []
+                            for dx, dy in offsets:
+                                nx, ny = x + dx, y + dy
 
-                            coordinates.append(c)
-                            neighbors = self.get_neighbors((x, y))
+                                # Check if the neighbor is within bounds
+                                if 0 <= nx < width - 1 and 0 <= ny < height - 1 and visited[ny][nx] == 0:
+                                    neighbors.append((ny, nx))
+
                             for neighbor in neighbors:
-                                if self.edges[neighbor[1]][neighbor[0]] == 255 and neighbor not in visited:
+                                if pixels[neighbor[0]][neighbor[1]] == 255:
                                     queue.append(neighbor)
 
-        coordinates = self.ordered_by_nearest_neighbor(coordinates)
-        coordinates.normalize(center=self.center, rotation=self.rotation, stiffness=self.stiffness, beam_diameter_mm=self.beam_diameter)
+        coordinates = self.ordered_by_nearest_neighbor(coordinates, self.beam_diameter)
+
+        if len(coordinates) != 0:
+            coordinates.normalize(center=self.center, rotation=self.rotation, stiffness=stiffness, beam_diameter_mm=self.beam_diameter, is_layer=True, is_multiple_layers=False)
+
+        # coordinates.plot(plot_lines=False, plot_points=True)
+
         return coordinates
-    
-    def ordered_by_nearest_neighbor(self, coordinates):
-        """
-        Orders the coordinates by nearest neighbor.
 
-        Args:
-            coordinates (Coordinates): The input coordinates.
-
-        Returns:
-            Coordinates: The ordered coordinates.
-
-        """
-        # Start at the first point
-        current_point = coordinates[0]
+    def ordered_by_nearest_neighbor(self, coordinates, beam_diameter):
+        min_distance = float(MINIMUM_DISTANCE_BETWEEN_TWO_LIGHT_BEAMS)
+        
+        # Convert the Coordinates object into a list of tuples for easier calculation
+        points = [(coord.x, coord.y) for coord in coordinates]
+        
+        # Initialize the path with the first point
         path = Coordinates()
-        path.append(current_point)
-        unvisited = set(coordinates[1:])
+        path.append(coordinates[0])
+        blacklist = set()
+        blacklist.add(0)
+        
+        # Build a k-d tree for efficient nearest neighbor search
+        tree = cKDTree(points)
 
-        while unvisited:
-            nearest_point = min(unvisited, key=lambda x: Coordinates.distance(current_point, x))
-            path.append_if_far_enough(nearest_point)
+        while True:
+            current_coord = path[-1]
+            current_point = (current_coord.x, current_coord.y)
 
-            dist = Coordinates.distance(current_point, nearest_point)
-            if dist > self.beam_diameter:
-                nearest_point.lp = False
-            
-            unvisited.remove(nearest_point)
-            current_point = nearest_point
+            distances, indices = tree.query(current_point, k=len(points), distance_upper_bound=np.inf)        
+            next_point_found = False
+            for dist, idx in zip(distances, indices):
+                # idx == tree.n when there are no more neighbors
+                if idx != tree.n and dist >= min_distance and idx not in blacklist:
+                    # Add the next valid coordinate to the path
+                    if dist > beam_diameter:
+                        coordinates[idx].lp = False
+                    path.append(coordinates[idx])
+                    
+                    # Blacklist all points within distance `m` of the new point
+                    nearby_indices = tree.query_ball_point(points[idx], min_distance)
+                    blacklist.update(nearby_indices)
+
+                    next_point_found = True
+                    break
+
+            # If no valid next point is found, break the loop
+            if not next_point_found:
+                break
 
         return path
-
-    def get_neighbors(self, coord):
-        """
-        Gets the neighboring coordinates of a given coordinate.
-
-        Args:
-            coord (tuple): The input coordinate.
-
-        Returns:
-            list: The neighboring coordinates.
-
-        """
-        x, y = coord
-        neighbors = []
-
-        # Define the possible offsets for neighboring pixels
-        offsets = [(-1, -1), (-1, 0), (-1, 1),
-                   (0, -1),           (0, 1),
-                   (1, -1),  (1, 0),  (1, 1)]
-
-        for dx, dy in offsets:
-            nx, ny = x + dx, y + dy
-
-            # Check if the neighbor is within bounds
-            if 0 <= nx < self.height - 1 and 0 <= ny < self.width - 1:
-                neighbors.append((nx, ny))
-
-        return neighbors
-

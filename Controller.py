@@ -11,7 +11,6 @@ from EstimatedCompletionTime import EstimatedCompletionTime
 
 ### INSTRUCTIONS
 ### STEP 1: Connect the motors and LED to the computer using USB cables.
-
 ### STEP 2: Change the IS_VIRTUAL value to True if you want to run the motors in a virtual simulation. Change the IS_VIRTUAL value to False if you want to run the motors in real life.
 ###         It is recommended to run the motors in a virtual simulation first to see how the motors will move before running the motors in real life.
 ### STEP 3: Change the center_coordinate value in the main function. The center coordinate will be used to determine the center of each shape, texture, or pattern.
@@ -28,10 +27,10 @@ class Controller:
 
     def main(self):
         shapes = []
-        center_coordinate = Coordinate(4.38134, 11.82782)
+        center_coordinate = Coordinate(12.5, 12.5)
         
         # Rectangle
-        shapes.append(Rectangle(width_mm=5, height_mm=3, stiffness=10000, center=center_coordinate, rotation_angle_degrees=0, beam_diameter=BEAM_DIAMETER, uses_step_coordinates=False, filled=False))
+        # shapes.append(Rectangle(width_mm=5, height_mm=3, stiffness=10000, center=center_coordinate, rotation_angle_degrees=0, beam_diameter=BEAM_DIAMETER, uses_step_coordinates=False, filled=False))
         
         # Square
         # shapes.append(Square(side_length_mm=2, stiffness=10000, center=center_coordinate, rotation_angle_degrees=0, beam_diameter=BEAM_DIAMETER, uses_step_coordinates=True, filled=False))
@@ -58,7 +57,8 @@ class Controller:
         # shapes.append(Gradient(min_stiffness=5000, max_stiffness=50000, width_mm=3, height_mm=4, center=center_coordinate, beam_diameter=BEAM_DIAMETER, rotation_angle_degrees=0, is_reversed=True))
         
         # Custom Pattern
-        # shapes.append(EdgeDetection(img_file="test_images/2.jpg", stiffness=10000, center=center_coordinate, rotation_angle_degrees=0, scale_factor=0.4, beam_diameter=BEAM_DIAMETER))
+        shapes.append(EdgeDetection(img_file="test_images/8.png", center=center_coordinate, rotation_angle_degrees=0, scale_factor=0.4, beam_diameter=BEAM_DIAMETER))
+        # shapes.append(EdgeDetection(img_file="test_images/examplehistology_adultvisualctx20x.png", stiffness=10000, center=center_coordinate, rotation_angle_degrees=0, scale_factor=1, beam_diameter=BEAM_DIAMETER))
         
         # Texture
         # texture_shape = EquilateralTriangle(side_length_mm=1, stiffness=10000, center=None, rotation_angle_degrees=0, beam_diameter=BEAM_DIAMETER, uses_step_coordinates=False, filled=False)
@@ -67,13 +67,14 @@ class Controller:
         # Common Patterns
         # shapes.extend(CommonPatterns.atom(width_mm=5, height_mm=2, center=center_coordinate, stiffness=10000))
         # shapes.extend(CommonPatterns.deathly_hallows(size_mm=5, center=center_coordinate, stiffness=10000))
+        # shapes.extend(CommonPatterns.orientation(length_mm=5, center=center_coordinate, stiffness=50000))
 
         coordinate_sets = Multiprocessor().get_coordinate_sets(shapes)
 
         coordinates = Coordinates()
         for i in coordinate_sets:
             coordinates += i
-        
+
         # Estimated Completion Time
         completion_time = EstimatedCompletionTime(coordinates).get_completion_time()
         print(f"Estimated Completion Time: {int(completion_time // 3600)} hours {int((completion_time % 3600) // 60)} minutes {int(completion_time % 60)} seconds")

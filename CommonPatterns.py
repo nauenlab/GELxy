@@ -1,6 +1,7 @@
 import math
 from Shapes import *
 from Coordinate import Coordinate
+from decimal import Decimal
 
 
 def deathly_hallows(size_mm=5, center=Coordinate(5, 5), stiffness=0.1):
@@ -120,5 +121,36 @@ def audi(size_mm=5, center=Coordinate(5, 5), stiffness=0.1):
     shapes.append(Circle(diameter_mm=size_mm, stiffness=stiffness, center=Coordinate(center.x + 3*(radius - offset), center.y)))
     shapes.append(Circle(diameter_mm=size_mm, stiffness=stiffness, center=Coordinate(center.x - (radius - offset), center.y)))
     shapes.append(Circle(diameter_mm=size_mm, stiffness=stiffness, center=Coordinate(center.x - 3*(radius - offset), center.y)))
+
+    return shapes
+
+def orientation(length_mm=5, center=Coordinate(5, 5), stiffness=0.1):
+    """
+    Generates a list of shapes representing an a square with a cut corner.
+    This will be useful for determining orientation.
+
+    Args:
+        length_mm (float): The width of the atom shape in millimeters. Default is 5.
+        center (Coordinate): The center coordinate of the atom shape. Default is (5, 5).
+
+    Returns:
+        list: A list of shapes representing an atom.
+    """
+    shapes = []
+
+    mid_mm = Decimal(float(length_mm) / 2)
+    cut_length = length_mm * 0.6
+    cut_length_mid = Decimal(float(length_mm - cut_length) / 2)
+    upper_center = Coordinate(center.x - cut_length_mid, center.y + mid_mm)
+    shapes.append(Line(length_mm=cut_length, stiffness=stiffness, center=upper_center, rotation_angle_degrees=90))
+    lower_center = Coordinate(center.x, center.y - mid_mm)
+    shapes.append(Line(length_mm=length_mm, stiffness=stiffness, center=lower_center, rotation_angle_degrees=90))
+    left_center = Coordinate(center.x - mid_mm, center.y)
+    shapes.append(Line(length_mm=length_mm, stiffness=stiffness, center=left_center))
+    right_center = Coordinate(center.x + mid_mm, center.y - cut_length_mid)
+    shapes.append(Line(length_mm=cut_length, stiffness=stiffness, center=right_center))
+    corner_center = Coordinate(center.x + mid_mm - cut_length_mid, center.y + mid_mm - cut_length_mid)
+    corner_length = math.sqrt(2*((cut_length_mid*2)**2))
+    shapes.append(Line(length_mm=corner_length, stiffness=stiffness, center=corner_center, rotation_angle_degrees=45))
 
     return shapes
