@@ -71,7 +71,6 @@ class VirtualMotor:
             change = new_pos if distance > 0 else -new_pos
             movements.append(self.position + change)
             ti += self.time_step
-        self.position = new_position
 
         return movements
 

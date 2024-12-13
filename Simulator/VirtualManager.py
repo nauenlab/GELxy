@@ -61,6 +61,8 @@ class VirtualManager:
             self.y.set_params(position.v[1])
         x_mvts = self.x.get_movements(position.x, not is_lamp_on)
         y_mvts = self.y.get_movements(position.y, not is_lamp_on)
+        self.x.position = position.x
+        self.y.position = position.y
         if is_lamp_on:
             for i in range(max(len(x_mvts), len(y_mvts))):
                 x_i, y_i = min(i, len(x_mvts) - 1), min(i, len(y_mvts) - 1)
