@@ -1,5 +1,5 @@
 from .Circle import Circle
-from .EdgeDetection import EdgeDetection
+from .HistologyImage import HistologyImage
 from .EquilateralTriangle import EquilateralTriangle
 from .Gradient import Gradient
 from .Line import Line
