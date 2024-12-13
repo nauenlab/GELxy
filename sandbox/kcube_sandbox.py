@@ -18,6 +18,7 @@ from Thorlabs.MotionControl.KCube.DCServoCLI import *
 from Thorlabs.MotionControl.GenericMotorCLI.ControlParameters import *
 from System import Decimal
 
+
 # If you're using Python 3.7 or older change add_dll_directory to chdir
 if sys.version_info < (3, 8):
     os.chdir(r"C:\Program Files\IVI Foundation\VISA\Win64\Bin")
@@ -32,7 +33,7 @@ library=ctypes.cdll.LoadLibrary("TLDC2200_64.dll")
 # !!! In the USB number the serial number (M00...) needs to be changed to the one of the connected device.
 devSession = ctypes.c_int()
 library.TLDC2200_init(b"USB0::0x1313::0x80C8::M00607903::INSTR",False,False,ctypes.byref(devSession))
-print("Device connected.")
+print("Lamp connected.")
 
 #Constant Current (CC) mode
 # Make CC settings
@@ -44,45 +45,38 @@ serial_no1 = str("27264864") #Change to match the serial number on your KDC.
 serial_no2 = str("27602218")
 DeviceManagerCLI.BuildDeviceList()
 
+def wait_for_settings_initialization(device):
+    if not device.IsSettingsInitialized():
+        device.WaitForSettingsInitialized(10000)  # 10 second timeout
+        assert device.IsSettingsInitialized() is True
+
+# Before homing or moving device, ensure the motor's configuration is loaded
+def load_motor_configuration(device, serial_number):
+    m_config = device.LoadMotorConfiguration(serial_number, DeviceConfiguration.DeviceSettingsUseOptionType.UseDeviceSettings)
+    m_config.DeviceSettingsName = str("Z825B") # Chnage to whatever stage you are using. 
+    m_config.UpdateCurrentConfiguration()
+
+    # device.SetSettings(device.MotorDeviceSettings, True, False)
+
 # Connect, begin polling, and enable KDC. 
 def connect(serial_number):
-    DeviceManagerCLI.BuildDeviceList()
     motor = KCubeDCServo.CreateKCubeDCServo(serial_number)
-    try:
-        motor.Connect(serial_number)
-        motor.StartPolling(1)
-        motor.EnableDevice()
-    except DeviceNotReadyException:
-        print(f"unable to connect to {serial_number}, trying again")
-        time.sleep(1)
-        connect(serial_number)
+    motor.Connect(serial_number)
+    wait_for_settings_initialization(motor)
+    motor.StartPolling(50)
+    time.sleep(1)
+    motor.EnableDevice()
+    time.sleep(1)
+
+    load_motor_configuration(motor, serial_number)
+    print(f"Connected to {serial_number}")
     return motor
 
-DeviceManagerCLI.BuildDeviceList()
 deviceX = connect(serial_no1)
 deviceY = connect(serial_no2)
 
-
-if not deviceY.IsSettingsInitialized():
-    deviceY.WaitForSettingsInitialized(10000)  # 10 second timeout
-    assert deviceY.IsSettingsInitialized() is True
-    
-if not deviceX.IsSettingsInitialized():
-    deviceX.WaitForSettingsInitialized(10000)  # 10 second timeout
-    assert deviceX.IsSettingsInitialized() is True
-
-# Before homing or moving device, ensure the motor's configuration is loaded
-m_config = deviceY.LoadMotorConfiguration(serial_no1, DeviceConfiguration.DeviceSettingsUseOptionType.UseFileSettings)
-m_config = deviceX.LoadMotorConfiguration(serial_no2, DeviceConfiguration.DeviceSettingsUseOptionType.UseFileSettings)
-
-m_config.DeviceSettingsName = "Z825B" # Chnage to whatever stage you are using. 
-
-m_config.UpdateCurrentConfiguration()
-
-deviceY.SetSettings(deviceY.MotorDeviceSettings, True, False)
-deviceX.SetSettings(deviceX.MotorDeviceSettings, True, False)
-
-
+deviceX.Home(50000)
+deviceY.Home(50000)
 
 vs = deviceX.GetVelocityParams()
 vs.Acceleration = Decimal(4.0)
@@ -95,42 +89,42 @@ vs = deviceX.GetVelocityParams()
 MINIMUM_STEP_SIZE = Decimal(0.001)
 
 def jog_to(device, absolute_position):
-    # To make more accurate, reduce the polling frequency in the initializer
+        """
+        Moves the motor to the specified absolute position using jogging.
 
-    motor_position = device.Position
-    relative_movement = Decimal(absolute_position) - motor_position
-    # print("relative movement:", relative_movement)
-    # self.device.SetJogStepSize(relative_movement)
+        Args:
+            absolute_position (float): The absolute position to move the motor to in mm.
+        """
+        # To make more accurate, reduce the polling frequency in the initializer
 
-    zero = Decimal(0)
-    movement_expected = True
-    isForward = True
+        motor_position = device.Position
+        relative_movement = Decimal(absolute_position) - motor_position
 
-    try:
-        if relative_movement > zero and relative_movement > MINIMUM_STEP_SIZE:
-            device.MoveJog(MotorDirection.Forward, 0)
-        elif relative_movement < zero and relative_movement < -MINIMUM_STEP_SIZE:
-            device.MoveJog(MotorDirection.Backward, 0)
-            isForward = False
-        else:
-            # print("no move necessary")
-            movement_expected = False
-    except Exception as e:
-        print(e)
+        zero = Decimal(0)
+        movement_expected = True
+        isForward = True
 
-    if movement_expected:
-        travel = device.Position - motor_position
-        while not (isForward and travel >= relative_movement or not isForward and travel <= relative_movement):
+        try:
+            if relative_movement > zero and relative_movement > MINIMUM_STEP_SIZE:
+                device.MoveJog(MotorDirection.Forward, 0)
+            elif relative_movement < zero and relative_movement < -MINIMUM_STEP_SIZE:
+                device.MoveJog(MotorDirection.Backward, 0)
+                isForward = False
+            else:
+                movement_expected = False
+        except Exception as e:
+            print(e)
+            # print(serial_number)
+
+        if movement_expected:
             travel = device.Position - motor_position
-            continue
-        device.StopImmediate()
+            while not (isForward and travel >= relative_movement or not isForward and travel <= relative_movement):
+                travel = device.Position - motor_position
+                continue
+            device.StopImmediate()
 
-        while device.Status.IsJogging:
-            continue
-
-        error = device.Position - motor_position - relative_movement
-        # print(f"new position: {self.device.Position}")
-        # print(f"error: {error}")
+            while device.Status.IsJogging:
+                continue
 
 
 settings = deviceX.MotorDeviceSettings
@@ -141,8 +135,8 @@ for i in range(100):
     print(settings.Jog.JogMode)
 
 """
-deviceX.Home(50000)
-deviceY.Home(50000)
+
+
 
 settings.Jog.JogMode = JogParametersBase.JogModes.ContinuousHeld
 settings.Jog.JogStopMode = JogParametersBase.StopModes.Immediate
