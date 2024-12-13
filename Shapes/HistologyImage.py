@@ -179,9 +179,24 @@ class HistologyImage:
             selected_layers = []
             for i, var in enumerate(layer_vars):
                 if var.get():
-                    stiffness_value = simpledialog.askfloat("Input", f"Enter stiffness value for layer {i+1} (Pa):")
-                    if stiffness_value is not None:
-                        selected_layers.append((i, stiffness_value))
+                    img_window = tk.Toplevel(root)
+                    img_window.title(f"Layer {i+1}")
+                    img = ImageTk.PhotoImage(Image.fromarray((layers[i]).astype(np.uint8)))
+                    img_label = tk.Label(img_window, image=img)
+                    img_label.image = img  # Keep a reference to avoid garbage collection
+                    img_label.pack()
+                    
+                    tk.Label(img_window, text=f"Enter stiffness value for layer {i+1} (Pa):").pack()
+                    stiffness_value_entry = tk.Entry(img_window)
+                    stiffness_value_entry.pack()
+                    def on_confirm(entry=stiffness_value_entry, index=i, window=img_window):
+                        stiffness_value = float(entry.get())
+                        window.destroy()
+                        if stiffness_value is not None:
+                            selected_layers.append((index, stiffness_value))
+                    confirm_button = tk.Button(img_window, text="Confirm", command=on_confirm)
+                    confirm_button.pack()
+                    img_window.wait_window()
             root.destroy()
             self.selected_layers = selected_layers
 
