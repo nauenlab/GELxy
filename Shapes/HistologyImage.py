@@ -177,6 +177,7 @@ class HistologyImage:
         """
         def on_select():
             selected_layers = []
+            button.config(state=tk.DISABLED)
             for i, var in enumerate(layer_vars):
                 if var.get():
                     img_window = tk.Toplevel(root)
@@ -189,6 +190,10 @@ class HistologyImage:
                     tk.Label(img_window, text=f"Enter stiffness value for layer {i+1} (Pa):").pack()
                     stiffness_value_entry = tk.Entry(img_window)
                     stiffness_value_entry.pack()
+                    def validate_entry(char):
+                        return char.isdigit()
+                    vcmd = (root.register(validate_entry), '%S')
+                    stiffness_value_entry.config(validate="key", validatecommand=vcmd)
                     def on_confirm(entry=stiffness_value_entry, index=i, window=img_window):
                         stiffness_value = float(entry.get())
                         window.destroy()
