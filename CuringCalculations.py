@@ -116,41 +116,6 @@ class CuringCalculations:
         exposure_time_per_pixel = beam_diameter / velocity
         target_current = (target_photon_exposure * beam_area) / exposure_time_per_pixel
         return target_current
-
-    def get_configuration(self, target_stiffness, beam_diameter_mm):
-        """
-        Calculates the configuration based on the target stiffness and beam diameter.
-
-        Args:
-            target_stiffness (float): The target stiffness value in Pa.
-            beam_diameter_mm (float): The beam diameter in mm.
-
-        Returns:
-            Configuration: The calculated configuration.
-        
-        Raises:
-            Exception: If unable to achieve the target stiffness with the current configuration.
-        """
-        configuration = Configuration(beam_diameter=beam_diameter_mm)
-        target_exposure = self.calculate_stiffness_to_photon_ratio(target_stiffness, self.average_ratio)
-
-        while True:
-            velocity = self.get_velocity_based_on_target_photon_exposure(beam_diameter_mm, DEFAULT_CURRENT, target_exposure / configuration.iterations)
-            velocity = max(MINIMUM_VELOCITY, min(velocity, MAXIMUM_VELOCITY))
-            
-            current = self.get_current_based_on_target_photon_exposure(beam_diameter_mm, velocity, target_exposure / configuration.iterations)
-            if current < MINIMUM_CURRENT:
-                raise Exception("Configuration not achievable with current parameters.")
-            
-            if current > MAXIMUM_CURRENT:
-                configuration.iterations += 1
-                continue
-            
-            configuration.velocity = velocity
-            configuration.current = float(current) / 1000.0 # conversion from mA to A
-            break
-
-        return configuration
     
     def get_resolved_configuration_from_velocities(self, vx, vy, stiffness, beam_diameter_mm):
         configuration = Configuration(beam_diameter=beam_diameter_mm)
@@ -171,5 +136,3 @@ class CuringCalculations:
         return configuration
 
 curing_calculations = CuringCalculations()
-# configuration1 = curing_calculations.get_configuration(target_stiffness=10619.1, beam_diameter_mm=4.2)
-# print(configuration1)

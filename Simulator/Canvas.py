@@ -118,7 +118,7 @@ class Canvas:
             if 0 < x_pos < len(self.pixels) - 1 and 0 < y_pos < len(self.pixels[x_pos]) - 1:
                 self.pixels[x_pos][y_pos].inc(cure_per_step)
 
-    def draw(self):
+    def draw(self, binarized=False):
         """
         Draws the pixels on the canvas.
         """
@@ -130,24 +130,6 @@ class Canvas:
                 red = 0
                 if pixel_color.alpha > 0:
                     red = 256
-                draw.point((x, len(self.pixels)-y), fill=(red, 0, 0, int(pixel_color.alpha)))
+                draw.point((x, len(self.pixels)-y), fill=(red, 0, 0, 256 if binarized else int(pixel_color.alpha)))
 
         new.show()
-
-    def draw_binarized(self):
-        """
-        Binarizes the pixels on the canvas.
-        """
-        new = Image.new(mode="RGBA", size=(len(self.pixels), len(self.pixels)), color=(0, 0, 0, 0))
-        draw = ImageDraw.Draw(new)
-        for x in tqdm(range(len(self.pixels) - 1), desc="Drawing on Canvas"):
-            for y in range(len(self.pixels) - 1):
-                pixel_color = self.pixels[x][y]
-                red = 0
-                if pixel_color.alpha > 0:
-                    red = 256
-                draw.point((x, len(self.pixels)-y), fill=(red, 0, 0, 256))
-
-        new.show()
-        
-
