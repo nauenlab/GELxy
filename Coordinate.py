@@ -368,7 +368,7 @@ class Coordinates:
         resolved_coordinates.append(coordinates[0])
         
         # get the resolved configuration for each coordinate
-        configuration = [Configuration(beam_diameter=beam_diameter_mm)]
+        configuration = [Configuration()]
         velocities = [None]
         prev = coordinates[0]
         for curr in coordinates[1:]:
