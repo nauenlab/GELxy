@@ -124,7 +124,7 @@ def audi(size_mm=5, center=Coordinate(5, 5), stiffness=0.1):
 
     return shapes
 
-def orientation(length_mm=5, center=Coordinate(5, 5), stiffness=0.1):
+def rounded_square(length_mm=5, center=Coordinate(5, 5), stiffness=0.1):
     """
     Generates a list of shapes representing an a square with a cut corner.
     This will be useful for determining orientation.

@@ -1,8 +1,10 @@
 import multiprocessing
 import time
 import uuid
+import psutil
 
-MAXIMUM_PARALLEL_PROCESSES = 10
+MAXIMUM_PARALLEL_PROCESSES = psutil.cpu_count(logical=False)
+
 
 class Multiprocessor:
     def get_coordinate_sets(self, shapes):

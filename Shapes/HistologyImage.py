@@ -1,11 +1,10 @@
 import cv2
 from Coordinate import Coordinate, Coordinates
 import numpy as np
-import time
 from tqdm import tqdm
-from .ImageProcessing import *
+from .HistologicalImageProcessing import *
 from scipy.spatial import cKDTree
-from Constants import MINIMUM_DISTANCE_BETWEEN_TWO_LIGHT_BEAMS, MOTOR_MAX_TRAVEL
+from Constants import MINIMUM_DISTANCE_BETWEEN_TWO_LIGHT_BEAMS
 import tkinter as tk
 from tkinter import simpledialog
 from PIL import Image, ImageTk
@@ -14,7 +13,7 @@ import matplotlib
 matplotlib.use('TkAgg')
 
 
-class EdgeDetection:
+class HistologyImage:
     """
     A class that performs edge detection on an image and extracts coordinates of the detected edges.
 
@@ -37,9 +36,9 @@ class EdgeDetection:
         factor (float): The scaling factor based on the dimensions and maximum dimension of the image.
     """
 
-    def __init__(self, img_file, center=Coordinate(0, 0), rotation_angle_degrees=0, scale_factor=1, beam_diameter=0.1):
+    def __init__(self, img_file, height_mm, width_mm, center=Coordinate(0, 0), rotation_angle_degrees=0, beam_diameter=0.1):
         """
-        Initialize the EdgeDetection object.
+        Initialize the HistologyImage object.
 
         Parameters:
         - img_file (str): The path to the image file.
@@ -60,15 +59,16 @@ class EdgeDetection:
         self.img = plt.imread(self.img_file)
         self.center = center
         self.rotation = rotation_angle_degrees
-        self.scale_factor = scale_factor
+        # self.scale_factor = scale_factor
         self.beam_diameter = beam_diameter
 
         self.selected_layers = []
 
-        major_length = MOTOR_MAX_TRAVEL * scale_factor
-        image_shape = self.img.shape[:2]
-        minor_length = ((MOTOR_MAX_TRAVEL / max(image_shape)) * min(image_shape)) * scale_factor
-        self.dimensions = (minor_length, major_length) if image_shape[0] > image_shape[1] else (major_length, minor_length)
+        # major_length = MOTOR_MAX_TRAVEL * scale_factor
+        # image_shape = self.img.shape[:2]
+        # minor_length = ((MOTOR_MAX_TRAVEL / max(image_shape)) * min(image_shape)) * scale_factor
+        # self.dimensions = (minor_length, major_length) if image_shape[0] > image_shape[1] else (major_length, minor_length)
+        self.dimensions = (width_mm, height_mm)
 
     def get_coordinates(self):
         og_img = downsample(self.img)
@@ -127,10 +127,10 @@ class EdgeDetection:
         if len(coordinates) != 0:
             coordinates.normalize(center=self.center, rotation=self.rotation, stiffness=0, beam_diameter_mm=self.beam_diameter, is_layer=False, is_multiple_layers=True)
         
-        if len(layers) != 0:
-            self.view_layers(layers)
-            self.plot_merged_layers(layers)
-            self.plot_spatial_layers(coordinate_layers, scatter=False)
+        # if len(layers) != 0:
+        #     self.view_layers(layers)
+        #     self.plot_merged_layers(layers)
+        #     self.plot_spatial_layers(coordinate_layers, scatter=False)
 
         return coordinates
     

@@ -1,7 +1,4 @@
-import math
-from Coordinate import Coordinate, Coordinates
-from tqdm import tqdm
-from decimal import Decimal
+from Coordinate import Coordinate
 
 class Shape:
     """
