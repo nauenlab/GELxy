@@ -92,6 +92,7 @@ class Controller:
         if not IS_SIMULATOR:
             print("Going to Centroid of aggregated shapes.")
             center_of_shapes = coordinates.get_centroid()
+            center_of_shapes.lp = False
             print("Centroid of aggregated shapes:", center_of_shapes)
             self.manager.move(center_of_shapes)
             print("First coordinate reached. Please adjust stage and gel as needed.")
