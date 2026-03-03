@@ -2,6 +2,7 @@ from .Circle import Circle
 from .HistologyImage import HistologyImage
 from .EquilateralTriangle import EquilateralTriangle
 from .Gradient import Gradient
+from .GradientLine import GradientLine
 from .Line import Line
 from .Oval import Oval
 from .Rectangle import Rectangle

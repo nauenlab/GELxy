@@ -55,10 +55,13 @@ class Controller:
         # shapes.append(SineWave(amplitude_mm=1, cycles=5, cycles_per_mm=0.5, stiffness=10000, cycle_offset=0, center=center_coordinate, rotation_angle_degrees=0, beam_diameter=BEAM_DIAMETER))
         
         # Gradient
-        # shapes.append(Gradient(min_stiffness=5000, max_stiffness=50000, width_mm=3, height_mm=4, center=center_coordinate, beam_diameter=BEAM_DIAMETER, rotation_angle_degrees=0, is_reversed=True))
+        # shapes.append(Gradient(min_stiffness=5000, max_stiffness=20000, width_mm=3, height_mm=8, center=center_coordinate, beam_diameter=BEAM_DIAMETER, rotation_angle_degrees=0, is_reversed=True))
+
+        # Gradient Line
+        shapes.append(GradientLine(length_mm=8, min_stiffness=5000, max_stiffness=25000, center=center_coordinate, beam_diameter=BEAM_DIAMETER, rotation_angle_degrees=0, is_reversed=False, num_steps=20))
         
         # Custom Pattern
-        shapes.append(HistologyImage(img_file="test_images/examplehistology_adultcerebellumadditional40x.jpg", center=center_coordinate, height_mm=3, rotation_angle_degrees=0, beam_diameter=BEAM_DIAMETER))
+        # shapes.append(HistologyImage(img_file="test_images/examplehistology_adultcerebellumadditional40x.jpg", center=center_coordinate, height_mm=3, rotation_angle_degrees=0, beam_diameter=BEAM_DIAMETER))
         # shapes.append(HistologyImage(img_file="test_images/examplehistology_adultvisualctx20x.png", stiffness=10000, center=center_coordinate, height_mm=3, rotation_angle_degrees=0, beam_diameter=BEAM_DIAMETER))
         
         # Texture
