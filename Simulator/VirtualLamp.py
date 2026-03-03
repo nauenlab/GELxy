@@ -1,3 +1,4 @@
+import math
 from Constants import MAXIMUM_CURRENT
 
 
@@ -49,7 +50,8 @@ class VirtualLamp:
             curing_rate (float): The rate of curing.
 
         """
-        curing_percentage = (curing_rate / MAXIMUM_CURRENT) * 1000 * self.time_step
+        beam_area = math.pi * (beam_diameter / 2) ** 2
+        curing_percentage = (curing_rate / MAXIMUM_CURRENT) * 1000 * self.time_step / beam_area
         self.canvas.cure(x, y, beam_diameter, curing_percentage)
 
     def turn_off(self):

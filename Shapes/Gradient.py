@@ -40,7 +40,10 @@ class Gradient(Shape):
         x_bounds = (self.center.x - (w / 2) + (b / 2), self.center.x + (w / 2) + (b / 2))
         normalized_beam_diameter = b - (b - Decimal(MINIMUM_DISTANCE_BETWEEN_TWO_LIGHT_BEAMS))
         num_lines = math.floor((x_bounds[1] - x_bounds[0]) / normalized_beam_diameter)
-        stiffness_step = float(self.max_stiffness - self.min_stiffness)/float(num_lines - 1)
+        if num_lines == 1:
+            stiffness_step = 0
+        else:
+            stiffness_step = float(self.max_stiffness - self.min_stiffness)/float(num_lines - 1)
         cur_s = self.min_stiffness
 
         if self.is_reversed:
