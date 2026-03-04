@@ -8,9 +8,12 @@ from Constants import MINIMUM_DISTANCE_BETWEEN_TWO_LIGHT_BEAMS
 import tkinter as tk
 from tkinter import simpledialog
 from PIL import Image, ImageTk
-import matplotlib.pyplot as plt
 import matplotlib
-matplotlib.use('TkAgg')
+try:
+    matplotlib.use('TkAgg')
+except ImportError:
+    matplotlib.use('Agg')
+import matplotlib.pyplot as plt
 
 
 class HistologyImage:
