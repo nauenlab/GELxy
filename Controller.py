@@ -58,8 +58,8 @@ class Controller:
         # shapes.append(Gradient(min_stiffness=5000, max_stiffness=20000, width_mm=3, height_mm=8, center=center_coordinate, beam_diameter=BEAM_DIAMETER, rotation_angle_degrees=0, is_reversed=True))
 
         # Gradient Line
-        shapes.append(GradientLine(length_mm=8, min_stiffness=5000, max_stiffness=25000, center=center_coordinate, beam_diameter=BEAM_DIAMETER, rotation_angle_degrees=0, is_reversed=False, num_steps=20))
-        
+        # shapes.append(GradientLine(length_mm=8, min_stiffness=500, max_stiffness=20000, center=center_coordinate, beam_diameter=BEAM_DIAMETER, rotation_angle_degrees=0, is_reversed=False, num_steps=200))
+
         # Custom Pattern
         # shapes.append(HistologyImage(img_file="test_images/examplehistology_adultcerebellumadditional40x.jpg", center=center_coordinate, height_mm=3, rotation_angle_degrees=0, beam_diameter=BEAM_DIAMETER))
         # shapes.append(HistologyImage(img_file="test_images/examplehistology_adultvisualctx20x.png", stiffness=10000, center=center_coordinate, height_mm=3, rotation_angle_degrees=0, beam_diameter=BEAM_DIAMETER))
@@ -69,7 +69,7 @@ class Controller:
         # shapes.append(Texture(shape=texture_shape, center=center_coordinate, rows=None, columns=None, spacing_mm=1.5, margins=11))
 
         # Common Patterns
-        # shapes.extend(CommonPatterns.atom(width_mm=5, height_mm=2, center=center_coordinate, stiffness=10000))
+        shapes.extend(CommonPatterns.atom(width_mm=10, height_mm=4, center=center_coordinate, stiffness=50000))
         # shapes.extend(CommonPatterns.deathly_hallows(size_mm=5, center=center_coordinate, stiffness=10000))
         # shapes.extend(CommonPatterns.rounded_square(length_mm=5, center=center_coordinate, stiffness=50000))
 

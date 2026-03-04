@@ -1,7 +1,6 @@
 import math
 import matplotlib.pyplot as plt
 from tqdm import tqdm
-import copy
 from shapely.geometry import Polygon
 from shapely.geometry.polygon import orient
 from Constants import MOTOR_MAX_TRAVEL, MINIMUM_VELOCITY, MAXIMUM_VELOCITY, ACCELERATION, MINIMUM_DISTANCE_BETWEEN_TWO_LIGHT_BEAMS
@@ -9,6 +8,10 @@ from CuringCalculations import curing_calculations, Configuration
 from decimal import Decimal, getcontext, InvalidOperation
 
 getcontext().prec = 15
+
+# Pre-computed squared thresholds to avoid sqrt in distance comparisons
+_MIN_BEAM_DIST_SQ = Decimal(MINIMUM_DISTANCE_BETWEEN_TWO_LIGHT_BEAMS) ** 2
+_HALF_MIN_BEAM_DIST_SQ = (Decimal(MINIMUM_DISTANCE_BETWEEN_TWO_LIGHT_BEAMS) / 2) ** 2
 
 class Coordinate:
     """
@@ -125,6 +128,21 @@ class Coordinate:
             str: The string representation of the Coordinate object.
         """
         return self.__str__()
+
+    def copy(self):
+        """
+        Creates a lightweight copy of this Coordinate (much faster than copy.deepcopy).
+
+        Returns:
+            Coordinate: A new Coordinate with the same field values.
+        """
+        c = Coordinate.__new__(Coordinate)
+        c.x = self.x
+        c.y = self.y
+        c.v = self.v
+        c.a = self.a
+        c.lp = self.lp
+        return c
 
     def same_location_as(self, coord):
         """
@@ -300,11 +318,11 @@ class Coordinates:
         """
         if len(self) != 0:
             prev = self[-1]
-            if self.distance(coord, prev) >= MINIMUM_DISTANCE_BETWEEN_TWO_LIGHT_BEAMS:
+            if self.distance_squared(coord, prev) >= _MIN_BEAM_DIST_SQ:
                 self.append(coord)
         else:
             self.append(coord)
-    
+
     def append_if_far_enough_field(self, coord):
         """
         Appends a Coordinate object to the Coordinates object if it is far enough from all existing coordinates.
@@ -314,12 +332,12 @@ class Coordinates:
         """
         if len(self) != 0:
             for i in self:
-                if self.distance(coord, i) < MINIMUM_DISTANCE_BETWEEN_TWO_LIGHT_BEAMS:
+                if self.distance_squared(coord, i) < _MIN_BEAM_DIST_SQ:
                     return
             self.append(coord)
         else:
             self.append(coord)
-    
+
     def append_if_no_duplicate(self, coord):
         """
         Appends a Coordinate object to the Coordinates object if it is not a duplicate and is close enough to the previous coordinate.
@@ -330,7 +348,7 @@ class Coordinates:
         if len(self) != 0:
             prev = self[-1]
             if not prev.same_location_as(coord):
-                if self.distance(coord, prev) < MINIMUM_DISTANCE_BETWEEN_TWO_LIGHT_BEAMS / 2:
+                if self.distance_squared(coord, prev) < _HALF_MIN_BEAM_DIST_SQ:
                     self.coordinates[-1] = coord
                 else:
                     self.append(coord)
@@ -387,7 +405,7 @@ class Coordinates:
 
             velocities.append((vx, vy))
             resolved_coordinates.append(curr)
-            prev = copy.deepcopy(curr)
+            prev = curr.copy()
 
         # The value of iterations that all configurations have in common
         base_iterations = min([i.iterations for i in configuration[1:]])
@@ -399,9 +417,13 @@ class Coordinates:
             configuration[i].iterations -= base_iterations
 
         # Copy the coordinates based on the base_iterations
-        original_coordinates = copy.deepcopy(resolved_coordinates)
+        original_coordinates = Coordinates()
+        for c in resolved_coordinates:
+            original_coordinates.append(c.copy())
         for i in range(base_iterations - 1):
-            copy_to_add = copy.deepcopy(original_coordinates)
+            copy_to_add = Coordinates()
+            for c in original_coordinates:
+                copy_to_add.append(c.copy())
             copy_to_add[0].lp = False
             if copy_to_add[0].same_location_as(resolved_coordinates[-1]):
                 copy_to_add.remove(0)
@@ -409,15 +431,15 @@ class Coordinates:
             resolved_coordinates += copy_to_add
 
         # Resolve the remaining iterations
-        last = copy.deepcopy(original_coordinates[0])
+        last = original_coordinates[0].copy()
         for i in range(1, len(original_coordinates)):
             if configuration[i].iterations > 0 and not last.same_location_as(original_coordinates[i]):
-                resolved_coordinates.append(copy.deepcopy(original_coordinates[i]))
+                resolved_coordinates.append(original_coordinates[i].copy())
                 resolved_coordinates[-1].lp = False
 
             while configuration[i].iterations > 0:
-                prev = copy.deepcopy(original_coordinates[i - 1])
-                curr = copy.deepcopy(original_coordinates[i])
+                prev = original_coordinates[i - 1].copy()
+                curr = original_coordinates[i].copy()
 
                 if configuration[i].iterations == 1:
                     prev.lp = False
@@ -542,6 +564,16 @@ class Coordinates:
         delta_y = c2.y - c1.y
 
         return (delta_x ** 2 + delta_y ** 2).sqrt()
+
+    @staticmethod
+    def distance_squared(c1, c2):
+        """
+        Calculates the squared Euclidean distance between two Coordinate objects.
+        Faster than distance() since it avoids the sqrt operation.
+        """
+        delta_x = c2.x - c1.x
+        delta_y = c2.y - c1.y
+        return delta_x ** 2 + delta_y ** 2
     
     def is_inside_polygon(self, point):
         """
@@ -662,19 +694,24 @@ class Coordinates:
         for i in range(len(self) - 1):
             start_point = self[i]
             end_point = self[i + 1]
-            num_points = int(self.distance(start_point, end_point) * Decimal(1 / resolution)) + 1
+            # Use float math for interpolation — sufficient precision for sub-mm positioning
+            sx, sy = float(start_point.x), float(start_point.y)
+            ex, ey = float(end_point.x), float(end_point.y)
+            dx, dy = ex - sx, ey - sy
+            seg_dist = math.sqrt(dx * dx + dy * dy)
+            num_points = int(seg_dist / resolution) + 1
+            lp = end_point.lp
             for j in range(1, num_points):
-                t = Decimal(j / (num_points - 1))
-                x = start_point.x + t * (end_point.x - start_point.x)
-                y = start_point.y + t * (end_point.y - start_point.y)
-                new_coord = Coordinate(x, y)
-                new_coord.lp = end_point.lp
-                if abs(new_coord.x - end_point.x) < resolution and abs(new_coord.y - end_point.y) < resolution:
+                t = j / (num_points - 1)
+                x = sx + t * dx
+                y = sy + t * dy
+                if abs(x - ex) < resolution and abs(y - ey) < resolution:
                     filled_coords.append_if_no_duplicate(end_point)
                     continue
-
+                new_coord = Coordinate(x, y)
+                new_coord.lp = lp
                 filled_coords.append_if_far_enough(new_coord)
-        
+
         return filled_coords
 
     @staticmethod
@@ -703,7 +740,7 @@ class Coordinates:
             The y-coordinate of the intersection point will be 0 if border is 'bottom', or MOTOR_MAX_TRAVEL if border is 'top'.
 
         """
-        c_to_return = copy.deepcopy(p2)
+        c_to_return = p2.copy()
         # Handle vertical lines
         if p1.x == p2.x:
             c_to_return.x = p1.x
