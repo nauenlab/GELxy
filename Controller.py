@@ -26,6 +26,37 @@ LAMP_SERIAL_NUMBER = b"USB0::0x1313::0x80C8::M00607903::INSTR"
 
 class Controller:
 
+    @staticmethod
+    def optimize_shape_order(coordinate_sets):
+        """Reorders coordinate sets by nearest-neighbor to minimize inter-shape travel."""
+        non_empty = [cs for cs in coordinate_sets if len(cs) > 0]
+        if len(non_empty) <= 1:
+            return non_empty
+
+        remaining = list(range(len(non_empty)))
+        ordered = []
+        current_x, current_y = 0.0, 0.0
+
+        while remaining:
+            best_idx = None
+            best_dist_sq = float('inf')
+            for idx in remaining:
+                first = non_empty[idx][0]
+                dx = float(first.x) - current_x
+                dy = float(first.y) - current_y
+                dist_sq = dx * dx + dy * dy
+                if dist_sq < best_dist_sq:
+                    best_dist_sq = dist_sq
+                    best_idx = idx
+
+            remaining.remove(best_idx)
+            ordered.append(non_empty[best_idx])
+            last = non_empty[best_idx][-1]
+            current_x = float(last.x)
+            current_y = float(last.y)
+
+        return ordered
+
     def main(self):
         shapes = []
         center_coordinate = Coordinate(12.5, 12.5)
@@ -58,7 +89,7 @@ class Controller:
         # shapes.append(Gradient(min_stiffness=5000, max_stiffness=20000, width_mm=3, height_mm=8, center=center_coordinate, beam_diameter=BEAM_DIAMETER, rotation_angle_degrees=0, is_reversed=True))
 
         # Gradient Line
-        # shapes.append(GradientLine(length_mm=8, min_stiffness=500, max_stiffness=20000, center=center_coordinate, beam_diameter=BEAM_DIAMETER, rotation_angle_degrees=0, is_reversed=False, num_steps=200))
+        # shapes.append(GradientLine(length_mm=8, min_stiffness=500, max_stiffness=20000, center=center_coordinate, beam_diameter=BEAM_DIAMETER, rotation_angle_degrees=0, is_reversed=False, num_steps=20))
 
         # Custom Pattern
         # shapes.append(HistologyImage(img_file="test_images/examplehistology_adultcerebellumadditional40x.jpg", center=center_coordinate, height_mm=3, rotation_angle_degrees=0, beam_diameter=BEAM_DIAMETER))
@@ -74,6 +105,7 @@ class Controller:
         # shapes.extend(CommonPatterns.rounded_square(length_mm=5, center=center_coordinate, stiffness=50000))
 
         coordinate_sets = Multiprocessor().get_coordinate_sets(shapes)
+        coordinate_sets = Controller.optimize_shape_order(coordinate_sets)
 
         coordinates = Coordinates()
         for i in coordinate_sets:

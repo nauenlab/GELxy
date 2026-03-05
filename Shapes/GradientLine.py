@@ -1,10 +1,10 @@
 from Shapes.Shape import Shape
-from Shapes.Line import Line
 from Coordinate import Coordinate, Coordinates
 from tqdm import tqdm
 import math
-from Constants import MINIMUM_DISTANCE_BETWEEN_TWO_LIGHT_BEAMS
+from Constants import MINIMUM_DISTANCE_BETWEEN_TWO_LIGHT_BEAMS, MINIMUM_VELOCITY
 from decimal import Decimal
+from CuringCalculations import curing_calculations
 
 
 class GradientLine(Shape):
@@ -12,8 +12,9 @@ class GradientLine(Shape):
     Represents a single line with a stiffness gradient along its length.
 
     The gradient is achieved by dividing the line into consecutive segments, each
-    exposed once at a linearly interpolated stiffness. This follows the same pattern
-    as the Gradient (rectangle) shape but in one dimension.
+    exposed at a linearly interpolated stiffness. Uses sweep-based path planning
+    to minimize coordinate count by eliminating dead travel between contiguous segments
+    and batching iteration passes.
 
     Args:
         length_mm (float): The total length of the line in millimeters.
@@ -36,8 +37,12 @@ class GradientLine(Shape):
 
     def get_coordinates(self):
         """
-        Generates coordinates by creating consecutive line segments, each at a
-        linearly interpolated stiffness.
+        Generates coordinates using sweep-based path planning.
+
+        Instead of creating N independent Line objects (each with its own normalize/velocity
+        pipeline), builds full-length sweeps across all segments. Contiguous segments within
+        a sweep share endpoints, eliminating zero-distance lamp-off moves. Segments needing
+        multiple iterations are covered in subsequent backward/forward sweeps.
 
         Returns:
             Coordinates: The generated coordinates.
@@ -56,19 +61,58 @@ class GradientLine(Shape):
             stiffness_step *= -1
             cur_s = self.max_stiffness
 
+        # Pre-compute per-segment boundaries and curing configuration
+        segments = []
         for k in tqdm(range(self.num_steps), desc="Getting Coordinates"):
-            segment_center_y = self.center.y - half_length + (step_length * k) + (step_length / 2)
-
-            temp_coords = Line(
-                float(step_length),
-                cur_s,
-                center=Coordinate(self.center.x, segment_center_y),
-                rotation_angle_degrees=0,
-                beam_diameter=self.beam_diameter
-            ).get_coordinates()
-            temp_coords[0].lp = False
-            coordinates += temp_coords
+            y_start = self.center.y - half_length + (step_length * k)
+            y_end = y_start + step_length
+            config = curing_calculations.get_resolved_configuration_from_velocities(0, MINIMUM_VELOCITY, cur_s, self.beam_diameter)
+            segments.append({
+                'y_start': y_start,
+                'y_end': y_end,
+                'current': config.current,
+                'iterations': config.iterations,
+            })
             cur_s += stiffness_step
+
+        max_iterations = max(seg['iterations'] for seg in segments)
+        velocity = (0, MINIMUM_VELOCITY)
+
+        # Build sweeps: forward (0), backward (1), forward (2), ...
+        for sweep_num in range(max_iterations):
+            is_forward = (sweep_num % 2 == 0)
+            seg_order = list(range(self.num_steps)) if is_forward else list(range(self.num_steps - 1, -1, -1))
+
+            first_in_sweep = True
+            prev_was_curing = False
+
+            for seg_idx in seg_order:
+                seg = segments[seg_idx]
+                needs_curing = seg['iterations'] > sweep_num
+
+                if is_forward:
+                    y_a, y_b = seg['y_start'], seg['y_end']
+                else:
+                    y_a, y_b = seg['y_end'], seg['y_start']
+
+                if needs_curing:
+                    if first_in_sweep or not prev_was_curing:
+                        # Start of a new curing run — move to segment start
+                        c_start = Coordinate(self.center.x, y_a)
+                        c_start.lp = False
+                        coordinates.append(c_start)
+                        first_in_sweep = False
+
+                    # End of this segment — cure with segment's current
+                    c_end = Coordinate(self.center.x, y_b)
+                    c_end.v = velocity
+                    c_end.a = seg['current']
+                    c_end.lp = True
+                    coordinates.append(c_end)
+
+                    prev_was_curing = True
+                else:
+                    prev_was_curing = False
 
         coordinates.rotate_coordinates(self.center, self.rotation_angle_degrees)
 
