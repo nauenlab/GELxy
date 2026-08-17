@@ -1,7 +1,14 @@
 import numpy as np
 from scipy import ndimage
+import matplotlib
 import matplotlib.pyplot as plt
 import cv2
+from pathlib import Path
+
+
+DEBUG_PLOTS_DIR = Path.cwd() / "debug_plots"
+DEBUG_PLOTS_DIR.mkdir(exist_ok=True)
+_VISUALIZE_RESULTS_COUNTER = 0
 
 def get_blob_thickness(binary_blob):
     """
@@ -121,7 +128,7 @@ def visualize_results(original_image, labeled_image, cleaned_image, num_islands,
         vis_image[labeled_image == i] = colors[i]
     
     # Display results
-    plt.figure(figsize=(20, 5))
+    fig = plt.figure(figsize=(20, 5))
     
     plt.subplot(141)
     plt.title('Original Image')
@@ -134,11 +141,6 @@ def visualize_results(original_image, labeled_image, cleaned_image, num_islands,
     plt.axis('off')
     
     plt.subplot(143)
-    plt.title('Labeled Islands')
-    plt.imshow(labeled_image, cmap='nipy_spectral')
-    plt.axis('off')
-    
-    plt.subplot(144)
     plt.title('Cleaned Image')
     plt.imshow(cleaned_image, cmap='gray')
     plt.axis('off')
@@ -147,4 +149,13 @@ def visualize_results(original_image, labeled_image, cleaned_image, num_islands,
         plt.suptitle(f'Maximum thicknesses: {[round(t, 1) for t in thicknesses]}')
     
     plt.tight_layout()
+    global _VISUALIZE_RESULTS_COUNTER
+    backend = matplotlib.get_backend().lower()
+    if "agg" in backend:
+        output_path = DEBUG_PLOTS_DIR / f"islands_{_VISUALIZE_RESULTS_COUNTER:03d}.png"
+        _VISUALIZE_RESULTS_COUNTER += 1
+        fig.savefig(output_path, dpi=150, bbox_inches="tight")
+        plt.close(fig)
+        return
+
     plt.show()

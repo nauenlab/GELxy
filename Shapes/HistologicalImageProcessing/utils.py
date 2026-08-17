@@ -10,6 +10,11 @@ from skimage.metrics import structural_similarity as ssim
 from scipy.ndimage import binary_dilation
 from skimage.feature import local_binary_pattern
 from scipy.spatial.distance import cdist
+from pathlib import Path
+
+
+DEBUG_PLOTS_DIR = Path.cwd() / "debug_plots"
+DEBUG_PLOTS_DIR.mkdir(exist_ok=True)
 
 
 def show(img, cmap=None):
@@ -23,6 +28,100 @@ def show(img, cmap=None):
     plt.imshow(img, cmap=cmap)
     plt.axis('off')
     plt.show()
+
+
+def save_debug_image(name, image, layer_idx=None):
+    """
+    Save an image artifact to the debug_plots directory.
+
+    Parameters:
+    name (str): Short stage name for the image
+    image (numpy.ndarray): Image to save
+    layer_idx (int, optional): Layer index for per-layer outputs
+    """
+    prefix = f"layer_{layer_idx:02d}_" if layer_idx is not None else ""
+    output_path = DEBUG_PLOTS_DIR / f"{prefix}{name}.png"
+
+    image_to_save = np.asarray(image)
+    if image_to_save.dtype == bool:
+        image_to_save = image_to_save.astype(np.uint8) * 255
+    elif np.issubdtype(image_to_save.dtype, np.floating):
+        max_val = float(np.max(image_to_save)) if image_to_save.size else 0.0
+        if max_val <= 1.0:
+            image_to_save = np.clip(image_to_save, 0.0, 1.0) * 255
+        else:
+            image_to_save = np.clip(image_to_save, 0.0, 255.0)
+        image_to_save = image_to_save.astype(np.uint8)
+    else:
+        image_to_save = np.clip(image_to_save, 0, 255).astype(np.uint8)
+
+    if image_to_save.ndim == 3 and image_to_save.shape[2] == 3:
+        image_to_save = cv2.cvtColor(image_to_save, cv2.COLOR_RGB2BGR)
+
+    cv2.imwrite(str(output_path), image_to_save)
+
+
+def save_debug_overlay(name, base_image, overlay_image, layer_idx=None, overlay_color=(255, 0, 0), alpha=0.45):
+    """
+    Save a colored overlay image for debugging.
+
+    Parameters:
+    name (str): Short stage name for the output
+    base_image (numpy.ndarray): Base grayscale or RGB image
+    overlay_image (numpy.ndarray): Binary-ish mask/image to overlay
+    layer_idx (int, optional): Layer index for per-layer outputs
+    overlay_color (tuple): RGB color for the overlay mask
+    alpha (float): Overlay strength
+    """
+    base = np.asarray(base_image)
+    overlay = np.asarray(overlay_image)
+
+    if base.dtype == bool:
+        base = base.astype(np.uint8) * 255
+    elif np.issubdtype(base.dtype, np.floating):
+        base_max = float(np.max(base)) if base.size else 0.0
+        if base_max <= 1.0:
+            base = np.clip(base, 0.0, 1.0) * 255
+        else:
+            base = np.clip(base, 0.0, 255.0)
+        base = base.astype(np.uint8)
+    else:
+        base = np.clip(base, 0, 255).astype(np.uint8)
+
+    if overlay.ndim == 3:
+        if overlay.dtype == bool:
+            overlay_mask = np.any(overlay, axis=2)
+        else:
+            overlay_mask = np.any(overlay > 0, axis=2)
+    else:
+        if overlay.dtype == bool:
+            overlay_mask = overlay
+        else:
+            overlay_mask = overlay > 0
+
+    if base.ndim == 2:
+        base_rgb = cv2.cvtColor(base, cv2.COLOR_GRAY2RGB)
+    elif base.ndim == 3 and base.shape[2] == 4:
+        base_rgb = cv2.cvtColor(base, cv2.COLOR_RGBA2RGB)
+    else:
+        base_rgb = base.copy()
+
+    if base_rgb.ndim == 3 and base_rgb.shape[2] > 3:
+        base_rgb = base_rgb[:, :, :3]
+
+    if overlay_mask.shape != base_rgb.shape[:2]:
+        overlay_mask = cv2.resize(
+            overlay_mask.astype(np.uint8),
+            (base_rgb.shape[1], base_rgb.shape[0]),
+            interpolation=cv2.INTER_NEAREST,
+        ) > 0
+
+    blended = base_rgb.copy()
+    color = np.array(overlay_color, dtype=np.float32)
+    blended_mask = blended[overlay_mask].astype(np.float32)
+    blended[overlay_mask] = ((1 - alpha) * blended_mask + alpha * color).astype(np.uint8)
+
+    save_debug_image(name, blended, layer_idx)
 
 def binarize(img):
     """
@@ -243,11 +342,11 @@ def find_similar_textures(image, selected_region, radius=1, n_points=8, threshol
     # Compute LBP for the selected region
     selected_lbp = local_binary_pattern(selected_gray, n_points, radius, method='uniform')
     selected_hist, _ = np.histogram(selected_lbp.ravel(), bins=np.arange(0, n_points + 3), density=True)
-    # plt.plot(selected_hist)
-    # plt.title("Selected Texture Histogram")
-    # plt.xlabel("LBP Value")
-    # plt.ylabel("Normalized Frequency")
-    # plt.show()
+    plt.plot(selected_hist)
+    plt.title("Selected Texture Histogram")
+    plt.xlabel("LBP Value")
+    plt.ylabel("Normalized Frequency")
+    plt.show()
     
     # Initialize an empty similarity map
     similarity_map = np.zeros(image_gray.shape, dtype=np.uint8)

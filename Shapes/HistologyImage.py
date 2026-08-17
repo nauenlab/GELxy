@@ -80,6 +80,7 @@ class HistologyImage:
 
     def get_coordinates(self):
         og_img = downsample(self.img)
+        save_debug_image("downsampled_input", og_img)
         segmented_images = segment_images(og_img)
 
         coordinates = Coordinates()
@@ -92,22 +93,42 @@ class HistologyImage:
         selected_images = [target_values[i] for i, _ in self.selected_layers]
         stiffness = [i[1] for i in self.selected_layers]
         for (i, image) in enumerate(selected_images):
+            save_debug_image("selected_segment", image, i)
+            save_debug_overlay("selected_on_input", og_img, image, i, overlay_color=(255, 0, 0))
             gray_img = image
             if len(image.shape) == 3:
                 gray_img = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+            save_debug_image("gray", gray_img, i)
 
             medianBlurred = cv2.medianBlur(gray_img, 3)
+            save_debug_image("median_blur", medianBlurred, i)
             
             binary_img = (medianBlurred > 0.6).astype(np.float32)
+            save_debug_image("binary_threshold", binary_img, i)
             blurred = blur(binary_img, 5)
+            save_debug_image("gaussian_blur", blurred, i)
             reduced_noise_img = dilate_and_erode(blurred)
+            save_debug_image("morphology", reduced_noise_img, i)
+            save_debug_overlay("selected_vs_morphology", gray_img, reduced_noise_img, i, overlay_color=(0, 255, 255))
             binary_img2 = (reduced_noise_img < 0.05).astype(np.float32)
+            save_debug_image("post_morph_binary", binary_img2, i)
             
             edge_detection_img = canny_edge_detection(binary_img2)
+            save_debug_image("edges", edge_detection_img, i)
+            save_debug_overlay("selected_vs_edges", gray_img, edge_detection_img, i, overlay_color=(255, 0, 0))
 
             labeled_image, num_islands, island_sizes, thicknesses, island_mask = detect_islands(edge_detection_img)
 
             cleaned_image = remove_islands(edge_detection_img, island_mask)
+            save_debug_image("cleaned_edges", cleaned_image, i)
+            save_debug_overlay("selected_vs_cleaned_edges", gray_img, cleaned_image, i, overlay_color=(0, 255, 0))
+            visualize_results(
+                edge_detection_img,
+                labeled_image,
+                cleaned_image,
+                num_islands,
+                thicknesses,
+            )
     
             opened_edges_colored = np.zeros_like(og_img)
             opened_edges_colored[cleaned_image > 0] = (0, 255, 0)
@@ -117,16 +138,22 @@ class HistologyImage:
             colored_img[image > 0] = og_img[image > 0]
             
             colored_img = blur(colored_img, 21)
+            save_debug_image("color_context", colored_img, i)
             opened_edges_colored_overlayed = combine_images(opened_edges_colored, colored_img)
+            save_debug_image("overlay", opened_edges_colored_overlayed, i)
 
             layer_color = colors.pop(0)
             colors.append(layer_color)
             filled_shape = fill_shape(opened_edges_colored_overlayed, layer_color)
+            save_debug_image("filled_shape", filled_shape, i)
 
             layers.append(filled_shape)
 
             filled_shape_gray = cv2.cvtColor(filled_shape, cv2.COLOR_BGR2GRAY)
+            save_debug_image("filled_shape_gray", filled_shape_gray, i)
+            save_debug_overlay("selected_vs_filled_shape", gray_img, filled_shape_gray, i, overlay_color=(255, 255, 0))
             binary_img3 = (filled_shape_gray > 0.6).astype(np.float32) * 255
+            save_debug_image("final_binary", binary_img3, i)
             filled_shape_flip = [np.flip(row, 0) for row in binary_img3]
             coordinates_layer = self.convert_pixels_to_coordinates(filled_shape_flip, stiffness[i])
             coordinate_layers.append(coordinates_layer)

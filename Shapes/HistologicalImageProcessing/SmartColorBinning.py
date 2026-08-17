@@ -2,7 +2,14 @@ import cv2
 import numpy as np
 from scipy.signal import find_peaks
 from scipy.ndimage import gaussian_filter1d
+import matplotlib
 import matplotlib.pyplot as plt
+from pathlib import Path
+
+
+DEBUG_PLOTS_DIR = Path.cwd() / "debug_plots"
+DEBUG_PLOTS_DIR.mkdir(exist_ok=True)
+_INTERACTIVE_PLOT_COUNTER = 0
 
 def top_colors(img):
     """
@@ -142,23 +149,37 @@ def detect_bins_from_histogram(pixels):
     custom_bins = [0] + maximize_distances(custom_bins) + [255]
     custom_bins = list(sorted(set(custom_bins)))
 
-    # print("Bins:", custom_bins)
-    # plot_histogram(bin_edges, hist_sma, smooth_hist, valleys, custom_bins, gradient)
+    print("Bins:", custom_bins)
+    plot_histogram(bin_edges, hist_sma, smooth_hist, valleys, custom_bins, gradient, 'orange', 'purple')
+    plot_histogram(bin_edges, hist_sma, smooth_hist, valleys, custom_bins, gradient, 'cyan', 'red')
+    plot_histogram(bin_edges, hist_sma, smooth_hist, valleys, custom_bins, gradient, 'orange', 'green')
 
     return np.array(custom_bins)
 
-def plot_histogram(bin_edges, hist_sma, smooth_hist, valleys, custom_bins, gradient):
+def plot_histogram(bin_edges, hist_sma, smooth_hist, valleys, custom_bins, gradient, color_1, color_2):
     plt.figure(figsize=(10, 6))
 
-    plt.plot(custom_bins, np.zeros_like(custom_bins), "|", markersize=20, label="Bins", color="purple")
-    plt.plot(bin_edges[:-1], gradient, label="Gradient (1st Derivative)", color='brown')
-    plt.plot(bin_edges[:-1], hist_sma, label="SMA Histogram", color='blue')
+    plt.plot(custom_bins, np.zeros_like(custom_bins), "|", markersize=20, label="Detected Bin Boundaries", color="black")
+    plt.plot(bin_edges[:-1], hist_sma, label="Pixel Frequency (smoothed)", color=color_1)
+    plt.plot(bin_edges[:-1], gradient, label="Pixel Frequency (1st derivative)", color=color_2)
 
-    plt.xlabel("Pixel Value")
-    plt.ylabel("Normalized Frequency")
-    plt.title("Histogram of Grayscale Image")
+    plt.xlabel("Pixel Grayscale Intensity")
+    plt.ylabel("Pixel Frequency (normalized)")
+    plt.ylim(-1, 1)
+    plt.title("Pixel Intensity Distribution & Bin Detection")
     plt.legend()
 
+    plt.savefig(DEBUG_PLOTS_DIR / f"pixel_intensity_distribution_{color_1}+{color_2}.png", dpi=150, bbox_inches="tight")
+    plt.close()
+
+
+def _show_if_interactive():
+    global _INTERACTIVE_PLOT_COUNTER
+    if "agg" in matplotlib.get_backend().lower():
+        plt.savefig(DEBUG_PLOTS_DIR / f"segment_{_INTERACTIVE_PLOT_COUNTER:03d}.png", dpi=150, bbox_inches="tight")
+        _INTERACTIVE_PLOT_COUNTER += 1
+        plt.close()
+        return
     plt.show()
 
 def maximize_distances(numbers, min_distance=15):
@@ -215,10 +236,10 @@ def segment_images(img):
         # Sort by frequency
         sorted_pixel_colors = sorted(pixel_colors, key=lambda x: np.sum(x[1]), reverse=True)
         for color, mask in sorted_pixel_colors:
-            images[color] = np.zeros_like(img)
+            images[color] = np.zeros_like(img, dtype=np.uint8)
             images[color][mask.reshape(img.shape[:2])] = color
-            # plt.imshow(images[color])
-            # plt.show()
+            plt.imshow(images[color], cmap='gray' if images[color].ndim == 2 else None)
+            _show_if_interactive()
     else:
         image = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
         max_val = np.max(img)
@@ -242,7 +263,8 @@ def segment_images(img):
             mask = pixel_colors[0][i][1] & pixel_colors[1][i][1] & pixel_colors[2][i][1]
             images[color] = np.zeros_like(img, dtype=np.uint8)
             images[color][mask.reshape(img.shape[:2])] = color
-            # plt.imshow(images[color])
-            # plt.show()
+            plt.imshow(images[color])
+            plt.savefig(DEBUG_PLOTS_DIR / f"color_bin_{i}.png", dpi=150, bbox_inches="tight")
+            plt.close()
 
     return images
