@@ -10,3 +10,6 @@ clr
 shapely
 openpyxl
 psutil
+scipy
+scikit-image
+scikit-learn

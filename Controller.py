@@ -17,8 +17,15 @@ from EstimatedCompletionTime import EstimatedCompletionTime
 ### STEP 3: Change the center_coordinate value in the main function. The center coordinate will be used to determine the center of each shape, texture, or pattern.
 ### STEP 4: Choose which shapes, textures, or patterns to draw and uncomment the desired shape, texture, or pattern from the list in the main function.
 ### STEP 5: Run the program. The motors will move to draw the shapes, textures, or patterns.
+###
+### IMAGE VALIDATION: `python Controller.py validate Hippocampus.png` compares the images that share that
+###         base name across the "Image Validation" folders (SSIM + contour deviation) and prints the metrics.
+###         Run `python Controller.py validate --help` for the options. `python Controller.py roi Hippocampus.png` lets you
+###         outline the region of interest on the histology image used by pipeline 1.
 
 IS_SIMULATOR = True
+
+IMAGE_VALIDATION_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "Image Validation")
 
 X_MOTOR_SERIAL_NUMBER = "27602218"
 Y_MOTOR_SERIAL_NUMBER = "27264864"
@@ -100,7 +107,7 @@ class Controller:
         # shapes.append(Texture(shape=texture_shape, center=center_coordinate, rows=None, columns=None, spacing_mm=1.5, margins=11))
 
         # Common Patterns
-        shapes.extend(CommonPatterns.atom(width_mm=10, height_mm=4, center=center_coordinate, stiffness=50000))
+        # shapes.extend(CommonPatterns.atom(width_mm=10, height_mm=4, center=center_coordinate, stiffness=50000))
         # shapes.extend(CommonPatterns.deathly_hallows(size_mm=5, center=center_coordinate, stiffness=10000))
         # shapes.extend(CommonPatterns.rounded_square(length_mm=5, center=center_coordinate, stiffness=50000))
 
@@ -144,6 +151,59 @@ class Controller:
         if IS_SIMULATOR:
             self.manager.lamp.canvas.draw()
     
+    @staticmethod
+    def validate(argv):
+        """
+        Runs the image validation pipelines for a base file name, e.g. `validate Hippocampus.png`.
+
+        Pipeline 1 compares the pc12 culture image with the original histology image; pipeline 2 compares
+        the image-processing segmentation with the manual segmentation. Both report structural similarity
+        (SSIM) and contour deviation error and print them to the CLI.
+        """
+        import argparse
+        parser = argparse.ArgumentParser(prog="Controller.py validate",
+                                         description="Image validation: SSIM + contour deviation metrics.")
+        parser.add_argument("base_name", help="base image file name shared across the Image Validation folders, e.g. Hippocampus.png")
+        parser.add_argument("--pipeline", choices=["pc12", "segmentation", "both"], default="both",
+                            help="which pipeline to run (default: both)")
+        parser.add_argument("--mm-height", type=float, default=None,
+                            help="physical height of the reference image in mm; adds mm units to distances")
+        parser.add_argument("--alignment", choices=["auto", "full-frame", "content-crop"], default="auto",
+                            help="pipeline 2 field-of-view handling (default: auto)")
+        parser.add_argument("--register", choices=["translation", "rigid", "none"], default="translation",
+                            help="align the second image to the reference before measuring: rigid = rotation+"
+                                 "translation for pipeline 1 (pipeline 2 uses translation), translation, or none (default: translation)")
+        parser.add_argument("--roi", choices=["auto", "none"], default="auto",
+                            help="pipeline 1 region of interest: auto = use Image Validation/ROI/<name>.png if it exists "
+                                 "(draw it with `Controller.py roi <name>`), else histology structures touched by the cells; "
+                                 "none = compare all structures")
+        parser.add_argument("--verbose", "-v", action="store_true", help="print the full diagnostics instead of the compact summary")
+        parser.add_argument("--no-save", action="store_true",
+                            help="do not write standardized images / heat maps under Image Validation/Standardized/")
+        args = parser.parse_args(argv)
+
+        sys.path.insert(0, IMAGE_VALIDATION_DIR)
+        from validation import run_validation
+        return run_validation(args.base_name, pipeline=args.pipeline, mm_height=args.mm_height,
+                              save=not args.no_save, register=args.register, alignment=args.alignment,
+                              roi=args.roi, verbose=args.verbose)
+
+    @staticmethod
+    def draw_roi(argv):
+        """
+        Opens an interactive window to outline the region of interest on the histology image for pipeline 1,
+        e.g. `python Controller.py roi Hippocampus.png`. The mask is saved to Image Validation/ROI/<name>.png.
+        """
+        import argparse
+        parser = argparse.ArgumentParser(prog="Controller.py roi",
+                                         description="Draw the pipeline-1 region of interest on the histology image.")
+        parser.add_argument("base_name", help="base image file name, e.g. Hippocampus.png")
+        args = parser.parse_args(argv)
+        sys.path.insert(0, IMAGE_VALIDATION_DIR)
+        from validation.roi import draw_roi
+        saved = draw_roi(args.base_name)
+        print(f"ROI saved to {saved}" if saved else "No ROI drawn; nothing saved.")
+
     def __del__(self):
         """
         Cleans up the resources used by the Controller instance.
@@ -168,5 +228,11 @@ signal.signal(signal.SIGINT, exit_handler)
 
 
 if __name__ == "__main__":
+    if len(sys.argv) > 1 and sys.argv[1] == "validate":
+        Controller.validate(sys.argv[2:])
+        sys.exit(0)
+    if len(sys.argv) > 1 and sys.argv[1] == "roi":
+        Controller.draw_roi(sys.argv[2:])
+        sys.exit(0)
     controller.main()
     exit_handler()

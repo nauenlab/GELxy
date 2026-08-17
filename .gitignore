@@ -4,3 +4,5 @@
 *.dist
 *.idea
 .venv/
+debug_plots/*
+Image Validation/Standardized/
