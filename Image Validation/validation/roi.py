@@ -37,9 +37,11 @@ def load_roi(base_name, shape):
     return mask > 127
 
 
-def draw_roi(base_name):
+def draw_roi(base_name, cell_mask=None):
     """Interactive ROI tool: click detected structures to select them and/or draw polygons.
 
+    cell_mask: optional boolean pc12 cell-region mask on the histology grid; its outline is
+    drawn in red so structures can be chosen with the cells in view.
     Returns the saved mask path, or None if nothing was selected/drawn.
     """
     import matplotlib
@@ -90,6 +92,13 @@ def draw_roi(base_name):
     POLY_COLORS = {"add": "red", "subtract": "orange", "keep": "magenta"}
     state = {"selector": None, "cancelled": False, "mode": "select", "kind": "add"}
 
+    cell_outline = None
+    if cell_mask is not None:
+        cells = cell_mask.astype(np.uint8)
+        if cells.shape != (h, w):
+            cells = cv2.resize(cells, (w, h), interpolation=cv2.INTER_NEAREST)
+        cell_outline = cv2.dilate(cells, np.ones((3, 3), np.uint8)) - cv2.erode(cells, np.ones((3, 3), np.uint8)) > 0
+
     fig, ax = plt.subplots(figsize=(12, 12 * h / w))
     image_artist = ax.imshow(base_rgb)
     ax.axis("off")
@@ -100,6 +109,8 @@ def draw_roi(base_name):
         chosen = np.isin(labeled, list(selected)) if selected else np.zeros_like(hist.foreground)
         display[unselected] = (0.55 * display[unselected] + 0.45 * np.array([0, 170, 255])).astype(np.uint8)
         display[chosen] = (0.45 * display[chosen] + 0.55 * np.array([0, 255, 60])).astype(np.uint8)
+        if cell_outline is not None:
+            display[cell_outline] = (255, 40, 40)
         image_artist.set_data(display)
         for patch in list(ax.patches):
             patch.remove()
@@ -108,7 +119,8 @@ def draw_roi(base_name):
         mode = state["mode"].upper() + (f" ({state['kind']})" if state["mode"] == "polygon" else "")
         ax.set_title(f"ROI for {stem_of(base_name)}   [{len(selected)}/{count} structures selected, "
                      f"{len(polygons)} polygon(s)]   mode: {mode}\n"
-                     "SELECT: click a blue structure to select (green) / again to deselect;  a = all,  c = clear\n"
+                     "SELECT: click a blue structure to select (green) / again to deselect;  a = all,  c = clear"
+                     + ("   (red outline = pc12 cell region)" if cell_outline is not None else "") + "\n"
                      "p = ADD polygon (red)   x = SUBTRACT polygon (orange)   k = KEEP-ONLY polygon (magenta)   "
                      "n = next polygon, u = undo;  enter/close = save;  esc = cancel")
         fig.canvas.draw_idle()

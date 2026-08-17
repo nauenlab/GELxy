@@ -20,8 +20,8 @@ from EstimatedCompletionTime import EstimatedCompletionTime
 ###
 ### IMAGE VALIDATION: `python Controller.py validate Hippocampus.png` compares the images that share that
 ###         base name across the "Image Validation" folders (SSIM + contour deviation) and prints the metrics.
-###         Run `python Controller.py validate --help` for the options. `python Controller.py roi Hippocampus.png` lets you
-###         outline the region of interest on the histology image used by pipeline 1.
+###         Run `python Controller.py validate --help` for the options. On first use (or with --roi draw) pipeline 1
+###         opens a window to select the region of interest on the histology image.
 
 IS_SIMULATOR = True
 
@@ -173,9 +173,9 @@ class Controller:
         parser.add_argument("--register", choices=["translation", "rigid", "none"], default="translation",
                             help="align the second image to the reference before measuring: rigid = rotation+"
                                  "translation for pipeline 1 (pipeline 2 uses translation), translation, or none (default: translation)")
-        parser.add_argument("--roi", choices=["auto", "none"], default="auto",
-                            help="pipeline 1 region of interest: auto = use Image Validation/ROI/<name>.png if it exists "
-                                 "(draw it with `Controller.py roi <name>`), else histology structures touched by the cells; "
+        parser.add_argument("--roi", choices=["auto", "draw", "none"], default="auto",
+                            help="pipeline 1 region of interest: auto = use Image Validation/ROI/<name>.png, opening the "
+                                 "ROI tool first if none exists yet; draw = always open the ROI tool (refine the saved one); "
                                  "none = compare all structures")
         parser.add_argument("--verbose", "-v", action="store_true", help="print the full diagnostics instead of the compact summary")
         parser.add_argument("--no-save", action="store_true",
@@ -188,21 +188,6 @@ class Controller:
                               save=not args.no_save, register=args.register, alignment=args.alignment,
                               roi=args.roi, verbose=args.verbose)
 
-    @staticmethod
-    def draw_roi(argv):
-        """
-        Opens an interactive window to outline the region of interest on the histology image for pipeline 1,
-        e.g. `python Controller.py roi Hippocampus.png`. The mask is saved to Image Validation/ROI/<name>.png.
-        """
-        import argparse
-        parser = argparse.ArgumentParser(prog="Controller.py roi",
-                                         description="Draw the pipeline-1 region of interest on the histology image.")
-        parser.add_argument("base_name", help="base image file name, e.g. Hippocampus.png")
-        args = parser.parse_args(argv)
-        sys.path.insert(0, IMAGE_VALIDATION_DIR)
-        from validation.roi import draw_roi
-        saved = draw_roi(args.base_name)
-        print(f"ROI saved to {saved}" if saved else "No ROI drawn; nothing saved.")
 
     def __del__(self):
         """
@@ -231,8 +216,10 @@ if __name__ == "__main__":
     if len(sys.argv) > 1 and sys.argv[1] == "validate":
         Controller.validate(sys.argv[2:])
         sys.exit(0)
-    if len(sys.argv) > 1 and sys.argv[1] == "roi":
-        Controller.draw_roi(sys.argv[2:])
-        sys.exit(0)
+    if len(sys.argv) > 1:
+        # Guard against typos: only "validate" is a subcommand; anything else must not start the motors.
+        print(f"Unknown command {sys.argv[1]!r}. Use `python Controller.py` to run the shapes, "
+              f"or `python Controller.py validate <image name>` for image validation.")
+        sys.exit(2)
     controller.main()
     exit_handler()

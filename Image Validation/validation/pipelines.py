@@ -17,7 +17,7 @@ import numpy as np
 from . import config
 from .layer_matching import compare_segmentations, estimate_translation, translate_labels
 from .registration import apply_rigid, estimate_rigid
-from .roi import load_roi, roi_path
+from .roi import draw_roi, load_roi, roi_path
 from .loading import load_gray_float, load_rgb_uint8, resolve_image, standardized_dir, stem_of
 from .metrics import distance_deviation, mask_ssim, ssim_wang
 from .standardize import render_labels, resize_to, standardize_intensity, standardize_labels
@@ -101,6 +101,15 @@ def _save_heatmap(path, deviation_image, union_mask):
 def _dice(mask_a, mask_b):
     total = int(mask_a.sum()) + int(mask_b.sum())
     return 2.0 * int((mask_a & mask_b).sum()) / total if total else 0.0
+
+
+def _interactive():
+    """True when a human is at the terminal (so a window can be opened)."""
+    import sys
+    try:
+        return sys.stdin.isatty() and sys.stdout.isatty()
+    except Exception:  # noqa: BLE001
+        return False
 
 
 def _fraction_inside(mask, roi):
@@ -245,6 +254,16 @@ def run_pc12_pipeline(base_name, mm_height=None, save=True, register="translatio
               f"cell region (pc12): {_pct(fg_fraction)} of grid")
         detail(f"whole-image Dice (all histology structures, all cells): {whole_dice:.4f}")
         manual_roi = load_roi(base_name, hist.image.shape) if roi != "none" else None
+        if roi == "draw" or (roi == "auto" and manual_roi is None and _interactive()):
+            # Open the ROI tool inside the pipeline: always for "draw", or on first use for "auto".
+            print("opening ROI tool" + (" (no ROI saved yet for this image)" if manual_roi is None else "")
+                  + " - select structures / draw polygons, then press enter or close the window ...")
+            try:
+                saved = draw_roi(base_name, cell_mask=pc12_fg)
+            except Exception as error:  # noqa: BLE001 - never let the UI take the metrics down
+                saved = None
+                print(f"ROI tool unavailable ({error}); continuing without a manual ROI")
+            manual_roi = load_roi(base_name, hist.image.shape) if saved else manual_roi
         if roi == "none":
             # No ROI: every histology structure vs. the whole cell region.
             roi_hist = hist.foreground
@@ -267,7 +286,7 @@ def run_pc12_pipeline(base_name, mm_height=None, save=True, register="translatio
             roi_note = f"excludes {_pct(excluded)} of tissue region, 0.00% of cell region"
             detail(f"region of interest: automatic (histology structures touched by the cell region) - "
                   f"{_pct(1 - excluded)} of the tissue region kept, {_pct(excluded)} never reached by the pattern (excluded). "
-                  f"Draw one with: python Controller.py roi {base_name}")
+                  f"Use --roi draw to select one manually")
         deviation = distance_deviation(roi_hist, pc12_fg, keep_image=save)
         detail("Contour deviation within the ROI (Rogelj distance deviation, ROI histology structures vs pc12 cell region):")
         _print_deviation(deviation, units)
@@ -511,7 +530,9 @@ def run_validation(base_name, pipeline="both", mm_height=None, save=True, regist
     register: "rigid" (rotation+translation, pipeline 1; pipeline 2 uses translation),
               "translation" (both pipelines) or "none".
     alignment: "auto", "full-frame" or "content-crop" (pipeline 2 field-of-view handling).
-    roi: "auto" (use Image Validation/ROI/<stem>.png if present, else touched structures) or "none".
+    roi: "auto" (use Image Validation/ROI/<stem>.png; if none exists and a terminal is attached, open the
+         ROI tool first, otherwise fall back to touched structures), "draw" (always open the ROI tool,
+         pre-selecting the saved one) or "none".
     verbose: print the full diagnostics instead of the compact summary.
     Returns a dict with per-pipeline results (None where skipped).
     """
@@ -519,6 +540,8 @@ def run_validation(base_name, pipeline="both", mm_height=None, save=True, regist
         raise ValueError(f"pipeline must be one of {PIPELINES + ('both',)}, got {pipeline!r}")
     if register not in ("rigid", "translation", "none"):
         raise ValueError(f"register must be 'rigid', 'translation' or 'none', got {register!r}")
+    if roi not in ("auto", "draw", "none"):
+        raise ValueError(f"roi must be 'auto', 'draw' or 'none', got {roi!r}")
     global VERBOSE
     VERBOSE = bool(verbose)
     selected = PIPELINES if pipeline == "both" else (pipeline,)
