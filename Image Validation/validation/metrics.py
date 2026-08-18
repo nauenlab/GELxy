@@ -98,6 +98,11 @@ class DistanceDeviation:
     disagreement_fraction: float = float("nan")  # disagreement area / union area
     dice: float = float("nan")
     iou: float = float("nan")
+    # Directed measures (a = reference, b = prediction):
+    recall: float = float("nan")  # fraction of a covered by b
+    precision: float = float("nan")  # fraction of b lying on a
+    mean_over_a: float = float("nan")  # mean DD over region a only
+    mean_over_b: float = float("nan")  # mean DD over region b only
     area_a: int = 0
     area_b: int = 0
     deviation_image: np.ndarray = field(default=None, repr=False)
@@ -120,6 +125,8 @@ def distance_deviation(mask_a, mask_b, keep_image=False):
             area_b=area_b,
             dice=0.0,
             iou=0.0,
+            recall=0.0,
+            precision=0.0,
             disagreement_fraction=1.0,
         )
     dd = np.abs(signed_distance_map(a) - signed_distance_map(b))
@@ -136,6 +143,10 @@ def distance_deviation(mask_a, mask_b, keep_image=False):
         disagreement_fraction=float(disagreement.sum()) / union_area,
         dice=2.0 * inter_area / (area_a + area_b),
         iou=inter_area / union_area,
+        recall=inter_area / area_a,
+        precision=inter_area / area_b,
+        mean_over_a=float(dd[a].mean()),
+        mean_over_b=float(dd[b].mean()),
         area_a=area_a,
         area_b=area_b,
         deviation_image=dd if keep_image else None,

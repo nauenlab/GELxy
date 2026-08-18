@@ -11,7 +11,6 @@ from . import config
 VALIDATION_ROOT = Path(__file__).resolve().parent.parent
 
 DIRECTORIES = {
-    "histology": config.DIR_HISTOLOGY,
     "pc12": config.DIR_PC12,
     "manual": config.DIR_MANUAL,
     "ip": config.DIR_IP,

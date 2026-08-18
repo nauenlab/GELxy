@@ -3,7 +3,8 @@ Image validation package for GELxy.
 
 Provides two validation pipelines driven by a base image name:
 
-1. pc12 culture image vs. original histology (cell response to the stiffness gradient)
+1. pc12 culture image vs. image-processed histology layers, i.e. the printed pattern
+   (cell response to the stiffness gradient)
 2. image-processing segmentation vs. manual segmentation (pipeline vs. human input)
 
 Both report structural similarity (SSIM, Wang et al. 2004) and contour deviation error

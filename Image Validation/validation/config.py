@@ -1,7 +1,6 @@
 """Named constants controlling image standardization and metric computation."""
 
 # --- Directory layout (relative to the "Image Validation" folder) ---
-DIR_HISTOLOGY = "Histology"
 DIR_PC12 = "pc12"
 DIR_MANUAL = "Manual Segmentation"
 DIR_IP = "Image Processing Segmentation"
@@ -13,7 +12,7 @@ IMAGE_EXTENSIONS = (".png", ".jpg", ".jpeg", ".tif", ".tiff", ".bmp")
 # Every standardized image is resized so its longer edge equals this many pixels.
 CANONICAL_LONG_EDGE = 1024
 
-# --- Intensity standardization (pipeline 1) ---
+# --- Intensity standardization (pipeline 1, pc12 image) ---
 # Percentile stretch used for high-bit-depth (uint16) microscopy images.
 STRETCH_LOW_PERCENTILE = 0.5
 STRETCH_HIGH_PERCENTILE = 99.5
@@ -27,18 +26,15 @@ CELL_DENSITY_SIGMA_FRACTION = 0.01
 # --- Sparse cell images (pc12) ---
 # Cells are detected by local contrast (morphological top-hat) with a kernel of this
 # fraction of the image height (slightly larger than a cell), then converted to a
-# density map with the sigma below. The region threshold is Otsu * (1 - CELL_SENSITIVITY);
-# the sensitivity is fixed (1.0 = most inclusive: any appreciable cell density counts).
+# density map with the sigma below. The region threshold is Otsu * (1 - CELL_SENSITIVITY)
+# (0 = plain Otsu; 1 = anything with appreciable density, far too inclusive without an ROI).
 CELL_KERNEL_FRACTION = 0.008
 CELL_REGION_SIGMA_FRACTION = 0.015
-CELL_SENSITIVITY = 1.0
+CELL_SENSITIVITY = 0.25
 # Illumination flattening: background estimated with a blur of this fraction of the height.
 ILLUMINATION_SIGMA_FRACTION = 0.05
 # Below this foreground fraction the image is treated as empty / mis-scaled.
 MIN_FOREGROUND_FRACTION = 0.005
-# Pipeline 1 region of interest: histology structures count only if the cell region
-# comes within this fraction of the image height of them.
-ROI_TOUCH_MARGIN_FRACTION = 0.01
 # Aspect-ratio mismatch above which a warning is printed.
 ASPECT_WARN_FRACTION = 0.02
 

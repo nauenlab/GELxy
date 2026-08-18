@@ -124,7 +124,7 @@ def _threshold_density(density, sensitivity):
     return as_uint8 > threshold
 
 
-def standardize_intensity(gray, sparse=False, sensitivity=config.CELL_SENSITIVITY):
+def standardize_intensity(gray, sparse=False, sensitivity=config.CELL_SENSITIVITY, crop=True):
     """
     Convert a [0, 1] float grayscale image to the canonical intensity form.
 
@@ -132,6 +132,7 @@ def standardize_intensity(gray, sparse=False, sensitivity=config.CELL_SENSITIVIT
     objects: illumination is flattened, cells are detected by local contrast, and
     the foreground is the region of high cell density. `sensitivity` (0..1) lowers
     the density threshold below Otsu's value (0 = Otsu, higher = more inclusive).
+    crop=False keeps the full frame instead of cropping to the detected content.
     """
     notes = []
     gray = gray.astype(np.float32)
@@ -158,10 +159,11 @@ def standardize_intensity(gray, sparse=False, sensitivity=config.CELL_SENSITIVIT
         smooth = cv2.GaussianBlur(gray, (0, 0), max(1.0, 0.005 * gray.shape[0]))
         rough_mask, _ = otsu_mask(smooth)
     rough_mask = ndimage.binary_opening(rough_mask, iterations=2)
-    box = content_bbox(rough_mask)
+    box = content_bbox(rough_mask) if crop else None
     if box is None:
         box = (0, gray.shape[0], 0, gray.shape[1])
-        notes.append("no content detected; using full frame")
+        if crop:
+            notes.append("no content detected; using full frame")
     y0, y1, x0, x1 = box
     gray = gray[y0:y1, x0:x1]
 

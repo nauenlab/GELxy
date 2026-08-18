@@ -54,6 +54,20 @@ def test_shifted_square_gives_exact_deviation():
     assert abs(dev.dice - expected_dice) < 1e-9
 
 
+def test_directed_measures_expose_overshoot():
+    # A thick band over a thin one: full recall, low precision, symmetric Dice in between.
+    thin = _square((200, 200), 95, 105, 20, 180)
+    thick = _square((200, 200), 85, 115, 20, 180)
+    dev = distance_deviation(thin, thick)
+    assert abs(dev.recall - 1.0) < 1e-9
+    assert abs(dev.precision - 1.0 / 3.0) < 1e-9
+    assert abs(dev.dice - 0.5) < 1e-9
+    # Overshoot shows as a larger mean deviation over the (thicker) prediction than over the reference.
+    assert dev.mean_over_b > dev.mean_over_a > 0
+    swapped = distance_deviation(thick, thin)
+    assert abs(swapped.recall - dev.precision) < 1e-9 and abs(swapped.precision - dev.recall) < 1e-9
+
+
 def test_ssim_prefers_structure_over_brightness():
     rng = np.random.default_rng(1)
     base = np.clip(rng.random((256, 256)).astype(np.float32) * 0.5 + 0.25, 0, 1)

@@ -19,9 +19,9 @@ from EstimatedCompletionTime import EstimatedCompletionTime
 ### STEP 5: Run the program. The motors will move to draw the shapes, textures, or patterns.
 ###
 ### IMAGE VALIDATION: `python Controller.py validate Hippocampus.png` compares the images that share that
-###         base name across the "Image Validation" folders (SSIM + contour deviation) and prints the metrics.
-###         Run `python Controller.py validate --help` for the options. On first use (or with --roi draw) pipeline 1
-###         opens a window to select the region of interest on the histology image.
+###         base name across the "Image Validation" folders (SSIM + contour deviation) and prints the metrics:
+###         pipeline 1 = pc12 culture vs. the image-processed histology layers, pipeline 2 = image-processed vs.
+###         manual segmentation. Run `python Controller.py validate --help` for the options.
 
 IS_SIMULATOR = True
 
@@ -156,7 +156,7 @@ class Controller:
         """
         Runs the image validation pipelines for a base file name, e.g. `validate Hippocampus.png`.
 
-        Pipeline 1 compares the pc12 culture image with the original histology image; pipeline 2 compares
+        Pipeline 1 compares the pc12 culture image with the image-processed histology layers; pipeline 2 compares
         the image-processing segmentation with the manual segmentation. Both report structural similarity
         (SSIM) and contour deviation error and print them to the CLI.
         """
@@ -169,14 +169,11 @@ class Controller:
         parser.add_argument("--mm-height", type=float, default=None,
                             help="physical height of the reference image in mm; adds mm units to distances")
         parser.add_argument("--alignment", choices=["auto", "full-frame", "content-crop"], default="auto",
-                            help="pipeline 2 field-of-view handling (default: auto)")
+                            help="field-of-view handling for both pipelines: full-frame = the two images cover the same field, "
+                                 "content-crop = compare the bounding boxes of their content, auto = try both and keep the better fit (default: auto)")
         parser.add_argument("--register", choices=["translation", "rigid", "none"], default="translation",
                             help="align the second image to the reference before measuring: rigid = rotation+"
                                  "translation for pipeline 1 (pipeline 2 uses translation), translation, or none (default: translation)")
-        parser.add_argument("--roi", choices=["auto", "draw", "none"], default="auto",
-                            help="pipeline 1 region of interest: auto = use Image Validation/ROI/<name>.png, opening the "
-                                 "ROI tool first if none exists yet; draw = always open the ROI tool (refine the saved one); "
-                                 "none = compare all structures")
         parser.add_argument("--verbose", "-v", action="store_true", help="print the full diagnostics instead of the compact summary")
         parser.add_argument("--no-save", action="store_true",
                             help="do not write standardized images / heat maps under Image Validation/Standardized/")
@@ -186,7 +183,7 @@ class Controller:
         from validation import run_validation
         return run_validation(args.base_name, pipeline=args.pipeline, mm_height=args.mm_height,
                               save=not args.no_save, register=args.register, alignment=args.alignment,
-                              roi=args.roi, verbose=args.verbose)
+                              verbose=args.verbose)
 
 
     def __del__(self):

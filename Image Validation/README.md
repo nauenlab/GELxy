@@ -16,7 +16,7 @@ Two comparisons ("pipelines") are run for a given base image name:
 
 | Pipeline | Compares | Question answered |
 |---|---|---|
-| 1 `pc12` | pc12 culture image **vs.** the original histology image | Did the cells arrange themselves where the histological structures are? |
+| 1 `pc12` | pc12 culture image **vs.** the image-processed histology layers (the pattern that was printed) | Did the cells arrange themselves where the printed layers are, and which layers do they populate? |
 | 2 `segmentation` | image-processing segmentation **vs.** manual (human) layer segmentation | Does the automatic layer extraction match a human's? |
 
 Both print SSIM and contour deviation (plus Dice / IoU as familiar overlap numbers) and write
@@ -31,7 +31,6 @@ standardized images, overlays and deviation heat maps for visual inspection.
 python Controller.py validate Hippocampus.png            # both pipelines
 python Controller.py validate Cerebellum.png --pipeline pc12
 python Controller.py validate Hippocampus.png --mm-height 10 --verbose
-python Controller.py roi Hippocampus.png                 # draw the pipeline-1 region of interest
 python tests/validation_sanity.py                        # synthetic-ground-truth sanity checks
 ```
 
@@ -44,11 +43,10 @@ also finds `Hippocampus.jpg`:
 
 ```
 Image Validation/
-├── Histology/                      original histology images (reference for pipeline 1)
-├── pc12/                           photographs of the pc12 cultures printed from them
-├── Manual Segmentation/            human-painted layer maps (reference for pipeline 2)
+├── pc12/                           photographs of the pc12 cultures grown on the printed gels
 ├── Image Processing Segmentation/  layer maps produced by Shapes/HistologicalImageProcessing
-├── ROI/                            optional <Stem>.png region-of-interest masks (pipeline 1)
+│                                   (reference for pipeline 1 = the printed pattern; compared in pipeline 2)
+├── Manual Segmentation/            human-painted layer maps (reference for pipeline 2)
 ├── Standardized/<Stem>/            outputs written by every run
 └── validation/                     the python package
 ```
@@ -60,8 +58,7 @@ Image Validation/
 | `--pipeline pc12\|segmentation\|both` | `both` | which comparison(s) to run |
 | `--mm-height H` | off | physical height (mm) of the **original** reference image; adds mm units to every distance (content cropping is accounted for) |
 | `--register translation\|rigid\|none` | `translation` | align the second image to the reference before measuring (see *Registration*) |
-| `--roi auto\|none` | `auto` | pipeline 1: `auto` uses `ROI/<Stem>.png` if it exists, else the histology structures the cells actually reach; `none` compares every structure |
-| `--alignment auto\|full-frame\|content-crop` | `auto` | pipeline 2 field-of-view handling (see *Alignment*) |
+| `--alignment auto\|full-frame\|content-crop` | `auto` | field-of-view handling for both pipelines (see *Alignment*) |
 | `--verbose / -v` | off | full diagnostics instead of the compact summary |
 | `--no-save` | off | do not write anything under `Standardized/` |
 
@@ -69,24 +66,31 @@ Image Validation/
 
 ## Reading the output
 
-### Pipeline 1 (pc12 vs. histology)
+### Pipeline 1 (pc12 vs. image-processed layers)
 
 ```
-inputs        histology Hippocampus.jpg (2880x2048)  |  pc12 Hippocampus.jpg (2000x1538)  |  grid 1024x728 px, 0.01374 mm/px
-settings      registration translation: no shift improved the overlap
-ROI           manual ROI (Hippocampus.png) - excludes 84.76% of tissue region, 94.09% of cell region
-SSIM          0.9580 region masks within ROI, cropped to their bounding box   (0.1170 all structures; intensity SSIM 0.0445, indicative only)
-deviation     mean 10.67 px ( 0.85% of diagonal) = 0.1466 mm   |   max 147.85 px (11.77% of diagonal) = 2.0309 mm
-overlap       Dice 0.865 within ROI   (0.420 whole image)   |   IoU 0.762
+inputs        layers Hippocampus.jpg (493x342, 5 layers)  |  pc12 Hippocampus.jpg (2000x1538)  |  grid 1024x710 px
+settings      alignment full-frame (Dice full-frame 0.339, content-crop 0.339)  |  registration translation: no shift improved the overlap
+SSIM          0.5063 region masks (printed pattern vs cell region, cropped to their bounding box)
+deviation     mean 38.16 px ( 3.06% of diagonal)   |   max 132.84 px (10.66% of diagonal)
+overlap       Dice 0.339   |   IoU 0.204   (pattern 12.65% of grid, cells 28.16% of grid)
+direction     recall 0.546 (pattern covered by cells)   |   precision 0.245 (cells lying on the pattern)   |   ...
+  layer 3 rgb(235, 247, 244)   1.75% of grid   covered by cells  84.17%   share of all cells   5.23%
 ```
 
-* **SSIM** — the headline number is the SSIM of the two *region masks* (tissue region of the
-  histology vs. cell region of the culture), cropped to their common bounding box. Intensity SSIM
-  between an H&E photograph and a phase-contrast culture image is physically meaningless (different
-  modalities, different textures) and is printed only as an indicator.
+* The **reference is the union of the image-processed layers** — everything that was printed —
+  standardized to a label map exactly as in pipeline 2; the pc12 photograph is reduced to a
+  **cell region** (cells detected by local contrast, converted to a density, thresholded).
+* **SSIM** — SSIM of the two region masks (pattern vs. cell region), cropped to their common
+  bounding box. Intensity SSIM between a phase-contrast culture photograph and a rendered label
+  map is meaningless and is not reported.
 * **deviation** — Rogelj distance deviation between the two region contours: *mean* over the union
   of both regions and *max* over the disagreement region (= Hausdorff distance).
-* **overlap** — Dice / IoU of the two regions, within the ROI and for the whole image.
+* **overlap / direction** — Dice / IoU of the two regions; recall = share of the pattern covered by
+  cells, precision = share of the cell region lying on the pattern (a wide beam shows as high
+  recall / low precision).
+* **per-layer lines** — for every printed layer: how much of it is covered by cells and what share
+  of all cells lies on it. This is the line that tells you *which* layers the cells populate.
 
 ### Pipeline 2 (IP vs. manual segmentation)
 
@@ -112,10 +116,10 @@ overlap       mean Dice 0.8282   |   pixel agreement 77.20%   |   spurious 0.00%
 
 | File | Content |
 |---|---|
-| `histology_standardized.png`, `pc12_standardized.png` | the two intensity images after standardization, on the shared grid |
-| `histology_mask.png`, `histology_mask_roi.png`, `pc12_mask.png` | tissue region, ROI-restricted tissue region, cell region |
+| `layers_standardized.png`, `pattern_mask.png` | the image-processed layers on the canonical grid and their union (the printed pattern) |
+| `pc12_standardized.png`, `pc12_mask.png` | the pc12 image after standardization on the layer grid, and the cell region |
 | `pc12_cell_density.png` | cell-density map the cell region was thresholded from |
-| `pc12_region_on_histology.png` | cell region (red) over the histology — check registration here |
+| `pc12_region_on_layers.png` | cell region (white outline / lightened) over the layers — check registration here |
 | `pc12_deviation_heatmap.png` | Rogelj deviation image over the union region (paper's "image representation") |
 | `manual_labels.png`, `ip_labels_remapped.png`, `ip_labels_original_palette.png`, `manual_vs_ip.png` | pipeline-2 label maps |
 | `segmentation_agreement.png` | green agree, red missed, blue spurious, yellow wrong layer |
@@ -131,16 +135,15 @@ overlap       mean Dice 0.8282   |   pixel agreement 77.20%   |   spurious 0.00%
 
 Metrics are only comparable if both inputs are in the same canonical form.
 
-*Intensity images (histology, pc12)* → float32 grayscale in [0, 1], structures **bright on dark**,
+*Intensity images (pc12)* → float32 grayscale in [0, 1], cells **bright on dark**, optionally
 cropped to content, CLAHE-equalised, resized so the longer edge is 1024 px.
-Polarity is chosen automatically: the sparser Otsu class is taken to be the structure of interest
-(cell-dense layers in H&E are the minority; cells in a culture image are the minority), and the
-image is inverted if that class is bright. The **region mask** is derived from a smoothed density
-rather than individual nuclei/cells, because the print reproduces *where tissue is*, not single
-cells. For pc12 images the illumination is flattened and cells are detected by a morphological
-top-hat (local contrast), so faint cells on a light gel are found as reliably as dark ones.
-16-bit microscopy PNGs are percentile-stretched instead of divided by 65535 (they never use their
-nominal range).
+Polarity is chosen automatically: the sparser Otsu class is taken to be the cells, and the image is
+inverted if that class is bright. The illumination is flattened and cells are detected by a
+morphological top-hat (local contrast), so faint cells on a light gel are found as reliably as
+dark ones; the detections are smoothed into a **cell density** and thresholded at
+`Otsu × (1 − CELL_SENSITIVITY)` (0.25 by default, `config.py`) to give the **cell region** — the
+print reproduces *where cells settle*, not single cells. 16-bit microscopy PNGs are
+percentile-stretched instead of divided by 65535 (they never use their nominal range).
 
 *Segmentation renderings (manual, IP)* → a uint8 **label map** (0 = background) plus a colour
 legend. Colours are clustered on a coarse RGB grid to survive JPEG noise and anti-aliasing;
@@ -151,24 +154,19 @@ manual layer into several, IP labels are matched to manual labels **by majority 
 (`layer_matching.py`), with a guard so thin manual structures are not always out-voted by the
 surrounding background.
 
-### 2. Registration and ROI
+### 2. Registration and alignment
 
-Small translations (or, with `--register rigid`, rotations) between the two photographs would
-otherwise be reported as contour error. Translation is estimated by phase correlation of the
-region/boundary maps and — like every alignment step here — **only accepted if it demonstrably
-improves the overlap** (Dice / boundary correlation), so registration can never make the result
-look worse than the raw comparison. `--register none` disables it.
+Small translations (or, with `--register rigid`, rotations) between the two images would otherwise
+be reported as contour error. Translation is estimated by phase correlation of the region /
+boundary maps and — like every alignment step here — **only accepted if it demonstrably improves
+the overlap** (Dice / boundary correlation), so registration can never make the result look worse
+than the raw comparison. `--register none` disables it.
 
-Pipeline 1's histology image usually contains many structures the printed pattern never
-targeted. Comparing the cell region against *all* of them mostly measures how much of the slide
-was not printed. Therefore an ROI restricts the comparison: either a hand-drawn one
-(`Controller.py roi <Stem>` — click detected structures, add/subtract/keep polygons; saved to
-`ROI/<Stem>.png` on the canonical grid) or, automatically, only the structures the cell region
-actually reaches. `--roi none` compares everything.
-
-Pipeline 2 (`--alignment`): the manual and IP images may or may not share the same field of view.
-`auto` evaluates both *full-frame* and *content-crop* (bounding box of the painted content) and
-keeps whichever makes the layer boundaries correlate best.
+`--alignment`: the two images may or may not share the same field of view. `auto` evaluates both
+*full-frame* (same field) and *content-crop* (bounding box of the content) and keeps whichever fits
+best — best Dice of cell region vs. pattern in pipeline 1, best layer-boundary correlation in
+pipeline 2. Residual scale / rotation differences between photographs are **not** corrected and
+show up as deviation; the aspect-ratio warning flags when the two frames clearly differ.
 
 ### 3. SSIM (`validation/metrics.py::ssim_wang`)
 
@@ -219,10 +217,9 @@ image).
 | `validation/standardize.py` | canonical intensity images and label maps |
 | `validation/registration.py` | rigid (rotation + translation) search for pipeline 1 |
 | `validation/layer_matching.py` | pipeline-2 alignment, IP→manual layer mapping, per-layer metrics |
-| `validation/roi.py` | interactive ROI tool and ROI loading |
 | `validation/metrics.py` | `ssim_wang`, `mask_ssim`, `distance_deviation` |
 | `validation/pipelines.py` | the two pipelines, reporting, output files |
 | `tests/validation_sanity.py` | synthetic ground-truth checks (run standalone or with pytest) |
 
-Dependencies: `numpy`, `scipy`, `opencv-python`, `scikit-image`, `Pillow`, `matplotlib`
-(ROI tool only) — all in the repository `requirements.txt`.
+Dependencies: `numpy`, `scipy`, `opencv-python`, `scikit-image`, `Pillow` — all in the repository
+`requirements.txt`.
