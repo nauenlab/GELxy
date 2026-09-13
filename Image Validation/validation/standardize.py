@@ -291,16 +291,27 @@ def _fill_unknown(labels, unknown):
 
 
 def _absorb_small_islands(labels, min_pixels):
-    """Mark connected components smaller than min_pixels as unknown and fill them."""
+    """
+    Dissolve tiny connected components (anti-aliasing debris) into their surroundings.
+
+    Only layer islands that are NOT bordered by background are absorbed: an isolated
+    blob sitting on the background is genuine content and must survive, however small.
+    Background islands enclosed inside a layer are absorbed into that layer.
+    """
     unknown = np.zeros(labels.shape, dtype=bool)
     for label in np.unique(labels):
-        components, count = ndimage.label(labels == label)
+        mask = labels == label
+        components, count = ndimage.label(mask)
         if count == 0:
             continue
         sizes = ndimage.sum(np.ones_like(components), components, index=np.arange(1, count + 1))
         small = np.where(sizes < min_pixels)[0] + 1
-        if small.size:
-            unknown |= np.isin(components, small)
+        for component in small:
+            piece = components == component
+            ring = ndimage.binary_dilation(piece) & ~piece
+            if label != 0 and (labels[ring] == 0).any():
+                continue  # touches background: real content, keep it
+            unknown |= piece
     return _fill_unknown(labels, unknown), int(unknown.sum())
 
 
@@ -316,11 +327,12 @@ def standardize_labels(rgb):
         k for k in range(len(palette))
         if spread[k] < config.ACHROMATIC_SPREAD and counts[k] / total >= config.BACKGROUND_MIN_FRACTION
     ]
-    # Minor achromatic clusters are drawn outline strokes only if they are thin;
-    # thick grey/white regions are genuine layers.
+    # Thin clusters are outline strokes or anti-aliasing transition halos (dark rims
+    # around blobs, edge lines), not layers - regardless of their hue. Absorbing them
+    # into their neighbours also re-connects layers that such lines would otherwise cut.
     outline_clusters = [
         k for k in range(len(palette))
-        if spread[k] < config.ACHROMATIC_SPREAD and k not in background_clusters
+        if k not in background_clusters
         and _stroke_thickness(assignment == k) <= config.OUTLINE_MAX_THICKNESS_PX
     ]
     layer_clusters = [k for k in range(len(palette)) if k not in background_clusters and k not in outline_clusters]

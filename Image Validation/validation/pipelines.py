@@ -431,6 +431,18 @@ def run_segmentation_pipeline(base_name, mm_height=None, save=True, register="tr
         side_by_side = np.concatenate([result.manual_render, result.ip_render], axis=1)
         _save_png(out / "manual_vs_ip.png", side_by_side)
         _save_png(out / "segmentation_agreement.png", _agreement_map(result.manual_labels, result.ip_remapped))
+        both_off = (result.manual_labels == 0) & (result.ip_remapped == 0)
+        agree = (result.manual_labels == result.ip_remapped) & ~both_off
+        # Dimmed manual render; pixels where both segmentations carry the SAME layer are
+        # lightened (translucent gray) and outlined - the analogue of pc12_region_on_layers.
+        gray_overlay = (result.manual_render * 0.45).astype(np.uint8)
+        gray_overlay[agree] = (0.55 * gray_overlay[agree] + 0.45 * np.array([255, 255, 255])).astype(np.uint8)
+        _save_png(out / "segmentation_agreement_gray_overlay.png",
+                  _contour_overlay(gray_overlay, agree.astype(np.uint8), color=(255, 255, 255)))
+        standardized = np.full(result.grid_shape + (3,), 30, dtype=np.uint8)
+        standardized[agree] = (0, 200, 0)  # overlap: same layer in both
+        standardized[~agree & ~both_off] = (230, 0, 0)  # any disagreement, whichever side caused it
+        _save_png(out / "segmentation_agreement_standardized_colors.png", standardized)
         _save_png(out / "segmentation_contours.png", _contour_overlay(result.ip_render, result.manual_labels))
         detail("overlays: segmentation_agreement.png (green = agree, red = manual layer missed by IP, "
               "blue = IP layer where manual has background, yellow = different layer), "

@@ -45,7 +45,7 @@ PALETTE_QUANT_LEVELS = 8
 # Colors closer than this (euclidean RGB distance) are merged into one palette entry.
 PALETTE_MERGE_RADIUS = 60.0
 # Palette candidates must cover at least this fraction of pixels before merging.
-PALETTE_MIN_FRACTION = 0.002
+PALETTE_MIN_FRACTION = 0.0005
 # A color is "achromatic" (grey/black/white) if its channel spread is below this.
 ACHROMATIC_SPREAD = 40
 # Achromatic clusters covering at least this fraction of the image are background.
@@ -53,8 +53,10 @@ BACKGROUND_MIN_FRACTION = 0.10
 # Minor achromatic clusters are outline strokes (absorbed into neighbours) only when
 # they are thin: 95th-percentile stroke thickness at native resolution <= this many px.
 OUTLINE_MAX_THICKNESS_PX = 4.0
-# Connected components smaller than this fraction of the image are absorbed into neighbours.
-MIN_ISLAND_FRACTION = 0.0005
+# Connected components smaller than this fraction of the image are absorbed into the
+# surrounding layer. Kept at anti-aliasing scale: isolated content blobs are real (they
+# get printed) and must survive standardization.
+MIN_ISLAND_FRACTION = 0.00003
 
 # --- Layer mapping (pipeline 2) ---
 # An IP layer whose majority lies on the manual background is still assigned to a
