@@ -18,7 +18,7 @@ from . import config
 from .layer_matching import compare_segmentations, estimate_translation, translate_labels
 from .registration import apply_rigid, estimate_rigid
 from .loading import load_gray_float, load_rgb_uint8, resolve_image, standardized_dir, stem_of
-from .metrics import distance_deviation, mask_ssim, ssim_wang
+from .metrics import boundary_deviation, distance_deviation, label_boundaries, mask_ssim, ssim_wang
 from .standardize import render_labels, resize_to, standardize_intensity, standardize_labels
 
 PIPELINES = ("pc12", "segmentation")
@@ -95,6 +95,16 @@ def _save_heatmap(path, deviation_image, union_mask):
     colored[~union_mask] = 0
     path.parent.mkdir(parents=True, exist_ok=True)
     cv2.imwrite(str(path), colored)
+
+
+def _area_weighted(layers, value):
+    """Average of value(layer) weighted by each layer's manual area fraction."""
+    if not layers:
+        return float("nan")
+    weights = np.array([l.manual_fraction for l in layers], dtype=float)
+    if weights.sum() == 0:
+        return float("nan")
+    return float(np.sum(weights / weights.sum() * np.array([value(l) for l in layers])))
 
 
 def _dice(mask_a, mask_b):
@@ -377,8 +387,17 @@ def run_segmentation_pipeline(base_name, mm_height=None, save=True, register="tr
     detail(f"Area-weighted mean deviation over layers: {units.fmt(result.weighted_mean_deviation)}")
     detail(f"Area-weighted max deviation over layers:  {units.fmt(result.weighted_max_deviation)}")
 
-    layer_ssims = [layer.ssim for layer in result.layers if not math.isnan(layer.ssim)]
-    layer_mean_ssim = float(np.mean(layer_ssims)) if layer_ssims else float("nan")
+    # Combined-layer view: the printer does not discriminate between layers, so the primary
+    # comparison is everything-the-IP-segmented vs everything-the-human-marked.
+    manual_union = result.manual_labels != 0
+    ip_union = result.ip_aligned != 0
+    union_dev = distance_deviation(manual_union, ip_union, keep_image=save)
+    union_ssim = mask_ssim(manual_union, ip_union)
+
+    ssim_layers = [l for l in result.layers if not math.isnan(l.ssim)]
+    layer_mean_ssim = float(np.mean([l.ssim for l in ssim_layers])) if ssim_layers else float("nan")
+    dice_layers = [l for l in result.layers if not math.isnan(l.deviation.dice)]
+    layer_mean_dice = float(np.mean([l.deviation.dice for l in dice_layers])) if dice_layers else float("nan")
     detail()
     reg_note = ("disabled" if register == "none" else
                 (f"shifted ({result.shift[0]:+.0f}, {result.shift[1]:+.0f}) px" if result.shift != (0.0, 0.0)
@@ -395,24 +414,30 @@ def run_segmentation_pipeline(base_name, mm_height=None, save=True, register="tr
     if result.unmatched_manual:
         print("              manual layers with NO IP counterpart: "
               + ", ".join(f"{l} rgb{manual.legend[l]['rgb']}" for l in result.unmatched_manual))
-    print(f"SSIM          {_score(layer_mean_ssim)} layer-mean mask SSIM (each layer cropped to its bounding box)   "
-          f"({_score(result.composite_ssim)} composite, whole image)")
-    print(f"deviation     mean {units.fmt(result.weighted_mean_deviation).strip()}   |   "
-          f"max {units.fmt(result.weighted_max_deviation).strip()}   (area-weighted over manual layers)")
+    print(f"SSIM          {_score(union_ssim)} combined-layer mask SSIM (all layers as one region)   "
+          f"(composite {_score(result.composite_ssim)}, whole image)")
+    # Deviation between the two segmentation images themselves: every color/label
+    # transition in each image is a drawn boundary, and we measure how far the two
+    # boundary drawings are from each other (label-agnostic; defined for fully
+    # painted images too).
+    bdev = boundary_deviation(result.manual_labels, result.ip_aligned)
+    if bdev.valid:
+        print(f"deviation     mean {units.fmt(bdev.mean_symmetric).strip()}   |   "
+              f"max {units.fmt(bdev.hausdorff).strip()}   (between the two segmentations' boundaries)")
+    else:
+        print(f"deviation     n/a ({bdev.reason})")
     # Layers the IP missed entirely count as Dice 0 (consistent with mean IoU); only
     # layers empty on both sides (nothing to compare) are left out.
-    dice_values = [l.deviation.dice for l in result.layers if not math.isnan(l.deviation.dice)]
-    print(f"overlap       mean Dice {_score(float(np.mean(dice_values)) if dice_values else float('nan'))}   |   "
-          f"pixel agreement {_pct(result.pixel_accuracy)}   |   spurious {_pct(result.spurious_ip_fraction)}   |   "
+    print(f"overlap       Dice {union_dev.dice:.4f} combined{'' if union_dev.valid else ' (trivial: fully painted)'}   |   IoU {union_dev.iou:.4f}   |   "
+          f"pixel agreement {_pct(result.pixel_accuracy)} (same layer)   |   spurious {_pct(result.spurious_ip_fraction)}   |   "
           f"missed {_pct(result.unassigned_ip_fraction)}")
-    valid_layers = [l for l in result.layers if l.deviation.valid]
-    if valid_layers:
-        weights = np.array([l.manual_fraction for l in valid_layers])
-        weights = weights / weights.sum() if weights.sum() else weights
-        w_recall = float(np.sum(weights * [l.deviation.recall for l in valid_layers]))
-        w_precision = float(np.sum(weights * [l.deviation.precision for l in valid_layers]))
-        print(f"direction     recall {w_recall:.3f} (manual layers covered by IP)   |   "
-              f"precision {w_precision:.3f} (IP layer area lying on the matching manual layer)   (area-weighted)")
+    if union_dev.valid:
+        print(f"direction     recall {union_dev.recall:.3f} (manual area covered by IP)   |   "
+              f"precision {union_dev.precision:.3f} (IP area lying on manual layers)   (all layers combined)")
+    if manual_union.mean() > 0.97 or ip_union.mean() > 0.97:
+        print("NOTE          one or both segmentations are (nearly) fully painted, so the combined view is trivial -")
+        print("              layer identity is the only content here; use the per-layer numbers below.")
+    print(f"per layer     mean Dice {_score(layer_mean_dice)}   |   mean mask SSIM {_score(layer_mean_ssim)}   (unweighted; identity-aware diagnostic)")
     for layer in result.layers:
         d = layer.deviation
         ip_text = ",".join(str(l) for l in layer.ip_labels) if layer.ip_labels else "none"
@@ -447,6 +472,13 @@ def run_segmentation_pipeline(base_name, mm_height=None, save=True, register="tr
         detail("overlays: segmentation_agreement.png (green = agree, red = manual layer missed by IP, "
               "blue = IP layer where manual has background, yellow = different layer), "
               "segmentation_contours.png (IP result in manual palette with manual layer boundaries in white)")
+        boundary_vis = np.full(result.grid_shape + (3,), 30, dtype=np.uint8)
+        eb_m = label_boundaries(result.manual_labels)
+        eb_i = label_boundaries(result.ip_aligned)
+        boundary_vis[eb_m] = (255, 60, 60)   # manual boundaries red
+        boundary_vis[eb_i] = (60, 140, 255)  # IP boundaries blue
+        boundary_vis[eb_m & eb_i] = (255, 255, 255)  # coincident pixels white
+        _save_png(out / "segmentation_boundaries.png", boundary_vis)
         for layer in result.layers:
             if layer.deviation.valid:
                 manual_mask = result.manual_labels == layer.manual_label

@@ -19,7 +19,7 @@ sys.path.insert(0, os.path.join(REPO_ROOT, "Image Validation"))
 from validation import config  # noqa: E402
 from validation.layer_matching import compare_segmentations  # noqa: E402
 from validation.loading import load_gray_float  # noqa: E402
-from validation.metrics import distance_deviation, mask_ssim, ssim_wang, wang_downsample_factor  # noqa: E402
+from validation.metrics import boundary_deviation, distance_deviation, mask_ssim, ssim_wang, wang_downsample_factor  # noqa: E402
 from validation.pipelines import Units  # noqa: E402
 from validation.standardize import standardize_intensity, standardize_labels  # noqa: E402
 
@@ -97,6 +97,31 @@ def test_units_account_for_content_crop():
     units = Units((1000, 1000), mm_height=10.0, height_fraction=0.5)
     assert abs(units.mm_per_px - 0.005) < 1e-12
     assert Units((1000, 1000)).mm_per_px is None
+
+
+def test_boundary_deviation_measures_known_offset():
+    # Two fully painted two-label images whose single internal boundary differs by 10 px.
+    a = np.ones((200, 200), dtype=np.uint8); a[:, 100:] = 2
+    b = np.ones((200, 200), dtype=np.uint8); b[:, 110:] = 2
+    dev = boundary_deviation(a, b)
+    assert dev.valid
+    assert abs(dev.mean_symmetric - 10.0) < 0.1, dev.mean_symmetric
+    assert abs(dev.hausdorff - 10.0) < 0.1, dev.hausdorff
+    # Identical geometry with swapped labels deviates by zero: label identity is irrelevant.
+    swapped = np.where(a == 1, 2, 1).astype(np.uint8)
+    same = boundary_deviation(a, swapped)
+    assert same.valid and same.mean_symmetric == 0.0 and same.hausdorff == 0.0
+
+
+def test_full_frame_mask_has_no_deviation():
+    import numpy as np
+    full = np.ones((60, 80), dtype=bool)
+    partial = _square((60, 80), 10, 50, 10, 70)
+    dev = distance_deviation(full, partial)
+    assert not dev.valid and "fills the whole frame" in dev.reason
+    # Overlap ratios are still well-defined and returned.
+    assert abs(dev.recall - partial.mean()) < 1e-9
+    assert abs(dev.precision - 1.0) < 1e-9
 
 
 def test_empty_masks_are_reported_not_crashed():

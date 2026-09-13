@@ -117,6 +117,20 @@ def distance_deviation(mask_a, mask_b, keep_image=False):
     area_a, area_b = int(a.sum()), int(b.sum())
     if area_a == 0 and area_b == 0:
         return DistanceDeviation(valid=False, reason="both regions are empty")
+    if area_a == a.size or area_b == b.size:
+        # A region that fills the whole frame has no contour; its distance
+        # transform is undefined, so no deviation can be measured.
+        inter = int((a & b).sum())
+        return DistanceDeviation(
+            valid=False,
+            reason="region fills the whole frame (no contour to measure against)",
+            area_a=area_a,
+            area_b=area_b,
+            dice=2.0 * inter / (area_a + area_b),
+            iou=inter / int((a | b).sum()),
+            recall=inter / area_a,
+            precision=inter / area_b,
+        )
     if area_a == 0 or area_b == 0:
         return DistanceDeviation(
             valid=False,
@@ -152,6 +166,60 @@ def distance_deviation(mask_a, mask_b, keep_image=False):
         deviation_image=dd if keep_image else None,
     )
     return result
+
+
+@dataclass
+class BoundaryDeviation:
+    """Deviation between two segmentations' boundary sets (label-agnostic, px)."""
+
+    valid: bool
+    reason: str = ""
+    mean_symmetric: float = float("nan")  # mean symmetric surface distance (ASSD)
+    hausdorff: float = float("nan")  # max over both directed distances
+    mean_a_to_b: float = float("nan")  # mean distance from a's boundary to b's
+    mean_b_to_a: float = float("nan")
+    boundary_px_a: int = 0
+    boundary_px_b: int = 0
+
+
+def label_boundaries(labels):
+    """Boolean map of every label transition (including layer/background) in a label image."""
+    edges = np.zeros(labels.shape, dtype=bool)
+    edges[:, 1:] |= labels[:, 1:] != labels[:, :-1]
+    edges[1:, :] |= labels[1:, :] != labels[:-1, :]
+    return edges
+
+
+def boundary_deviation(labels_a, labels_b):
+    """
+    Deviation between the boundary drawings of two label images of equal shape.
+
+    Every color/label transition in each image is treated as a drawn line; the
+    measure is how far the two sets of lines are from each other, regardless of
+    which layers they separate: the mean symmetric surface distance and the
+    (symmetric) Hausdorff distance between the two boundary sets.
+    """
+    if labels_a.shape != labels_b.shape:
+        raise ValueError(f"Label maps must share a shape, got {labels_a.shape} vs {labels_b.shape}")
+    edges_a = label_boundaries(labels_a)
+    edges_b = label_boundaries(labels_b)
+    n_a, n_b = int(edges_a.sum()), int(edges_b.sum())
+    if n_a == 0 or n_b == 0:
+        return BoundaryDeviation(valid=False, reason="a segmentation has no boundaries at all",
+                                 boundary_px_a=n_a, boundary_px_b=n_b)
+    dist_to_a = ndimage.distance_transform_edt(~edges_a)
+    dist_to_b = ndimage.distance_transform_edt(~edges_b)
+    a_to_b = dist_to_b[edges_a]
+    b_to_a = dist_to_a[edges_b]
+    return BoundaryDeviation(
+        valid=True,
+        mean_symmetric=float((a_to_b.sum() + b_to_a.sum()) / (n_a + n_b)),
+        hausdorff=float(max(a_to_b.max(), b_to_a.max())),
+        mean_a_to_b=float(a_to_b.mean()),
+        mean_b_to_a=float(b_to_a.mean()),
+        boundary_px_a=n_a,
+        boundary_px_b=n_b,
+    )
 
 
 def mask_ssim(mask_a, mask_b, crop=True):
